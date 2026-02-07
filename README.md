@@ -1,169 +1,188 @@
-# PHYSICAL PING — pTCP v0.9 IPC
+# PHYSICAL PING — pTCP v1.0 Full Phase-Law Architecture
 
-**Information Physical Connector · Spatial Mapping + BLE Mesh**
+**pTCP/IP for Physical Space · 11D Mediation · P2P Network · Phase-Law Engine**
 
-スマートフォンのセンサー群を統合し、物理空間の「情報接続性」をリアルタイムで定量化する実験的Webアプリケーション。音響ソナー＋電磁波＋RFスペクトラム＋NFC＋熱推定＋**WebXR Spatial Mapping＋BLE Mesh**による9次元空間プローブと、その統合指標である **Mediation Coefficient μ(x,t)** を算出する。
-
-物理空間のための TCP/IP
+物理空間のための TCP/IP 完全実装。11次元センシング＋P2Pデバイスメッシュ＋Phase-Law Engineによる情報物理結合アーキテクチャ。
 
 ---
 
-## v0.9 新機能
+## v1.0 新機能
 
-### Spatial Mapping (WebXR / ARCore / ARKit)
+### pTCP/IP Protocol Engine
 
-WebXR Device API (`immersive-ar`) による空間マッピング。WebXR非対応環境ではルームジオメトリのリアルタイムシミュレーションで動作。
+物理空間における情報伝送プロトコルの完全実装。TCP/IPのハンドシェイク・パケット構造・フロー制御を物理空間に適用。
 
-| 機能 | API | 説明 |
+**パケットフォーマット:**
+```
+┌──────┬──────┬──────┬──────┬──────┐
+│ VER  │ TYPE │ SEQ  │ SRC  │ DST  │
+├──────┼──────┼──────┼──────┤      │
+│ TS   │ TTL  │ CKSM │ PAYLOAD...  │
+└──────┴──────┴──────┴─────────────┘
+```
+
+**パケットタイプ:**
+
+| Type | Code | 説明 |
 |---|---|---|
-| 平面検出 | `plane-detection` | 床・天井・壁・テーブルの自動検出＋面積算出 |
-| 深度センシング | `depth-sensing` | 深度バッファからポイントクラウド生成 |
-| 空間アンカー | `anchors` | 永続的な参照点の配置と追跡 |
-| メッシュ検出 | `mesh-detection` | 空間メッシュの頂点・三角形カウント |
-| ヒットテスト | `hit-test` | レイキャストによる空間内のインタラクション |
+| SYN | 0x01 | 接続要求 |
+| SYN_ACK | 0x02 | 接続応答 |
+| ACK | 0x03 | 確認応答 |
+| PING | 0x10 | ネットワークping |
+| PONG | 0x11 | ping応答 |
+| SENSOR_DATA | 0x20 | センサーデータ共有 |
+| SPATIAL_SHARE | 0x21 | 空間データ共有 |
+| ANCHOR_SHARE | 0x22 | 空間アンカー共有 |
+| MEDIATION_BROADCAST | 0x30 | Mediation Coefficient ブロードキャスト |
+| PROFILE_SYNC | 0x31 | 空間プロファイル同期 |
+| PHASE_LAW_UPDATE | 0x40 | Phase-Law更新 |
+| HEARTBEAT | 0x50 | 生存確認 |
+| DISCONNECT | 0xFF | 切断 |
 
-表示機能:
-- **3Dポイントクラウド**: アイソメトリック投影＋自動回転による点群＋平面のリアルタイム可視化
-- **平面リスト**: orientation別分類（FLOOR/TABLE, CEILING, WALL）＋面積＋頂点数
-- **アンカー管理**: 空間アンカーの配置＋座標表示
-- **統計ダッシュボード**: 平面数、ポイント数、総面積、メッシュ頂点/三角形数、FPS
-- **スキャンログ**: 時系列の空間マッピング進捗
+**トランスポート:**
+- BroadcastChannel API（同一オリジン・リアルタイム・複数タブ間通信）
+- シミュレーションピア（2-4台の仮想デバイス自動生成）
+- 5秒間隔のHEARTBEAT＋Mediation共有
 
-シミュレーションモード:
-- ルームジオメトリ（3-7m × 3-7m × 2.4-3.2m）の自動生成
-- 家具表面（テーブル、棚）のランダム配置
-- 表面近傍にクラスタリングされたポイントクラウド（800-1400点）
-- 2秒間隔のリアルタイムパーターベーション＋新表面検出
+### Phase-Law Engine (Φ)
 
-### BLE Mesh Network
+情報空間と物理空間の結合を記述する8つの法則体系。各法則がリアルタイムセンサーデータに基づいて評価される。
 
-Web Bluetooth API / BLE Scanning API でBLEデバイスをスキャンし、RSSI距離推定とメッシュトポロジーを可視化する。
+| ID | 法則名 | 評価次元 | 説明 |
+|---|---|---|---|
+| PL-001 | Acoustic Impedance Matching | acoustic | 音響インピーダンス整合則 |
+| PL-002 | EM Field Continuity | emField | 電磁場連続則 |
+| PL-003 | Photonic Channel Theorem | photonic | 光子チャネル定理 |
+| PL-004 | Kinetic Stability Principle | kinetic | 運動安定性原理 |
+| PL-005 | RF Spectral Density Law | rfDensity | RF帯域占有則 |
+| PL-006 | Spatial Completeness Axiom | spatial | 空間完備性公理 |
+| PL-007 | Mesh Connectivity Theorem | bleMesh | メッシュ接続定理 |
+| PL-008 | Information-Physical Coupling | composite | 情報物理結合原理（主定理） |
 
-| 機能 | 説明 |
-|---|---|
-| デバイス検出 | BLEアドバタイズメントの受動的モニタリング |
-| RSSI距離推定 | `d = 10^((txPower - RSSI) / (10×n))`, n=2 |
-| メッシュトポロジー | RSSI近接度に基づく仮想メッシュリンク生成 |
-| 動的更新 | デバイスの出現・消失・RSSI変動をリアルタイム追跡 |
+各法則は `COUPLED` / `PARTIAL` / `DECOUPLED` のいずれかの状態に評価される。
 
-表示機能:
-- **メッシュトポロジーキャンバス**: 円形配置のノード＋リンク可視化（RSSI強度で中心/外周配置）
-- **デバイスリスト**: 名前、RSSI、推定距離、RSSIバーグラフ
-- **統計**: 検出デバイス数、平均RSSI、リンク数、メッシュ密度
+### Multi-Device P2P Network
 
-シミュレーション:
-- 4-12台のBLEデバイス（iPhone, Galaxy, AirPods, IoTセンサー等）
-- RSSI: -45〜-95 dBm範囲でランダムウォーク
-- 3秒間隔でデバイス出現/消失＋RSSI変動
+- **BroadcastChannel**: 同一オリジンの複数タブ/ウィンドウ間でリアルタイム通信
+- **デバイス発見**: SYN/SYN-ACK/ACKハンドシェイクによる自動発見
+- **Mediation共有**: 各デバイスが自身のμ(x,t)をネットワークにブロードキャスト
+- **空間アンカー共有**: SPATIALタブで配置したアンカーをピアに送信
+- **トポロジー可視化**: デバイスメッシュのリアルタイムグラフ描画
+- **Protocol Monitor**: 全pTCPパケットのリアルタイムインスペクション
 
 ---
 
-## Mediation Coefficient v0.9 — 9次元
+## Mediation Coefficient v1.0 — 11次元
 
 ```
 μ(x,t) = Σ wᵢ · dᵢ(x,t)
 
-where dᵢ ∈ {acoustic, emField, photonic, kinetic, rfDensity, nfcField, thermal, spatial, bleMesh}
+where dᵢ ∈ {acoustic, emField, photonic, kinetic, rfDensity, nfcField,
+             thermal, spatial, bleMesh, network, collaborative}
 
 weights:
-  acoustic   = 0.20  (音響反射率)
-  emField    = 0.10  (電磁場密度)
-  photonic   = 0.08  (光環境)
-  kinetic    = 0.10  (運動安定性)
-  rfDensity  = 0.12  (RF帯域占有率)
-  nfcField   = 0.08  (NFC近接場強度)
-  thermal    = 0.07  (熱環境安定性)
-  spatial    = 0.15  (空間マッピング網羅度)    ← NEW
-  bleMesh    = 0.10  (BLEメッシュ密度)         ← NEW
+  acoustic      = 0.15
+  emField       = 0.08
+  photonic      = 0.06
+  kinetic       = 0.08
+  rfDensity     = 0.10
+  nfcField      = 0.05
+  thermal       = 0.05
+  spatial       = 0.12
+  bleMesh       = 0.08
+  network       = 0.13  ← NEW: P2P接続性
+  collaborative = 0.10  ← NEW: 協調計測カバレッジ
 ```
 
-### Spatial 次元の算出
-
+### Network 次元
 ```
-spatial = planeScore × 0.4 + areaScore × 0.3 + pointScore × 0.3
-
-planeScore = min(1, planeCount / 10)
-areaScore  = min(1, totalArea / 50)
-pointScore = min(1, pointCloud.length / 500)
+network = peerScore × 0.6 + trafficScore × 0.4
+peerScore = min(1, connectedPeers / 5)
+trafficScore = min(1, receivedPackets / 50)
 ```
 
-### BLE Mesh 次元の算出
-
+### Collaborative 次元
 ```
-bleMesh = deviceScore × 0.6 + meshDensity × 0.4
-
-deviceScore = min(1, totalDevices / 10)
-meshDensity = actualLinks / maxPossibleLinks
+collaborative = avg(peer.mediation for peer in connectedPeers)
 ```
 
 ---
 
-## プロトコルスタック v0.9
+## pTCP/IP Protocol Stack v1.0
 
 ```
-L6  SPACE PROFILE       空間分類・行動推奨・環境適応
-L5  MEDIATION            μ(x,t) 9次元情報物理結合係数
-L4  SENSOR FUSION        音響+EM+光+慣性+RF+NFC+熱+空間+BLE 統合
-L3  ACOUSTIC SONAR       チャープ・相互相関
-L3  EM FIELD             磁力計・環境光・加速度
-L3  RF SPECTRUM          WebUSB SDR・周波数解析
-L3  NFC FIELD            近接場検出・タグ読取
-L3  THERMAL              CPU負荷・バッテリー・推定温度
-L3  SPATIAL              WebXR 平面検出・深度・ポイントクラウド    ← NEW
-L3  BLE MESH             Web Bluetooth・RSSI距離推定・メッシュ     ← NEW
-L2  DEVICE HARDWARE      マイク・スピーカー・センサー・USB・NFC・AR
-L1  PHYSICAL MEDIUM      音波・電磁波・光・慣性力・近接場・空間形状
+L9  APPLICATION         空間プロファイル・協調マッピング・環境適応
+L8  pIP NETWORK         物理空間アドレッシング・ルーティング
+L7  pTCP TRANSPORT      信頼性パケット配送・フロー制御
+L6  PHASE-LAW ENGINE    情報物理結合則の評価・適用
+L5  MEDIATION           μ(x,t) 11次元情報物理結合係数
+L4  SENSOR FUSION       全11チャネル統合
+L3  SONAR               チャープ・相互相関
+L3  EM FIELD            磁力計・環境光・加速度
+L3  RF SPECTRUM         スペクトラム解析
+L3  NFC FIELD           近接場検出
+L3  THERMAL             温度推定
+L3  SPATIAL             平面検出・ポイントクラウド
+L3  BLE MESH            RSSI距離推定・メッシュ
+L3  NETWORK             P2Pデバイスメッシュ
+L3  COLLABORATIVE       協調計測
+L2  DEVICE HARDWARE     マイク・スピーカー・センサー
+L1  PHYSICAL MEDIUM     音波・電磁波・光・慣性・空間形状
 ```
 
 ---
 
-## ブラウザ互換性 v0.9
+## タブ構成（11タブ）
 
-| 機能 | Chrome (Android) | Safari (iOS) | Chrome (Desktop) | Firefox |
-|---|---|---|---|---|
-| Sonar | ✔ | ✔ | ✔ | ✔ |
-| Magnetometer | ✔ (Sensor) | ✔ (Orientation) | — | ✔ |
-| Ambient Light | ✔ (Sensor) | ✔ (Camera) | — | — |
-| Motion | ✔ | ✔ (許可必要) | — | ✔ |
-| RF Spectrum | ✔ (WebUSB) | ✘ (Sim) | ✔ (WebUSB) | ✘ (Sim) |
-| NFC | ✔ (Web NFC) | ✘ (Sim) | ✘ (Sim) | ✘ (Sim) |
-| Thermal | ✔ | ✔ (部分的) | ✔ | ✔ |
-| **Spatial (WebXR)** | **✔ (ARCore)** | **✘ (Sim)** | **✘ (Sim)** | **✘ (Sim)** |
-| **BLE Mesh** | **✔ (BT Scan)** | **✘ (Sim)** | **✔ (部分的)** | **✘ (Sim)** |
-
-### WebXR 要件
-
-- Chrome 79+ (Android, ARCore対応デバイス)
-- HTTPS環境必須
-- Features: `immersive-ar`, `plane-detection`, `hit-test`, `anchors`, `depth-sensing`
-- シミュレーション: 全環境で自動フォールバック
-
-### Web Bluetooth 要件
-
-- Chrome 56+ (Android推奨)
-- `requestLEScan()` (実験的) or `requestDevice()` (制限的)
-- HTTPS環境必須
+| タブ | アイコン | 機能 |
+|---|---|---|
+| SONAR | ◎ | 音響ソナー（6信号タイプ・NCC・RTT） |
+| EM | ⚡ | 磁力計・環境光・加速度・位置情報 |
+| RF | 〜 | RFスペクトラム解析（5バンド） |
+| NFC/TH | ◇ | NFC近接場＋熱推定 |
+| SPATIAL | △ | WebXR空間マッピング（3Dポイントクラウド） |
+| BLE | ◌ | BLEメッシュ（RSSI距離推定） |
+| **NET** | **⬡** | **pTCP/IPネットワーク・ピア発見・トポロジー** |
+| **PROTO** | **⟐** | **プロトコルモニター・パケットインスペクション** |
+| **PHASE** | **Φ** | **Phase-Law Engine・8法則リアルタイム評価** |
+| MED | ◈ | 11次元Mediation Coefficient |
+| PROFILE | ◉ | 空間プロファイル＋プロトコルスタック |
 
 ---
 
-## 技術仕様 v0.9
+## 使い方
+
+```bash
+# HTTPS推奨（センサーAPI要件）
+npx serve . --ssl
+
+# localhost は http でも動作
+python3 -m http.server 8000
+```
+
+### マルチデバイス同期
+
+1. 複数のブラウザタブで `index.html` を開く
+2. 各タブの **NET** タブで「CONNECT NETWORK」
+3. BroadcastChannel経由で自動的に相互発見
+4. 各デバイスのMediation Coefficientがリアルタイム共有
+5. **PROTO** タブでパケットフローを監視
+
+---
+
+## 技術仕様
 
 | 項目 | 値 |
 |---|---|
-| サンプルレート (Sonar) | 44,100 Hz |
+| サンプルレート | 44,100 Hz |
 | リスニング窓 | 500 ms |
-| ブランキング | 8 ms |
-| 相関方式 | 正規化相互相関（NCC） |
-| EM スキャン間隔 | 2,000 ms |
-| RF スペクトラム bins | 256 |
-| RF スキャン間隔 | 500 ms |
-| NFC スキャンモード | 連続 / 2s間隔 (Sim) |
-| 熱推定間隔 | 3,000 ms |
-| **空間スキャン間隔** | **2,000 ms (Sim) / フレームレート (XR)** |
-| **ポイントクラウド** | **800-1400 点 (Sim) / 深度バッファ依存 (XR)** |
-| **BLE スキャン間隔** | **3,000 ms (Sim) / イベント駆動 (BT)** |
-| **Mediation 次元数** | **9** |
-| 履歴保持 | Sonar:64 / EM:32 / RF:32 / NFC:16 / Thermal:64 / Spatial:32 |
+| 相関方式 | NCC |
+| Mediation 次元数 | **11** |
+| Phase-Law 数 | **8** |
+| パケットタイプ数 | **12** |
+| ネットワーク方式 | BroadcastChannel + Simulation |
+| HEARTBEAT間隔 | 5,000 ms |
+| Mediation共有間隔 | 5,000 ms |
 
 ### 依存関係
 
@@ -173,33 +192,10 @@ L1  PHYSICAL MEDIUM      音波・電磁波・光・慣性力・近接場・空�
 
 ---
 
-## 使い方
-
-```bash
-# HTTPS必須
-npx serve . --ssl
-
-# localhost は例外的に http でも動作
-python3 -m http.server 8000
-```
-
-### 各レイヤーの操作
-
-1. **SONAR** — 信号選択 → PING / CONT で音響プローブ
-2. **EM** — iOS許可 → 磁力計・光・加速度リアルタイム監視
-3. **RF** — バンド選択 → SCAN でスペクトラム解析
-4. **NFC/TH** — NFC SCAN + Thermal MONITOR
-5. **SPATIAL** — START AR SESSION / START SIMULATION → 3Dポイントクラウド + 平面検出
-6. **BLE** — START BLE SCAN → メッシュトポロジー + RSSI距離推定
-7. **MED** — 9次元リングゲージ + レーダーチャート
-8. **PROFILE** — 空間分類タグ + プロトコルスタック
-
----
-
 ## ファイル構成
 
 ```
-index.html    ← 全機能を含む単一ファイル（~2,200行）
+index.html    ← 全機能を含む単一ファイル
 README.md     ← このファイル
 ```
 
@@ -207,4 +203,15 @@ README.md     ← このファイル
 
 ---
 
-*pTCP v0.9 IPC | Spatial Mapping + BLE Mesh + 9D Mediation | Phase-Law Architecture*
+## バージョン履歴
+
+| Ver | 機能 |
+|---|---|
+| v0.6 | Acoustic Sonar + Magnetometer + AmbientLight + Accelerometer + 4D Mediation |
+| v0.8 | + RF Spectrum + NFC + Thermal + 7D Mediation |
+| v0.9 | + WebXR Spatial Mapping + BLE Mesh + 9D Mediation |
+| **v1.0** | **+ pTCP/IP Protocol + P2P Network + Phase-Law Engine + 11D Mediation** |
+
+---
+
+*pTCP v1.0 | Full Phase-Law Architecture | 11D Mediation + P2P Network + Phase-Law Engine | pTCP/IP for Physical Space*
