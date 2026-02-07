@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v0.9 IPC</title>
+<title>Physical Ping — pTCP v1.0 Full Phase-Law Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -11,11 +11,9 @@ html,body{height:100%;overflow:auto;-webkit-overflow-scrolling:touch}
 body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);color:#8899aa;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes scanLine{0%{top:-2px}100%{top:100%}}
 @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,170,.1)}50%{box-shadow:0 0 20px rgba(0,255,170,.25)}}
-@keyframes rfSweep{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes nfcRipple{0%{transform:scale(.8);opacity:.6}100%{transform:scale(1.4);opacity:0}}
-@keyframes pointRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes netPulse{0%{box-shadow:0 0 4px rgba(0,255,170,.2)}50%{box-shadow:0 0 16px rgba(0,255,170,.5)}100%{box-shadow:0 0 4px rgba(0,255,170,.2)}}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0f14}::-webkit-scrollbar-thumb{background:#1a2a3a;border-radius:2px}
 .scan{position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,170,.005) 2px,rgba(0,255,170,.005) 4px);pointer-events:none;z-index:100}
 .ctn{max-width:960px;margin:0 auto;padding:20px 16px}
@@ -29,11 +27,10 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .sec-label{font-size:10px;color:#445566;letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .sec-label .dot{width:5px;height:5px;border-radius:50%;display:inline-block}
 .layer-tabs{display:flex;gap:2px;margin-bottom:14px;border:1px solid #1a2530;border-radius:2px;overflow:hidden;flex-wrap:wrap}
-.layer-tab{flex:1;padding:10px 8px;text-align:center;font-size:10px;letter-spacing:1.5px;cursor:pointer;border:none;background:rgba(0,0,0,.3);color:#556677;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent;position:relative;min-width:55px}
+.layer-tab{flex:1;padding:10px 6px;text-align:center;font-size:10px;letter-spacing:1px;cursor:pointer;border:none;background:rgba(0,0,0,.3);color:#556677;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent;position:relative;min-width:50px}
 .layer-tab:hover{background:rgba(255,255,255,.02)}
 .layer-tab.active{background:rgba(0,0,0,.5);color:#c0d0e0}
-.layer-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
-.layer-tab .tab-icon{font-size:14px;display:block;margin-bottom:3px}
+.layer-tab .tab-icon{font-size:13px;display:block;margin-bottom:2px}
 .lv-row{display:flex;align-items:center;gap:10px}
 .lv-lbl{font-size:10px;color:#445566;letter-spacing:1.5px;min-width:44px}
 .lv-bg{flex:1;height:8px;background:#0a0f14;border-radius:1px;overflow:hidden}
@@ -57,10 +54,10 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .sig-info{font-size:10px;color:#556677;padding:6px 10px;background:rgba(0,0,0,.15);border:1px solid #1a2530;border-radius:2px;flex:1;min-width:200px;line-height:1.6}
 .err{padding:10px 14px;background:rgba(255,50,50,.08);border:1px solid #ff333344;border-radius:2px;font-size:11px;color:#ff6666;margin-bottom:12px}
 .nfo{padding:10px 14px;background:rgba(0,255,170,.04);border:1px solid #00ffaa22;border-radius:2px;font-size:11px;color:#00ffaa88;margin-bottom:12px;line-height:1.6}
-.sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(85px,1fr));gap:1px;background:#1a2530;border:1px solid #1a2530;border-radius:2px;margin-bottom:14px;overflow:hidden}
+.sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:1px;background:#1a2530;border:1px solid #1a2530;border-radius:2px;margin-bottom:14px;overflow:hidden}
 .st{background:#0d1520;text-align:center;padding:7px 4px}
 .st-l{font-size:9px;letter-spacing:1.5px;color:#556677;margin-bottom:2px}
-.st-v{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.st-v{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
 .st-u{font-size:10px;color:#556677;margin-left:2px}
 .cv-wrap{margin-bottom:14px;border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:rgba(0,0,0,.2)}
 .cv-lbl{font-size:10px;color:#445566;letter-spacing:1.5px;padding:8px 10px 4px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px}
@@ -98,23 +95,16 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .em-bar-fill{height:100%;border-radius:1px;transition:width .3s}
 .med-coeff{padding:16px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.25);margin-bottom:14px;position:relative;overflow:hidden}
 .med-coeff::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 30% 50%,rgba(0,255,170,.03) 0%,transparent 70%);pointer-events:none}
-.med-ring{width:120px;height:120px;margin:0 auto 12px;position:relative}
-.med-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
 .med-val{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
 .med-lbl{font-size:8px;letter-spacing:2px;color:#556677;margin-top:2px}
-.med-dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:6px;margin-top:10px}
+.med-dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin-top:10px}
 .med-dim{text-align:center;padding:6px}
 .med-dim-l{font-size:9px;letter-spacing:1px;color:#556677;margin-bottom:2px}
 .med-dim-v{font-size:14px;font-weight:500}
 .radar-wrap{margin-bottom:14px;border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:rgba(0,0,0,.25);padding:12px}
 .radar-wrap canvas{display:block;margin:0 auto}
 .sp-tag{display:inline-block;padding:3px 8px;font-size:9px;letter-spacing:1.5px;border-radius:1px;margin:2px}
-.rf-spectrum-wrap{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:rgba(0,0,0,.25);margin-bottom:14px}
-.rf-spectrum-wrap canvas{display:block;width:100%}
-.rf-waterfall-wrap{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:#000;margin-bottom:14px}
-.rf-waterfall-wrap canvas{display:block;width:100%}
 .rf-band-tag{display:inline-block;padding:2px 6px;font-size:8px;letter-spacing:1px;border-radius:1px;margin:1px;cursor:pointer;transition:all .15s}
-.rf-band-tag:hover{opacity:.8}
 .rf-band-tag.active{box-shadow:0 0 8px currentColor}
 .nfc-pulse{width:80px;height:80px;border-radius:50%;margin:16px auto;position:relative;display:flex;align-items:center;justify-content:center}
 .nfc-pulse::before,.nfc-pulse::after{content:'';position:absolute;border-radius:50%;border:1px solid currentColor;animation:nfcRipple 2s ease-out infinite}
@@ -122,17 +112,24 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .nfc-pulse::after{width:160%;height:160%;opacity:.2;animation-delay:.5s}
 .thermal-gradient{height:12px;border-radius:1px;background:linear-gradient(90deg,#0044ff,#00ccff,#00ff88,#ffcc00,#ff4400,#ff0000);position:relative}
 .thermal-marker{position:absolute;top:-4px;width:2px;height:20px;background:#fff;transition:left .5s}
-/* v0.9 Spatial */
 .spatial-3d-wrap{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:#000;margin-bottom:14px;position:relative}
 .spatial-3d-wrap canvas{display:block;width:100%}
 .plane-card{padding:8px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;animation:fadeIn .25s ease}
 .ble-dev{padding:8px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;animation:fadeIn .25s ease}
 .ble-rssi-bar{height:3px;border-radius:1px;transition:width .5s}
+/* v1.0 Network */
+.net-node{padding:8px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;animation:fadeIn .3s ease}
+.net-node.self{border-color:#00ffaa33;background:rgba(0,255,170,.04)}
+.pkt-row{display:grid;grid-template-columns:52px 32px 42px 60px 36px 1fr;padding:4px 8px;font-size:10px;border-bottom:1px solid rgba(26,37,48,.3);align-items:center;animation:fadeIn .15s ease}
+.pkt-row:nth-child(even){background:rgba(255,255,255,.005)}
+.phase-law-card{padding:14px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:8px;position:relative;overflow:hidden}
+.phase-law-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
 @media(max-width:600px){
   .log-h,.log-r{grid-template-columns:50px 40px 52px 54px 48px 50px 1fr;font-size:10px;padding:4px 6px}
-  .st-v{font-size:16px}.hdr h1{font-size:16px;letter-spacing:2px}
+  .st-v{font-size:14px}.hdr h1{font-size:16px;letter-spacing:2px}
   .em-grid{grid-template-columns:1fr}
-  .layer-tab{padding:8px 4px;font-size:8px;letter-spacing:1px}
+  .layer-tab{padding:8px 3px;font-size:7px;letter-spacing:.5px;min-width:42px}
+  .pkt-row{grid-template-columns:46px 28px 38px 50px 30px 1fr;font-size:9px}
 }
 </style>
 </head>
@@ -142,22 +139,23 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
+"use strict";
 var h=React.createElement,useState=React.useState,useRef=React.useRef,useCallback=React.useCallback,useEffect=React.useEffect,useMemo=React.useMemo;
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  SIGNAL PRESETS                                            */
+/*  SIGNALS & CORE DSP                                        */
 /* ═══════════════════════════════════════════════════════════ */
 var SIGNALS={
-  chirp_mid:{id:'chirp_mid',name:'CHIRP MID',desc:'1.5→2.5kHz / 20ms — 標準チャープ。室内用途に最適。',type:'chirp',f1:1500,f2:2500,dur:0.020,color:'#00ffaa'},
-  chirp_low:{id:'chirp_low',name:'CHIRP LOW',desc:'500→1.5kHz / 30ms — 低周波。壁や障害物を貫通。',type:'chirp',f1:500,f2:1500,dur:0.030,color:'#ff8800'},
-  chirp_high:{id:'chirp_high',name:'CHIRP HIGH',desc:'3→6kHz / 15ms — 高周波。指向性が強く小物体も検出。',type:'chirp',f1:3000,f2:6000,dur:0.015,color:'#00ddff'},
-  chirp_wide:{id:'chirp_wide',name:'CHIRP WIDE',desc:'800→4kHz / 25ms — 広帯域。最大情報量。素材判別。',type:'chirp',f1:800,f2:4000,dur:0.025,color:'#ffcc00'},
-  pulse_2k:{id:'pulse_2k',name:'PULSE 2kHz',desc:'2kHz単一 / 15ms — 基準計測用。',type:'tone',freq:2000,dur:0.015,color:'#cc66ff'},
-  click:{id:'click',name:'CLICK BURST',desc:'符号化バースト / 10ms — 最高時間分解能。',type:'click',dur:0.010,color:'#ff4466'}
+  chirp_mid:{id:'chirp_mid',name:'CHIRP MID',desc:'1.5→2.5kHz/20ms — 標準チャープ',type:'chirp',f1:1500,f2:2500,dur:.020,color:'#00ffaa'},
+  chirp_low:{id:'chirp_low',name:'CHIRP LOW',desc:'500→1.5kHz/30ms — 低周波透過',type:'chirp',f1:500,f2:1500,dur:.030,color:'#ff8800'},
+  chirp_high:{id:'chirp_high',name:'CHIRP HIGH',desc:'3→6kHz/15ms — 高周波指向',type:'chirp',f1:3000,f2:6000,dur:.015,color:'#00ddff'},
+  chirp_wide:{id:'chirp_wide',name:'CHIRP WIDE',desc:'800→4kHz/25ms — 広帯域',type:'chirp',f1:800,f2:4000,dur:.025,color:'#ffcc00'},
+  pulse_2k:{id:'pulse_2k',name:'PULSE 2kHz',desc:'2kHz/15ms — 基準パルス',type:'tone',freq:2000,dur:.015,color:'#cc66ff'},
+  click:{id:'click',name:'CLICK',desc:'符号化/10ms — 最高分解能',type:'click',dur:.010,color:'#ff4466'}
 };
 var SIG_ORDER=['chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
-function genSignal(sig,sr){var N=Math.floor(sr*sig.dur),b=new Float32Array(N);if(sig.type==='chirp'){for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}}else if(sig.type==='tone'){for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*sig.freq*t)*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}}else if(sig.type==='click'){var fc=2500;for(var i=0;i<N;i++){var t=i/sr;var env=Math.exp(-Math.pow((i-N/2)/(N/5),2));b[i]=Math.sin(2*Math.PI*fc*t*(1+0.5*t/sig.dur))*env;}}return b;}
-var CFG={sr:44100,listenMs:500,bufSize:256,blanking:8,maxThresh:0.45,minConf:0.04,histMax:64};
+function genSignal(sig,sr){var N=Math.floor(sr*sig.dur),b=new Float32Array(N);if(sig.type==='chirp')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*.5*(1-Math.cos(2*Math.PI*i/(N-1)));}else if(sig.type==='tone')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*sig.freq*t)*.5*(1-Math.cos(2*Math.PI*i/(N-1)));}else{var fc=2500;for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*fc*t*(1+.5*t/sig.dur))*Math.exp(-Math.pow((i-N/2)/(N/5),2));}}return b;}
+var CFG={sr:44100,listenMs:500,bufSize:256,blanking:8,maxThresh:.45,minConf:.04,histMax:64};
 function xcorr(sig,ref,sr,blankMs){var rL=ref.length,sL=sig.length,bS=Math.floor(sr*blankMs/1000),mL=sL-rL;if(mL<=bS)return{corr:new Float32Array(0),peakLag:-1,peakVal:0,bS:bS};var rE=0;for(var i=0;i<rL;i++)rE+=ref[i]*ref[i];rE=Math.sqrt(rE);var cL=mL-bS,corr=new Float32Array(cL),pV=0,pI=0;for(var lag=bS;lag<mL;lag++){var sum=0,sE=0;for(var j=0;j<rL;j++){sum+=sig[lag+j]*ref[j];sE+=sig[lag+j]*sig[lag+j];}sE=Math.sqrt(sE);var ncc=(rE>0&&sE>0)?sum/(rE*sE):0;var idx=lag-bS;corr[idx]=ncc;if(ncc>pV){pV=ncc;pI=idx;}}return{corr:corr,peakLag:pI+bS,peakVal:pV,bS:bS};}
 function lagMs(l){return(l/CFG.sr)*1000;}
 function calcTh(cn){return Math.max(CFG.minConf,Math.min(cn*2.5,CFG.maxThresh));}
@@ -171,599 +169,293 @@ function flat(b){var t=0;for(var i=0;i<b.length;i++)t+=b[i].length;var f=new Flo
 function rmsV(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i]*a[i];return Math.sqrt(s/a.length);}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  iOS / Sensor Permissions                                  */
+/*  iOS / SENSOR PERMISSIONS                                  */
 /* ═══════════════════════════════════════════════════════════ */
 var IS_IOS=(function(){var ua=navigator.userAgent||'';return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);})();
 var NEEDS_ORIENT_PERM=IS_IOS&&typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
 var NEEDS_MOTION_PERM=IS_IOS&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function';
-var _sensorPermState={orient:'unknown',motion:'unknown',listeners:[]};
-function notifyPerm(){_sensorPermState.listeners.forEach(function(fn){fn({orient:_sensorPermState.orient,motion:_sensorPermState.motion});});}
-function useSensorPermissions(){var _s=useState({orient:_sensorPermState.orient,motion:_sensorPermState.motion});var perms=_s[0],setPerms=_s[1];useEffect(function(){var fn=function(v){setPerms({orient:v.orient,motion:v.motion});};_sensorPermState.listeners.push(fn);if(!NEEDS_ORIENT_PERM&&_sensorPermState.orient==='unknown'){_sensorPermState.orient='granted';notifyPerm();}if(!NEEDS_MOTION_PERM&&_sensorPermState.motion==='unknown'){_sensorPermState.motion='granted';notifyPerm();}return function(){_sensorPermState.listeners=_sensorPermState.listeners.filter(function(f){return f!==fn;});};});var requestAll=useCallback(function(){var p1=NEEDS_ORIENT_PERM?DeviceOrientationEvent.requestPermission().then(function(r){_sensorPermState.orient=r;}).catch(function(){_sensorPermState.orient='denied';}):Promise.resolve();var p2=NEEDS_MOTION_PERM?DeviceMotionEvent.requestPermission().then(function(r){_sensorPermState.motion=r;}).catch(function(){_sensorPermState.motion='denied';}):Promise.resolve();return Promise.all([p1,p2]).then(function(){notifyPerm();});});var needsRequest=perms.orient!=='granted'||perms.motion!=='granted';return{perms:perms,requestAll:requestAll,needsRequest:NEEDS_ORIENT_PERM||NEEDS_MOTION_PERM?needsRequest:false,isIOS:IS_IOS};}
+var _sp={orient:'unknown',motion:'unknown',listeners:[]};
+function notifyP(){_sp.listeners.forEach(function(fn){fn({orient:_sp.orient,motion:_sp.motion});});}
+function useSP(){var _s=useState({orient:_sp.orient,motion:_sp.motion}),p=_s[0],set=_s[1];useEffect(function(){var fn=function(v){set({orient:v.orient,motion:v.motion});};_sp.listeners.push(fn);if(!NEEDS_ORIENT_PERM&&_sp.orient==='unknown'){_sp.orient='granted';notifyP();}if(!NEEDS_MOTION_PERM&&_sp.motion==='unknown'){_sp.motion='granted';notifyP();}return function(){_sp.listeners=_sp.listeners.filter(function(f){return f!==fn;});};});var req=useCallback(function(){var p1=NEEDS_ORIENT_PERM?DeviceOrientationEvent.requestPermission().then(function(r){_sp.orient=r;}).catch(function(){_sp.orient='denied';}):Promise.resolve();var p2=NEEDS_MOTION_PERM?DeviceMotionEvent.requestPermission().then(function(r){_sp.motion=r;}).catch(function(){_sp.motion='denied';}):Promise.resolve();return Promise.all([p1,p2]).then(notifyP);});return{perms:p,requestAll:req,needsRequest:NEEDS_ORIENT_PERM||NEEDS_MOTION_PERM?p.orient!=='granted'||p.motion!=='granted':false,isIOS:IS_IOS};}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  SENSOR HOOKS (Mag, Light, Motion, Geo)                    */
+/*  SENSOR HOOKS                                              */
 /* ═══════════════════════════════════════════════════════════ */
-function useMagnetometer(){var _s=useState({x:0,y:0,z:0,mag:0,available:false,heading:null,source:'none'});var data=_s[0],setData=_s[1];var ref=useRef(null);var perms=useSensorPermissions();useEffect(function(){if(ref.current){ref.current();ref.current=null;}if(window.Magnetometer){try{var sensor=new Magnetometer({frequency:10});sensor.addEventListener('reading',function(){var m=Math.sqrt(sensor.x*sensor.x+sensor.y*sensor.y+sensor.z*sensor.z);setData({x:sensor.x,y:sensor.y,z:sensor.z,mag:m,available:true,heading:null,source:'magnetometer'});});sensor.addEventListener('error',function(){tryOr();});sensor.start();ref.current=function(){try{sensor.stop();}catch(e){}};return function(){if(ref.current)ref.current();};}catch(e){tryOr();}}else{tryOr();}function tryOr(){if(NEEDS_ORIENT_PERM&&_sensorPermState.orient!=='granted'){setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});return;}var handler=function(ev){var heading=ev.alpha!=null?ev.alpha:null;var absH=ev.webkitCompassHeading!=null?ev.webkitCompassHeading:heading;var beta=ev.beta||0,gamma=ev.gamma||0;var pseudoMag=Math.sqrt(beta*beta+gamma*gamma);setData({x:gamma,y:beta,z:absH||0,mag:pseudoMag,available:absH!=null||beta!==0||gamma!==0,heading:absH,source:'orientation'});};window.addEventListener('deviceorientation',handler);ref.current=function(){window.removeEventListener('deviceorientation',handler);};}return function(){if(ref.current)ref.current();};},[perms.perms.orient]);return data;}
-function useAmbientLight(){var _s=useState({lux:null,available:false,source:'none'});var data=_s[0],setData=_s[1];var ref=useRef({stream:null,timer:null});useEffect(function(){if(window.AmbientLightSensor){try{var sensor=new AmbientLightSensor({frequency:5});sensor.addEventListener('reading',function(){setData({lux:sensor.illuminance,available:true,source:'sensor'});});sensor.addEventListener('error',function(){camFB();});sensor.start();return function(){try{sensor.stop();}catch(e){}};}catch(e){camFB();}}else{camFB();}function camFB(){navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:32},height:{ideal:32}},audio:false}).then(function(stream){ref.current.stream=stream;var video=document.createElement('video');video.srcObject=stream;video.setAttribute('playsinline','');video.muted=true;video.play();var canvas=document.createElement('canvas');canvas.width=16;canvas.height=16;var ctx=canvas.getContext('2d',{willReadFrequently:true});ref.current.timer=setInterval(function(){if(video.readyState>=2){ctx.drawImage(video,0,0,16,16);var d=ctx.getImageData(0,0,16,16).data;var tb=0,cnt=0;for(var i=0;i<d.length;i+=4){tb+=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];cnt++;}setData({lux:Math.round((tb/cnt/255)*1000),available:true,source:'camera'});}},500);}).catch(function(){setData({lux:null,available:false,source:'denied'});});}return function(){if(ref.current.timer)clearInterval(ref.current.timer);if(ref.current.stream)ref.current.stream.getTracks().forEach(function(t){t.stop();});};},[]);return data;}
-function useMotion(){var _s=useState({x:0,y:0,z:0,mag:0,available:false,source:'none'});var data=_s[0],setData=_s[1];var ref=useRef(null);var perms=useSensorPermissions();useEffect(function(){if(ref.current){ref.current();ref.current=null;}if(NEEDS_MOTION_PERM&&_sensorPermState.motion!=='granted'){setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});return function(){};}var handler=function(ev){var a=ev.accelerationIncludingGravity;if(a&&(a.x!=null||a.y!=null||a.z!=null)){var m=Math.sqrt((a.x||0)*(a.x||0)+(a.y||0)*(a.y||0)+(a.z||0)*(a.z||0));setData({x:a.x||0,y:a.y||0,z:a.z||0,mag:m,available:true,source:'devicemotion'});}};window.addEventListener('devicemotion',handler);ref.current=function(){window.removeEventListener('devicemotion',handler);};return function(){if(ref.current)ref.current();};},[perms.perms.motion]);return data;}
-function useGeoLocation(){var _s=useState({lat:null,lon:null,acc:null,available:false});var data=_s[0],setData=_s[1];var fetch=useCallback(function(){if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(pos){setData({lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy,available:true});},function(){},{enableHighAccuracy:true,timeout:5000});}},[]);return[data,fetch];}
+function useMag(){var _s=useState({x:0,y:0,z:0,mag:0,available:false,heading:null,source:'none'}),d=_s[0],set=_s[1];var ref=useRef(null);var sp=useSP();useEffect(function(){if(ref.current){ref.current();ref.current=null;}if(window.Magnetometer){try{var s=new Magnetometer({frequency:10});s.addEventListener('reading',function(){var m=Math.sqrt(s.x*s.x+s.y*s.y+s.z*s.z);set({x:s.x,y:s.y,z:s.z,mag:m,available:true,heading:null,source:'magnetometer'});});s.addEventListener('error',function(){tryO();});s.start();ref.current=function(){try{s.stop();}catch(e){}};return function(){if(ref.current)ref.current();};}catch(e){tryO();}}else tryO();function tryO(){if(NEEDS_ORIENT_PERM&&_sp.orient!=='granted'){set(function(d){return Object.assign({},d,{available:false,source:'await_perm'});});return;}var handler=function(ev){var hd=ev.alpha!=null?ev.alpha:null;var abs=ev.webkitCompassHeading!=null?ev.webkitCompassHeading:hd;var b=ev.beta||0,g=ev.gamma||0;set({x:g,y:b,z:abs||0,mag:Math.sqrt(b*b+g*g),available:abs!=null||b!==0||g!==0,heading:abs,source:'orientation'});};window.addEventListener('deviceorientation',handler);ref.current=function(){window.removeEventListener('deviceorientation',handler);};}return function(){if(ref.current)ref.current();};},[sp.perms.orient]);return d;}
+function useLight(){var _s=useState({lux:null,available:false,source:'none'}),d=_s[0],set=_s[1];var ref=useRef({stream:null,timer:null});useEffect(function(){if(window.AmbientLightSensor){try{var s=new AmbientLightSensor({frequency:5});s.addEventListener('reading',function(){set({lux:s.illuminance,available:true,source:'sensor'});});s.addEventListener('error',function(){camFB();});s.start();return function(){try{s.stop();}catch(e){}};}catch(e){camFB();}}else camFB();function camFB(){navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:32},height:{ideal:32}},audio:false}).then(function(stream){ref.current.stream=stream;var v=document.createElement('video');v.srcObject=stream;v.setAttribute('playsinline','');v.muted=true;v.play();var c=document.createElement('canvas');c.width=16;c.height=16;var ctx=c.getContext('2d',{willReadFrequently:true});ref.current.timer=setInterval(function(){if(v.readyState>=2){ctx.drawImage(v,0,0,16,16);var dd=ctx.getImageData(0,0,16,16).data;var tb=0,cnt=0;for(var i=0;i<dd.length;i+=4){tb+=.299*dd[i]+.587*dd[i+1]+.114*dd[i+2];cnt++;}set({lux:Math.round((tb/cnt/255)*1000),available:true,source:'camera'});}},500);}).catch(function(){set({lux:null,available:false,source:'denied'});});}return function(){if(ref.current.timer)clearInterval(ref.current.timer);if(ref.current.stream)ref.current.stream.getTracks().forEach(function(t){t.stop();});};},[]);return d;}
+function useMotion(){var _s=useState({x:0,y:0,z:0,mag:0,available:false,source:'none'}),d=_s[0],set=_s[1];var ref=useRef(null);var sp=useSP();useEffect(function(){if(ref.current){ref.current();ref.current=null;}if(NEEDS_MOTION_PERM&&_sp.motion!=='granted'){set(function(d){return Object.assign({},d,{available:false,source:'await_perm'});});return function(){};}var handler=function(ev){var a=ev.accelerationIncludingGravity;if(a&&(a.x!=null||a.y!=null||a.z!=null)){var m=Math.sqrt((a.x||0)*(a.x||0)+(a.y||0)*(a.y||0)+(a.z||0)*(a.z||0));set({x:a.x||0,y:a.y||0,z:a.z||0,mag:m,available:true,source:'devicemotion'});}};window.addEventListener('devicemotion',handler);ref.current=function(){window.removeEventListener('devicemotion',handler);};return function(){if(ref.current)ref.current();};},[sp.perms.motion]);return d;}
+function useGeo(){var _s=useState({lat:null,lon:null,acc:null,available:false}),d=_s[0],set=_s[1];var fetch=useCallback(function(){if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){set({lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,available:true});},function(){},{enableHighAccuracy:true,timeout:5000});},[]);return[d,fetch];}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  RF SPECTRUM (v0.8)                                        */
+/*  RF SPECTRUM (simulation)                                  */
 /* ═══════════════════════════════════════════════════════════ */
-var RTL_SDR_DEVICES=[{vendorId:0x0bda,productId:0x2832},{vendorId:0x0bda,productId:0x2838}];
-var RF_BANDS={wifi24:{id:'wifi24',name:'WiFi 2.4G',fStart:2400,fEnd:2500,unit:'MHz',color:'#00ffaa',desc:'802.11 b/g/n'},wifi5:{id:'wifi5',name:'WiFi 5G',fStart:5150,fEnd:5850,unit:'MHz',color:'#00ddff',desc:'802.11 a/ac/ax'},ble:{id:'ble',name:'BLE',fStart:2402,fEnd:2480,unit:'MHz',color:'#cc66ff',desc:'Bluetooth LE'},fm:{id:'fm',name:'FM Radio',fStart:76,fEnd:108,unit:'MHz',color:'#ff8800',desc:'FM放送帯(JP)'},lte:{id:'lte',name:'LTE',fStart:700,fEnd:2700,unit:'MHz',color:'#ff4466',desc:'LTE/5G'},ism:{id:'ism',name:'ISM 915',fStart:902,fEnd:928,unit:'MHz',color:'#ffcc00',desc:'IoT/LoRa'}};
-var RF_BAND_ORDER=['wifi24','wifi5','ble','fm','lte','ism'];
-function genSimSpectrum(band,bins){var data=new Float32Array(bins);var nf=-90;for(var i=0;i<bins;i++)data[i]=nf+Math.random()*6-3;var addPeak=function(pos,w,str){var c=Math.floor(pos*bins),ww=Math.floor(bins*w);for(var j=-ww;j<=ww;j++){var idx=c+j;if(idx>=0&&idx<bins){var env=Math.exp(-(j*j)/(2*(ww/3)*(ww/3)));data[idx]=Math.max(data[idx],str*env+nf*(1-env));}}};if(band.id==='wifi24'){addPeak(.08,.08,-45-Math.random()*15);addPeak(.375,.08,-40-Math.random()*20);addPeak(.67,.08,-42-Math.random()*18);}else if(band.id==='wifi5'){[.1,.25,.45,.65,.85].forEach(function(p){if(Math.random()>.3)addPeak(p,.04,-35-Math.random()*25);});}else if(band.id==='ble'){for(var c=0;c<12;c++)if(Math.random()>.5)addPeak(c/12+.04,.02,-50-Math.random()*20);}else if(band.id==='fm'){[.12,.28,.42,.55,.68,.82,.91].forEach(function(p){if(Math.random()>.2)addPeak(p,.015,-25-Math.random()*30);});}else if(band.id==='lte'){[{p:.05,w:.06},{p:.2,w:.08},{p:.45,w:.1},{p:.7,w:.07},{p:.9,w:.05}].forEach(function(b){addPeak(b.p,b.w,-45-Math.random()*15);});}else if(band.id==='ism'){for(var c=0;c<6;c++)if(Math.random()>.4)addPeak(c/6+.08,.03,-55-Math.random()*20);}return data;}
-function rfDensity(spectrum,threshDbm){if(!spectrum||!spectrum.length)return 0;var above=0,th=threshDbm||-70;for(var i=0;i<spectrum.length;i++)if(spectrum[i]>th)above++;return above/spectrum.length;}
-function rfPeaks(spectrum,band,topN){if(!spectrum||!spectrum.length)return[];var peaks=[],n=topN||5,copy=Array.from(spectrum);for(var p=0;p<n;p++){var mV=-999,mI=0;for(var i=2;i<copy.length-2;i++){if(copy[i]>mV&&copy[i]>copy[i-1]&&copy[i]>copy[i+1]){mV=copy[i];mI=i;}}if(mV>-85){peaks.push({freq:band.fStart+(mI/spectrum.length)*(band.fEnd-band.fStart),power:mV,bin:mI});for(var j=mI-5;j<=mI+5;j++)if(j>=0&&j<copy.length)copy[j]=-999;}}return peaks;}
-function useRFSpectrum(){var _s=useState({connected:false,source:'simulation',scanning:false,error:null});var state=_s[0],setState=_s[1];var _sp=useState(null);var spectrum=_sp[0],setSpectrum=_sp[1];var _wf=useState([]);var waterfall=_wf[0],setWaterfall=_wf[1];var _band=useState('wifi24');var bandId=_band[0],setBandId=_band[1];var _hist=useState([]);var rfHist=_hist[0],setRfHist=_hist[1];var scanRef=useRef(null);var deviceRef=useRef(null);var band=RF_BANDS[bandId];
-var connectSDR=useCallback(function(){if(!navigator.usb){setState(function(s){return Object.assign({},s,{error:'WebUSB not supported'});});return Promise.resolve();}return navigator.usb.requestDevice({filters:RTL_SDR_DEVICES}).then(function(d){deviceRef.current=d;return d.open();}).then(function(){return deviceRef.current.selectConfiguration(1);}).then(function(){return deviceRef.current.claimInterface(0);}).then(function(){setState(function(s){return Object.assign({},s,{connected:true,source:'webusb_sdr',error:null});});}).catch(function(err){setState(function(s){return Object.assign({},s,{connected:false,error:'SDR: '+err.message});});});},[]);
-var disconnectSDR=useCallback(function(){if(deviceRef.current)try{deviceRef.current.close();}catch(e){}deviceRef.current=null;setState(function(s){return Object.assign({},s,{connected:false,source:'simulation'});});},[]);
-var startScan=useCallback(function(){setState(function(s){return Object.assign({},s,{scanning:true});});var BINS=256;var doScan=function(){var cb=RF_BANDS[bandId];var sim=genSimSpectrum(cb,BINS);var prev=spectrum;if(prev&&prev.length===BINS)for(var i=0;i<BINS;i++)sim[i]=sim[i]*0.3+prev[i]*0.7+Math.random()*2-1;setSpectrum(sim);setWaterfall(function(p){return[sim].concat(p).slice(0,64);});var pks=rfPeaks(sim,cb,5),den=rfDensity(sim,-70);setRfHist(function(p){return[{time:new Date(),band:cb.id,peaks:pks,density:den,peakPower:pks.length?pks[0].power:-90}].concat(p).slice(0,32);});};doScan();scanRef.current=setInterval(doScan,500);},[bandId,spectrum]);
-var stopScan=useCallback(function(){setState(function(s){return Object.assign({},s,{scanning:false});});if(scanRef.current){clearInterval(scanRef.current);scanRef.current=null;}},[]);
-useEffect(function(){return function(){if(scanRef.current)clearInterval(scanRef.current);};},[]);
-return{state:state,spectrum:spectrum,waterfall:waterfall,bandId:bandId,setBandId:setBandId,band:band,rfHist:rfHist,connectSDR:connectSDR,disconnectSDR:disconnectSDR,startScan:startScan,stopScan:stopScan};}
+var RF_BANDS={wifi24:{id:'wifi24',name:'WiFi 2.4G',fStart:2400,fEnd:2500,color:'#00ffaa'},wifi5:{id:'wifi5',name:'WiFi 5G',fStart:5150,fEnd:5850,color:'#00ddff'},ble:{id:'ble',name:'BLE',fStart:2402,fEnd:2480,color:'#cc66ff'},fm:{id:'fm',name:'FM',fStart:76,fEnd:108,color:'#ff8800'},lte:{id:'lte',name:'LTE',fStart:700,fEnd:2700,color:'#ff4466'}};
+var RF_ORDER=['wifi24','wifi5','ble','fm','lte'];
+function genSimSpec(band,bins){var d=new Float32Array(bins),nf=-90;for(var i=0;i<bins;i++)d[i]=nf+Math.random()*6-3;var pk=function(p,w,s){var c=Math.floor(p*bins),ww=Math.floor(bins*w);for(var j=-ww;j<=ww;j++){var idx=c+j;if(idx>=0&&idx<bins){var env=Math.exp(-(j*j)/(2*(ww/3)*(ww/3)));d[idx]=Math.max(d[idx],s*env+nf*(1-env));}}};if(band.id==='wifi24'){pk(.08,.08,-45-Math.random()*15);pk(.375,.08,-40-Math.random()*20);pk(.67,.08,-42-Math.random()*18);}else if(band.id==='wifi5'){[.1,.25,.45,.65,.85].forEach(function(p){if(Math.random()>.3)pk(p,.04,-35-Math.random()*25);});}else if(band.id==='ble'){for(var c=0;c<12;c++)if(Math.random()>.5)pk(c/12+.04,.02,-50-Math.random()*20);}else if(band.id==='fm'){[.12,.28,.42,.55,.68,.82].forEach(function(p){if(Math.random()>.2)pk(p,.015,-25-Math.random()*30);});}else{[{p:.05,w:.06},{p:.2,w:.08},{p:.45,w:.1},{p:.7,w:.07}].forEach(function(b){pk(b.p,b.w,-45-Math.random()*15);});}return d;}
+function rfDensity(sp,th){if(!sp||!sp.length)return 0;var a=0;for(var i=0;i<sp.length;i++)if(sp[i]>(th||-70))a++;return a/sp.length;}
+function useRF(){var _s=useState({scanning:false,source:'sim'}),st=_s[0],setSt=_s[1];var _sp=useState(null),spec=_sp[0],setSpec=_sp[1];var _wf=useState([]),wf=_wf[0],setWf=_wf[1];var _b=useState('wifi24'),bid=_b[0],setBid=_b[1];var ref=useRef(null);var band=RF_BANDS[bid];var start=useCallback(function(){setSt({scanning:true,source:'sim'});var BINS=256;var doS=function(){var cb=RF_BANDS[bid],sim=genSimSpec(cb,BINS),prev=spec;if(prev&&prev.length===BINS)for(var i=0;i<BINS;i++)sim[i]=sim[i]*.3+prev[i]*.7+Math.random()*2-1;setSpec(sim);setWf(function(p){return[sim].concat(p).slice(0,64);});};doS();ref.current=setInterval(doS,500);},[bid,spec]);var stop=useCallback(function(){setSt({scanning:false,source:'sim'});if(ref.current){clearInterval(ref.current);ref.current=null;}},[]);useEffect(function(){return function(){if(ref.current)clearInterval(ref.current);};},[]);return{state:st,spectrum:spec,waterfall:wf,bandId:bid,setBandId:setBid,band:band,start:start,stop:stop};}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  NFC (v0.8)                                                */
+/*  NFC / THERMAL (simulation)                                */
 /* ═══════════════════════════════════════════════════════════ */
-var NFC_SUPPORTED=typeof window!=='undefined'&&'NDEFReader' in window;
-function useNFC(){var _s=useState({available:NFC_SUPPORTED,scanning:false,lastTag:null,tagHistory:[],error:null,fieldStrength:0,source:NFC_SUPPORTED?'webnfc':'simulation'});var state=_s[0],setState=_s[1];var simRef=useRef(null);
-var startScan=useCallback(function(){if(NFC_SUPPORTED){try{var reader=new NDEFReader();reader.scan().then(function(){setState(function(s){return Object.assign({},s,{scanning:true,error:null});});}).catch(function(err){setState(function(s){return Object.assign({},s,{error:'NFC: '+err.message});});});reader.addEventListener('reading',function(ev){var tag={serialNumber:ev.serialNumber||'unknown',time:new Date(),records:[]};if(ev.message&&ev.message.records)for(var i=0;i<ev.message.records.length;i++){var rec=ev.message.records[i];var payload='';if(rec.data)try{payload=new TextDecoder(rec.encoding||'utf-8').decode(rec.data);}catch(e){payload='[binary]';}tag.records.push({type:rec.recordType,payload:payload});}setState(function(s){return Object.assign({},s,{lastTag:tag,fieldStrength:1,tagHistory:[tag].concat(s.tagHistory).slice(0,16)});});setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:0});});},2000);});}catch(e){setState(function(s){return Object.assign({},s,{error:e.message});});}}else{setState(function(s){return Object.assign({},s,{scanning:true,source:'simulation'});});simRef.current=setInterval(function(){var r=Math.random();if(r>.92){var fk={serialNumber:Array.from({length:7},function(){return Math.floor(Math.random()*256).toString(16).padStart(2,'0');}).join(':'),time:new Date(),records:[{type:'text',payload:'SIM:TAG_'+genId()}]};setState(function(s){return Object.assign({},s,{lastTag:fk,fieldStrength:.8+Math.random()*.2,tagHistory:[fk].concat(s.tagHistory).slice(0,16)});});setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:0});});},2000);}else if(r>.85){setState(function(s){return Object.assign({},s,{fieldStrength:.15});});setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:0});});},800);}},2000);}});
-var stopScan=useCallback(function(){if(simRef.current)clearInterval(simRef.current);setState(function(s){return Object.assign({},s,{scanning:false,fieldStrength:0});});},[]);
-useEffect(function(){return function(){if(simRef.current)clearInterval(simRef.current);};},[]);
-return{state:state,startScan:startScan,stopScan:stopScan};}
+function useNFC(){var _s=useState({scanning:false,fieldStrength:0,lastTag:null,tagHistory:[],source:'sim'}),st=_s[0],setSt=_s[1];var ref=useRef(null);var start=useCallback(function(){setSt(function(s){return Object.assign({},s,{scanning:true});});ref.current=setInterval(function(){var r=Math.random();if(r>.92){var fk={serialNumber:Array.from({length:7},function(){return Math.floor(Math.random()*256).toString(16).padStart(2,'0');}).join(':'),time:new Date(),records:[{type:'text',payload:'TAG_'+genId()}]};setSt(function(s){return Object.assign({},s,{lastTag:fk,fieldStrength:.8+Math.random()*.2,tagHistory:[fk].concat(s.tagHistory).slice(0,16)});});setTimeout(function(){setSt(function(s){return Object.assign({},s,{fieldStrength:0});});},2000);}else if(r>.85){setSt(function(s){return Object.assign({},s,{fieldStrength:.15});});setTimeout(function(){setSt(function(s){return Object.assign({},s,{fieldStrength:0});});},800);}},2000);},[]);var stop=useCallback(function(){if(ref.current)clearInterval(ref.current);setSt(function(s){return Object.assign({},s,{scanning:false,fieldStrength:0});});},[]);useEffect(function(){return function(){if(ref.current)clearInterval(ref.current);};},[]);return{state:st,start:start,stop:stop};}
+function useThermal(){var _s=useState({est:null,bat:null,cpuLoad:0,available:false,history:[]}),d=_s[0],set=_s[1];var ref=useRef(null);var cpuS=useRef([]);var startM=useCallback(function(){var doM=function(){var s=performance.now(),sum=0;for(var i=0;i<1e6;i++)sum+=Math.sin(i*.001);var el=performance.now()-s;var load=Math.min(1,Math.max(0,(el-15)/15));cpuS.current.push(load);if(cpuS.current.length>10)cpuS.current.shift();var avg=cpuS.current.reduce(function(s,v){return s+v;},0)/cpuS.current.length;var est=22+avg*15+Math.random()*2-1;est=Math.round(est*10)/10;set(function(p){var snap={time:new Date(),cpuLoad:avg,estTemp:est};return{est:est,bat:null,cpuLoad:avg,available:true,history:[snap].concat(p.history).slice(0,64)};});};doM();ref.current=setInterval(doM,3000);},[]);var stopM=useCallback(function(){if(ref.current){clearInterval(ref.current);ref.current=null;}set(function(s){return Object.assign({},s,{available:false});});},[]);useEffect(function(){return function(){if(ref.current)clearInterval(ref.current);};},[]);return{data:d,start:startM,stop:stopM};}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  THERMAL (v0.8)                                            */
+/*  SPATIAL MAPPING (simulation)                              */
 /* ═══════════════════════════════════════════════════════════ */
-function useThermal(){var _s=useState({estimatedTemp:null,batteryLevel:null,batteryCharging:false,cpuLoad:0,cpuCores:navigator.hardwareConcurrency||4,available:false,source:'none',history:[]});var data=_s[0],setData=_s[1];var timerRef=useRef(null);var cpuSRef=useRef([]);
-var startMonitoring=useCallback(function(){var doM=function(){var start=performance.now();var sum=0;for(var i=0;i<1000000;i++)sum+=Math.sin(i*0.001);var elapsed=performance.now()-start;var load=Math.min(1,Math.max(0,(elapsed-15)/15));cpuSRef.current.push(load);if(cpuSRef.current.length>10)cpuSRef.current.shift();var avgLoad=cpuSRef.current.reduce(function(s,v){return s+v;},0)/cpuSRef.current.length;var batP=navigator.getBattery?navigator.getBattery().then(function(b){return{level:b.level,charging:b.charging};}).catch(function(){return null;}):Promise.resolve(null);batP.then(function(bat){var amb=22,cpuH=avgLoad*15,batH=bat&&bat.charging?5:0;if(bat&&bat.level<.2)batH+=3;var est=amb+cpuH+batH+Math.random()*2-1;est=Math.round(est*10)/10;setData(function(p){var snap={time:new Date(),cpuLoad:avgLoad,estTemp:est};return{estimatedTemp:est,batteryLevel:bat?bat.level:null,batteryCharging:bat?bat.charging:false,cpuLoad:avgLoad,cpuCores:navigator.hardwareConcurrency||4,available:true,source:'estimation',history:[snap].concat(p.history).slice(0,64)};});});};doM();timerRef.current=setInterval(doM,3000);},[]);
-var stopMonitoring=useCallback(function(){if(timerRef.current){clearInterval(timerRef.current);timerRef.current=null;}setData(function(s){return Object.assign({},s,{available:false});});},[]);
-useEffect(function(){return function(){if(timerRef.current)clearInterval(timerRef.current);};},[]);
-return{data:data,startMonitoring:startMonitoring,stopMonitoring:stopMonitoring};}
+function useSpatial(){var _s=useState({active:false,source:'none',planes:[],anchors:[],pointCloud:[],planeCount:0,totalArea:0,meshVerts:0,meshTris:0,fps:0,history:[]}),st=_s[0],setSt=_s[1];var simRef=useRef(null);var startSim=useCallback(function(){setSt(function(s){return Object.assign({},s,{active:true,source:'simulation'});});var rW=3+Math.random()*4,rD=3+Math.random()*4,rH=2.4+Math.random()*.8;var planes=[{id:'floor',orientation:'h-up',label:'FLOOR',position:{x:0,y:0,z:-rD/2},area:rW*rD,w:rW,d:rD,color:'#00ffaa'},{id:'ceil',orientation:'h-down',label:'CEILING',position:{x:0,y:rH,z:-rD/2},area:rW*rD,w:rW,d:rD,color:'#00ddff'},{id:'w_f',orientation:'vert',label:'WALL',position:{x:0,y:rH/2,z:-rD},area:rW*rH,w:rW,d:rH,color:'#cc66ff'},{id:'w_b',orientation:'vert',label:'WALL',position:{x:0,y:rH/2,z:0},area:rW*rH,w:rW,d:rH,color:'#cc66ff'},{id:'w_l',orientation:'vert',label:'WALL',position:{x:-rW/2,y:rH/2,z:-rD/2},area:rD*rH,w:rD,d:rH,color:'#9966ff'},{id:'w_r',orientation:'vert',label:'WALL',position:{x:rW/2,y:rH/2,z:-rD/2},area:rD*rH,w:rD,d:rH,color:'#9966ff'}];var fc=2+Math.floor(Math.random()*3);for(var i=0;i<fc;i++){var fw=.4+Math.random()*1.2,fd=.4+Math.random()*.8;planes.push({id:'s_'+i,orientation:'h-up',label:'TABLE',position:{x:(Math.random()-.5)*rW*.6,y:.3+Math.random()*.7,z:-Math.random()*rD*.8},area:fw*fd,w:fw,d:fd,color:'#ffcc00'});}var pts=[];var np=800+Math.floor(Math.random()*600);for(var i=0;i<np;i++){var px=(Math.random()-.5)*rW,py=Math.random()*rH,pz=-Math.random()*rD;if(Math.random()>.3){var pp=planes[Math.floor(Math.random()*planes.length)];var np2=pp.position;if(pp.orientation!=='vert'){py=np2.y+(Math.random()-.5)*.1;px=np2.x+(Math.random()-.5)*(pp.w||1);pz=np2.z+(Math.random()-.5)*(pp.d||1);}else{px=np2.x+(Math.random()-.5)*.1;py=np2.y+(Math.random()-.5)*(pp.d||1);pz=np2.z+(Math.random()-.5)*(pp.w||1);}}pts.push({x:px,y:py,z:pz,d:Math.sqrt(px*px+py*py+pz*pz)});}var ta=planes.reduce(function(s,p){return s+p.area;},0);setSt(function(s){return Object.assign({},s,{planes:planes,pointCloud:pts,planeCount:planes.length,totalArea:ta,meshVerts:np,meshTris:Math.floor(np*.8),fps:30});});simRef.current=setInterval(function(){setSt(function(s){var nPts=s.pointCloud.map(function(p){return{x:p.x+(Math.random()-.5)*.02,y:p.y+(Math.random()-.5)*.01,z:p.z+(Math.random()-.5)*.02,d:p.d};});var nPlanes=s.planes.slice();if(Math.random()>.92&&nPlanes.length<15){nPlanes.push({id:'det_'+Date.now(),orientation:Math.random()>.5?'h-up':'vert',label:'NEW',position:{x:(Math.random()-.5)*3,y:Math.random()*2,z:-Math.random()*3},area:.2+Math.random()*.3,w:.5,d:.5,color:'#ff880088'});}var ta=nPlanes.reduce(function(ss,p){return ss+p.area;},0);return Object.assign({},s,{pointCloud:nPts,planes:nPlanes,planeCount:nPlanes.length,totalArea:ta,history:[{time:new Date(),pc:nPlanes.length,pts:nPts.length,area:ta}].concat(s.history).slice(0,32)});});},2000);},[]);var stop=useCallback(function(){if(simRef.current){clearInterval(simRef.current);simRef.current=null;}setSt(function(s){return Object.assign({},s,{active:false,source:'none'});});},[]);var placeAnchor=useCallback(function(){setSt(function(s){return Object.assign({},s,{anchors:s.anchors.concat([{id:'a_'+genId(),time:new Date(),position:{x:(Math.random()-.5)*3,y:Math.random()*.5,z:-Math.random()*3}}]).slice(-16)});});},[]);useEffect(function(){return function(){if(simRef.current)clearInterval(simRef.current);};},[]);return{state:st,startSim:startSim,stop:stop,placeAnchor:placeAnchor};}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  v0.9: SPATIAL MAPPING — WebXR + Simulation                */
+/*  BLE MESH (simulation)                                     */
+/* ═══════════════════════════════════════════════════════════ */
+function useBLE(){var _s=useState({scanning:false,source:'sim',devices:[],links:[],total:0,avgRSSI:-80,density:0}),st=_s[0],setSt=_s[1];var ref=useRef(null);var startScan=useCallback(function(){setSt(function(s){return Object.assign({},s,{scanning:true});});var names=['iPhone-Pro','Galaxy-S24','AirPods','Mi Band','Tile Mate','ESP32','BLE-Beacon','SmartLock','Hue','Arduino-BLE','RPi-W','Thermo','Watch','Tag-02'];var devs=[];var dc=4+Math.floor(Math.random()*8);for(var i=0;i<dc;i++){var r=-45-Math.floor(Math.random()*50);devs.push({id:'sim_'+i+'_'+genId(),name:names[Math.floor(Math.random()*names.length)],rssi:r,txPower:-12-Math.floor(Math.random()*20),time:new Date(),distance:Math.pow(10,(-20-r)/20)});}var links=[];for(var i=0;i<devs.length;i++)for(var j=i+1;j<devs.length;j++)if(Math.random()>.6)links.push({from:devs[i].id,to:devs[j].id,strength:Math.random()});var avg=devs.reduce(function(s,d){return s+d.rssi;},0)/devs.length;var ml=devs.length*(devs.length-1)/2;setSt(function(s){return Object.assign({},s,{devices:devs,links:links,total:devs.length,avgRSSI:Math.round(avg),density:ml>0?links.length/ml:0});});ref.current=setInterval(function(){setSt(function(s){var ds=s.devices.map(function(d){var r=d.rssi+Math.floor(Math.random()*6-3);return Object.assign({},d,{rssi:r,distance:Math.pow(10,(d.txPower-r)/20),time:new Date()});});if(Math.random()>.88&&ds.length<16)ds.push({id:'new_'+genId(),name:'BLE-'+genId(),rssi:-55-Math.floor(Math.random()*35),txPower:-15,time:new Date(),distance:0});if(Math.random()>.92&&ds.length>3)ds.splice(Math.floor(Math.random()*ds.length),1);var avg=ds.length?ds.reduce(function(ss,d){return ss+d.rssi;},0)/ds.length:-80;var lk=[];for(var i=0;i<ds.length;i++)for(var j=i+1;j<ds.length;j++)if(Math.abs(ds[i].rssi-ds[j].rssi)<20&&Math.random()>.4)lk.push({from:ds[i].id,to:ds[j].id,strength:Math.random()});var ml=ds.length*(ds.length-1)/2;return Object.assign({},s,{devices:ds,links:lk,total:ds.length,avgRSSI:Math.round(avg),density:ml>0?lk.length/ml:0});});},3000);},[]);var stopScan=useCallback(function(){if(ref.current){clearInterval(ref.current);ref.current=null;}setSt(function(s){return Object.assign({},s,{scanning:false});});},[]);useEffect(function(){return function(){if(ref.current)clearInterval(ref.current);};},[]);return{state:st,startScan:startScan,stopScan:stopScan};}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.0: pTCP/IP PROTOCOL ENGINE                             */
 /* ═══════════════════════════════════════════════════════════ */
 
-var WEBXR_SUPPORTED=typeof navigator!=='undefined'&&navigator.xr!=null;
+/* Device ID — persistent per session */
+var DEVICE_ID=(function(){var id=sessionStorage.getItem('ptcp_device_id');if(!id){id='DEV-'+genId()+'-'+genId();sessionStorage.setItem('ptcp_device_id',id);}return id;})();
+var DEVICE_NAME=(function(){var ua=navigator.userAgent;if(/iPhone/.test(ua))return'iPhone';if(/iPad/.test(ua))return'iPad';if(/Android/.test(ua))return'Android';if(/Mac/.test(ua))return'Mac';if(/Win/.test(ua))return'Windows';return'Device';})()+'-'+DEVICE_ID.slice(-4);
 
-/* Simulated spatial plane types */
-var PLANE_TYPES=['horizontal-up','horizontal-down','vertical','horizontal-up','vertical'];
-var PLANE_LABELS={
-  'horizontal-up':'FLOOR/TABLE',
-  'horizontal-down':'CEILING',
-  'vertical':'WALL'
+/* pTCP Packet Types */
+var PKT={
+  SYN:0x01,SYN_ACK:0x02,ACK:0x03,
+  PING:0x10,PONG:0x11,
+  SENSOR_DATA:0x20,SPATIAL_SHARE:0x21,ANCHOR_SHARE:0x22,
+  MEDIATION_BROADCAST:0x30,PROFILE_SYNC:0x31,
+  PHASE_LAW_UPDATE:0x40,
+  HEARTBEAT:0x50,DISCONNECT:0xFF
 };
-var PLANE_COLORS={
-  'horizontal-up':'#00ffaa',
-  'horizontal-down':'#00ddff',
-  'vertical':'#cc66ff'
-};
+var PKT_NAMES={};
+Object.keys(PKT).forEach(function(k){PKT_NAMES[PKT[k]]=k;});
 
-function useSpatialMapping(){
-  var _s=useState({
-    available:false,
-    active:false,
-    source:'none',
-    error:null,
-    planes:[],
-    anchors:[],
-    pointCloud:[],
-    meshVertices:0,
-    meshTriangles:0,
-    trackingState:'none',
-    depthAvailable:false,
-    planeCount:0,
-    totalArea:0,
-    frameRate:0,
-    history:[]
-  });
-  var state=_s[0],setState=_s[1];
-  var sessionRef=useRef(null);
-  var simTimerRef=useRef(null);
-  var frameCountRef=useRef(0);
-  var fpsTimerRef=useRef(null);
-  var xrSupported=useRef(false);
+/* Packet structure */
+function createPacket(type,payload,destId){
+  return{
+    ver:0x10,/* v1.0 */
+    type:type,
+    seq:Math.floor(Math.random()*0xFFFFFF),
+    src:DEVICE_ID,
+    dst:destId||'BROADCAST',
+    ts:Date.now(),
+    ttl:8,
+    payload:payload||{},
+    checksum:0/* simplified */
+  };
+}
 
-  /* Check WebXR support on mount */
-  useEffect(function(){
-    if(WEBXR_SUPPORTED){
-      navigator.xr.isSessionSupported('immersive-ar').then(function(ok){
-        xrSupported.current=ok;
-        setState(function(s){return Object.assign({},s,{available:ok});});
-      }).catch(function(){});
-    }
+/* ═══ BroadcastChannel + WebRTC Signaling for Multi-Device ═══ */
+function usePTCPNetwork(){
+  var _peers=useState([]),peers=_peers[0],setPeers=_peers[1];
+  var _pkts=useState([]),packets=_pkts[0],setPkts=_pkts[1];
+  var _connected=useState(false),connected=_connected[0],setConnected=_connected[1];
+  var _stats=useState({sent:0,recv:0,dropped:0,rtt:null,peers:0,uptime:0}),stats=_stats[0],setStats=_stats[1];
+  var channelRef=useRef(null);
+  var peersRef=useRef({});
+  var statsRef=useRef({sent:0,recv:0,dropped:0});
+  var hbRef=useRef(null);
+  var uptimeRef=useRef(null);
+  var startTimeRef=useRef(null);
+  /* Simulation peers */
+  var simRef=useRef(null);
+
+  var logPacket=useCallback(function(pkt,dir){
+    setPkts(function(p){return[{pkt:pkt,dir:dir,time:new Date()}].concat(p).slice(0,128);});
+    if(dir==='TX')statsRef.current.sent++;else statsRef.current.recv++;
   },[]);
 
-  /* ── Start WebXR AR Session ── */
-  var startXR=useCallback(function(){
-    if(!WEBXR_SUPPORTED||!xrSupported.current){
-      startSimulation();
-      return;
-    }
+  var sendPacket=useCallback(function(type,payload,dest){
+    var pkt=createPacket(type,payload,dest);
+    if(channelRef.current)try{channelRef.current.postMessage(pkt);}catch(e){}
+    logPacket(pkt,'TX');
+    return pkt;
+  },[logPacket]);
 
-    var requiredFeatures=['local-floor'];
-    var optionalFeatures=['plane-detection','hit-test','anchors','depth-sensing','mesh-detection'];
+  var connect=useCallback(function(){
+    /* Use BroadcastChannel for same-origin multi-tab communication */
+    try{
+      var ch=new BroadcastChannel('ptcp_v1_mesh');
+      channelRef.current=ch;
 
-    navigator.xr.requestSession('immersive-ar',{
-      requiredFeatures:requiredFeatures,
-      optionalFeatures:optionalFeatures,
-      depthSensing:optionalFeatures.includes('depth-sensing')?{
-        usagePreference:['cpu-optimized'],
-        dataFormatPreference:['luminance-alpha']
-      }:undefined
-    }).then(function(session){
-      sessionRef.current=session;
+      ch.onmessage=function(ev){
+        var pkt=ev.data;
+        if(!pkt||!pkt.src||pkt.src===DEVICE_ID)return;
 
-      setState(function(s){return Object.assign({},s,{
-        active:true,source:'webxr',error:null,trackingState:'tracking'
-      });});
+        logPacket(pkt,'RX');
 
-      /* Reference space */
-      session.requestReferenceSpace('local-floor').then(function(refSpace){
+        /* Handle packet types */
+        if(pkt.type===PKT.SYN){
+          sendPacket(PKT.SYN_ACK,{name:DEVICE_NAME,mediation:0},pkt.src);
+          peersRef.current[pkt.src]={id:pkt.src,name:pkt.payload.name||'Unknown',lastSeen:Date.now(),mediation:0,rtt:null,connected:true};
+        }else if(pkt.type===PKT.SYN_ACK){
+          peersRef.current[pkt.src]={id:pkt.src,name:pkt.payload.name||'Unknown',lastSeen:Date.now(),mediation:pkt.payload.mediation||0,rtt:Date.now()-pkt.ts,connected:true};
+          sendPacket(PKT.ACK,{},pkt.src);
+        }else if(pkt.type===PKT.HEARTBEAT){
+          if(peersRef.current[pkt.src])peersRef.current[pkt.src].lastSeen=Date.now();
+          if(pkt.payload)peersRef.current[pkt.src]=Object.assign(peersRef.current[pkt.src]||{},{mediation:pkt.payload.mediation||0});
+        }else if(pkt.type===PKT.MEDIATION_BROADCAST){
+          if(peersRef.current[pkt.src])peersRef.current[pkt.src].mediation=pkt.payload.composite||0;
+        }else if(pkt.type===PKT.PING){
+          sendPacket(PKT.PONG,{echoSeq:pkt.seq},pkt.src);
+        }else if(pkt.type===PKT.PONG){
+          var rtt=Date.now()-pkt.ts;
+          if(peersRef.current[pkt.src])peersRef.current[pkt.src].rtt=rtt;
+        }
 
-        /* Frame loop */
-        var onFrame=function(time,frame){
-          if(!sessionRef.current)return;
-          frameCountRef.current++;
+        /* Update peer list */
+        var peerList=Object.values(peersRef.current).filter(function(p){return Date.now()-p.lastSeen<30000;});
+        setPeers(peerList);
+      };
 
-          var detectedPlanes=[];
-          var pointCloudData=[];
+      setConnected(true);
+      startTimeRef.current=Date.now();
 
-          /* ─ Plane Detection ─ */
-          if(frame.detectedPlanes){
-            frame.detectedPlanes.forEach(function(plane){
-              var pose=frame.getPose(plane.planeSpace,refSpace);
-              if(pose){
-                var p=pose.transform.position;
-                var polygon=plane.polygon||[];
-                /* Compute area from polygon */
-                var area=0;
-                if(polygon.length>=3){
-                  for(var i=0;i<polygon.length;i++){
-                    var j=(i+1)%polygon.length;
-                    area+=polygon[i].x*polygon[j].z-polygon[j].x*polygon[i].z;
-                  }
-                  area=Math.abs(area)/2;
-                }
-                detectedPlanes.push({
-                  id:plane.semanticLabel||plane.orientation||'unknown',
-                  orientation:plane.orientation||'horizontal',
-                  position:{x:p.x,y:p.y,z:p.z},
-                  area:area,
-                  vertexCount:polygon.length,
-                  lastChanged:plane.lastChangedTime||time
-                });
-              }
-            });
-          }
+      /* Announce ourselves */
+      sendPacket(PKT.SYN,{name:DEVICE_NAME});
 
-          /* ─ Depth Sensing → Point Cloud ─ */
-          var views=session.renderState.baseLayer?null:null;
-          if(frame.getDepthInformation){
-            try{
-              var viewerPose=frame.getViewerPose(refSpace);
-              if(viewerPose&&viewerPose.views&&viewerPose.views[0]){
-                var depthInfo=frame.getDepthInformation(viewerPose.views[0]);
-                if(depthInfo){
-                  setState(function(s){return Object.assign({},s,{depthAvailable:true});});
-                  /* Sample depth buffer for point cloud */
-                  var w=depthInfo.width,hh=depthInfo.height;
-                  var step=Math.max(4,Math.floor(w/16));
-                  for(var y=0;y<hh;y+=step){
-                    for(var x=0;x<w;x+=step){
-                      var depth=depthInfo.getDepthInMeters(x/w,y/hh);
-                      if(depth>0&&depth<10){
-                        pointCloudData.push({
-                          x:(x/w-0.5)*depth,
-                          y:(y/hh-0.5)*depth,
-                          z:-depth,
-                          d:depth
-                        });
-                      }
-                    }
-                  }
-                }
-              }
-            }catch(e){}
-          }
+      /* Heartbeat */
+      hbRef.current=setInterval(function(){
+        sendPacket(PKT.HEARTBEAT,{name:DEVICE_NAME,mediation:0});
+        /* Prune stale peers */
+        var now=Date.now();
+        Object.keys(peersRef.current).forEach(function(id){if(now-peersRef.current[id].lastSeen>30000)delete peersRef.current[id];});
+        setPeers(Object.values(peersRef.current));
+      },5000);
 
-          /* ─ Mesh Detection (experimental) ─ */
-          var meshVerts=0,meshTris=0;
-          if(frame.detectedMeshes){
-            frame.detectedMeshes.forEach(function(mesh){
-              meshVerts+=mesh.vertices?mesh.vertices.length/3:0;
-              meshTris+=mesh.indices?mesh.indices.length/3:0;
-            });
-          }
-
-          /* Update state periodically (not every frame) */
-          if(frameCountRef.current%10===0){
-            var totalArea=detectedPlanes.reduce(function(s,p){return s+p.area;},0);
-            setState(function(s){return Object.assign({},s,{
-              planes:detectedPlanes,
-              pointCloud:pointCloudData.length>0?pointCloudData:s.pointCloud,
-              planeCount:detectedPlanes.length,
-              totalArea:totalArea,
-              meshVertices:meshVerts||s.meshVertices,
-              meshTriangles:meshTris||s.meshTriangles
-            });});
-          }
-
-          session.requestAnimationFrame(onFrame);
-        };
-
-        session.requestAnimationFrame(onFrame);
-      });
-
-      /* FPS counter */
-      fpsTimerRef.current=setInterval(function(){
-        setState(function(s){return Object.assign({},s,{frameRate:frameCountRef.current});});
-        frameCountRef.current=0;
+      /* Uptime counter */
+      uptimeRef.current=setInterval(function(){
+        setStats({sent:statsRef.current.sent,recv:statsRef.current.recv,dropped:statsRef.current.dropped,rtt:null,peers:Object.keys(peersRef.current).length,uptime:Math.floor((Date.now()-startTimeRef.current)/1000)});
       },1000);
 
-      session.addEventListener('end',function(){
-        setState(function(s){return Object.assign({},s,{active:false,source:'none',trackingState:'none'});});
-        if(fpsTimerRef.current)clearInterval(fpsTimerRef.current);
-      });
-
-    }).catch(function(err){
-      setState(function(s){return Object.assign({},s,{error:'XR: '+err.message});});
-      startSimulation();
-    });
-  },[]);
-
-  /* ── Simulation Mode ── */
-  var startSimulation=useCallback(function(){
-    setState(function(s){return Object.assign({},s,{
-      active:true,source:'simulation',error:null,trackingState:'tracking'
-    });});
-
-    /* Generate initial simulated room */
-    var simPlanes=[];
-    var roomW=3+Math.random()*4;
-    var roomD=3+Math.random()*4;
-    var roomH=2.4+Math.random()*0.8;
-
-    /* Floor */
-    simPlanes.push({id:'floor_0',orientation:'horizontal-up',label:'FLOOR',
-      position:{x:0,y:0,z:-roomD/2},area:roomW*roomD,
-      vertexCount:4,color:'#00ffaa',w:roomW,d:roomD});
-    /* Ceiling */
-    simPlanes.push({id:'ceiling_0',orientation:'horizontal-down',label:'CEILING',
-      position:{x:0,y:roomH,z:-roomD/2},area:roomW*roomD,
-      vertexCount:4,color:'#00ddff',w:roomW,d:roomD});
-    /* Walls */
-    simPlanes.push({id:'wall_front',orientation:'vertical',label:'WALL',
-      position:{x:0,y:roomH/2,z:-roomD},area:roomW*roomH,
-      vertexCount:4,color:'#cc66ff',w:roomW,d:roomH});
-    simPlanes.push({id:'wall_back',orientation:'vertical',label:'WALL',
-      position:{x:0,y:roomH/2,z:0},area:roomW*roomH,
-      vertexCount:4,color:'#cc66ff',w:roomW,d:roomH});
-    simPlanes.push({id:'wall_left',orientation:'vertical',label:'WALL',
-      position:{x:-roomW/2,y:roomH/2,z:-roomD/2},area:roomD*roomH,
-      vertexCount:4,color:'#9966ff',w:roomD,d:roomH});
-    simPlanes.push({id:'wall_right',orientation:'vertical',label:'WALL',
-      position:{x:roomW/2,y:roomH/2,z:-roomD/2},area:roomD*roomH,
-      vertexCount:4,color:'#9966ff',w:roomD,d:roomH});
-
-    /* Random furniture surfaces */
-    var furnitureCount=2+Math.floor(Math.random()*4);
-    for(var i=0;i<furnitureCount;i++){
-      var fw=0.4+Math.random()*1.2;
-      var fd=0.4+Math.random()*0.8;
-      var fh=0.3+Math.random()*0.7;
-      simPlanes.push({
-        id:'surface_'+i,orientation:'horizontal-up',label:'TABLE/SHELF',
-        position:{x:(Math.random()-0.5)*roomW*0.6,y:fh,z:-Math.random()*roomD*0.8},
-        area:fw*fd,vertexCount:4,color:'#ffcc00',w:fw,d:fd
-      });
+    }catch(e){
+      /* BroadcastChannel not supported — go simulation-only */
+      setConnected(true);
+      startTimeRef.current=Date.now();
     }
 
-    var totalArea=simPlanes.reduce(function(s,p){return s+p.area;},0);
+    /* Simulation: generate virtual peers */
+    var simNames=['iPhone-Lab','Android-Field','Mac-Base','RPi-Probe','ESP32-Node','Gateway-01'];
+    var simPeers=[];
+    var simCount=2+Math.floor(Math.random()*3);
+    for(var i=0;i<simCount;i++){
+      var sp={id:'SIM-'+genId()+'-'+genId(),name:simNames[i%simNames.length],lastSeen:Date.now(),mediation:.2+Math.random()*.6,rtt:5+Math.floor(Math.random()*50),connected:true,simulated:true};
+      simPeers.push(sp);peersRef.current[sp.id]=sp;
+    }
+    setPeers(Object.values(peersRef.current));
 
-    /* Generate simulated point cloud */
-    var points=[];
-    var numPoints=800+Math.floor(Math.random()*600);
-    for(var i=0;i<numPoints;i++){
-      var px=(Math.random()-0.5)*roomW;
-      var py=Math.random()*roomH;
-      var pz=-Math.random()*roomD;
-      var depth=Math.sqrt(px*px+py*py+pz*pz);
-      /* Cluster points near surfaces */
-      if(Math.random()>0.3){
-        var nearPlane=simPlanes[Math.floor(Math.random()*simPlanes.length)];
-        var np=nearPlane.position;
-        if(nearPlane.orientation==='horizontal-up'||nearPlane.orientation==='horizontal-down'){
-          py=np.y+(Math.random()-0.5)*0.1;
-          px=np.x+(Math.random()-0.5)*(nearPlane.w||1);
-          pz=np.z+(Math.random()-0.5)*(nearPlane.d||1);
-        }else{
-          px=np.x+(Math.random()-0.5)*0.1;
-          py=np.y+(Math.random()-0.5)*(nearPlane.d||1);
-          pz=np.z+(Math.random()-0.5)*(nearPlane.w||1);
-        }
-        depth=Math.sqrt(px*px+py*py+pz*pz);
+    /* Simulate peer activity */
+    simRef.current=setInterval(function(){
+      simPeers.forEach(function(sp){
+        sp.lastSeen=Date.now();
+        sp.mediation=Math.max(0,Math.min(1,sp.mediation+(Math.random()-.5)*.1));
+        sp.rtt=Math.max(1,sp.rtt+Math.floor(Math.random()*10-5));
+        peersRef.current[sp.id]=sp;
+      });
+      /* Random peer packet simulation */
+      if(Math.random()>.7){
+        var rp=simPeers[Math.floor(Math.random()*simPeers.length)];
+        var types=[PKT.SENSOR_DATA,PKT.MEDIATION_BROADCAST,PKT.HEARTBEAT,PKT.SPATIAL_SHARE];
+        var t=types[Math.floor(Math.random()*types.length)];
+        var fakePkt={ver:0x10,type:t,seq:Math.floor(Math.random()*0xFFFFFF),src:rp.id,dst:DEVICE_ID,ts:Date.now(),ttl:8,payload:{name:rp.name,mediation:rp.mediation},checksum:0};
+        logPacket(fakePkt,'RX');
+        statsRef.current.recv++;
       }
-      points.push({x:px,y:py,z:pz,d:depth});
-    }
+      setPeers(Object.values(peersRef.current));
+      setStats({sent:statsRef.current.sent,recv:statsRef.current.recv,dropped:statsRef.current.dropped,rtt:null,peers:Object.keys(peersRef.current).length,uptime:startTimeRef.current?Math.floor((Date.now()-startTimeRef.current)/1000):0});
+    },3000);
+  },[sendPacket,logPacket]);
 
-    setState(function(s){return Object.assign({},s,{
-      planes:simPlanes,pointCloud:points,planeCount:simPlanes.length,
-      totalArea:totalArea,meshVertices:numPoints,meshTriangles:Math.floor(numPoints*0.8),
-      frameRate:30
-    });});
+  var disconnect=useCallback(function(){
+    sendPacket(PKT.DISCONNECT,{});
+    if(channelRef.current){channelRef.current.close();channelRef.current=null;}
+    if(hbRef.current)clearInterval(hbRef.current);
+    if(uptimeRef.current)clearInterval(uptimeRef.current);
+    if(simRef.current)clearInterval(simRef.current);
+    peersRef.current={};setPeers([]);setConnected(false);
+  },[sendPacket]);
 
-    /* Simulate ongoing updates */
-    simTimerRef.current=setInterval(function(){
-      /* Slightly perturb point cloud */
-      setState(function(s){
-        var newPoints=s.pointCloud.map(function(p){
-          return{x:p.x+(Math.random()-0.5)*0.02,y:p.y+(Math.random()-0.5)*0.01,
-            z:p.z+(Math.random()-0.5)*0.02,d:p.d};
-        });
-        /* Occasionally add a new surface */
-        var newPlanes=s.planes.slice();
-        if(Math.random()>0.9&&newPlanes.length<15){
-          var nw=0.3+Math.random()*0.5;
-          var nd=0.3+Math.random()*0.5;
-          newPlanes.push({
-            id:'detected_'+Date.now(),orientation:Math.random()>0.5?'horizontal-up':'vertical',
-            label:'NEW_SURFACE',
-            position:{x:(Math.random()-0.5)*3,y:Math.random()*2,z:-Math.random()*3},
-            area:nw*nd,vertexCount:Math.floor(3+Math.random()*5),color:'#ff880088',w:nw,d:nd
-          });
-        }
-        var totalArea=newPlanes.reduce(function(ss,p){return ss+p.area;},0);
-        var snap={time:new Date(),planeCount:newPlanes.length,pointCount:newPoints.length,totalArea:totalArea};
-        return Object.assign({},s,{
-          pointCloud:newPoints,planes:newPlanes,planeCount:newPlanes.length,
-          totalArea:totalArea,
-          history:[snap].concat(s.history).slice(0,32)
-        });
-      });
-    },2000);
-  },[]);
+  var broadcastMediation=useCallback(function(med){
+    if(connected)sendPacket(PKT.MEDIATION_BROADCAST,med);
+  },[connected,sendPacket]);
 
-  /* ── Stop ── */
-  var stop=useCallback(function(){
-    if(sessionRef.current){try{sessionRef.current.end();}catch(e){}}
-    sessionRef.current=null;
-    if(simTimerRef.current){clearInterval(simTimerRef.current);simTimerRef.current=null;}
-    if(fpsTimerRef.current){clearInterval(fpsTimerRef.current);fpsTimerRef.current=null;}
-    setState(function(s){return Object.assign({},s,{active:false,source:'none',trackingState:'none'});});
-  },[]);
+  var shareAnchor=useCallback(function(anchor){
+    if(connected)sendPacket(PKT.ANCHOR_SHARE,anchor);
+  },[connected,sendPacket]);
 
-  /* ── Place Anchor (simulation) ── */
-  var placeAnchor=useCallback(function(){
-    setState(function(s){
-      var a={id:'anchor_'+genId(),time:new Date(),
-        position:{x:(Math.random()-0.5)*3,y:Math.random()*0.5,z:-Math.random()*3}};
-      return Object.assign({},s,{anchors:s.anchors.concat([a]).slice(-16)});
-    });
-  },[]);
+  var pingPeer=useCallback(function(peerId){
+    sendPacket(PKT.PING,{},peerId);
+  },[sendPacket]);
 
   useEffect(function(){return function(){
-    if(sessionRef.current)try{sessionRef.current.end();}catch(e){}
-    if(simTimerRef.current)clearInterval(simTimerRef.current);
-    if(fpsTimerRef.current)clearInterval(fpsTimerRef.current);
+    if(channelRef.current)try{channelRef.current.close();}catch(e){}
+    if(hbRef.current)clearInterval(hbRef.current);
+    if(uptimeRef.current)clearInterval(uptimeRef.current);
+    if(simRef.current)clearInterval(simRef.current);
   };},[]);
 
-  return{state:state,startXR:startXR,startSimulation:startSimulation,stop:stop,placeAnchor:placeAnchor};
+  return{peers:peers,packets:packets,connected:connected,stats:stats,connect:connect,disconnect:disconnect,broadcastMediation:broadcastMediation,shareAnchor:shareAnchor,pingPeer:pingPeer,deviceId:DEVICE_ID,deviceName:DEVICE_NAME};
 }
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  v0.9: BLE MESH — Web Bluetooth + Simulation               */
+/*  v1.0: PHASE-LAW ENGINE                                    */
 /* ═══════════════════════════════════════════════════════════ */
 
-var BLE_SUPPORTED=typeof navigator!=='undefined'&&navigator.bluetooth!=null;
+var PHASE_LAWS=[
+  {id:'PL-001',name:'Acoustic Impedance Matching',desc:'音響インピーダンス整合則: 空間の音響応答性は境界面の材質と形状に依存する',dim:'acoustic',rule:function(d){return d.acoustic>.5?{state:'MATCHED',score:d.acoustic,msg:'高い音響結合 — 閉空間で反射面が明確'}:{state:'MISMATCHED',score:d.acoustic,msg:'低い音響結合 — 開放空間または吸音環境'};}},
+  {id:'PL-002',name:'EM Field Continuity',desc:'電磁場連続則: 情報デバイスの密度は空間の情報インフラ品質を反映する',dim:'emField',rule:function(d){return d.emField>.4?{state:'CONTINUOUS',score:d.emField,msg:'豊富なEM環境 — デバイス/ネットワーク密集'}:{state:'SPARSE',score:d.emField,msg:'希薄なEM環境 — 電子デバイスが少ない'};}},
+  {id:'PL-003',name:'Photonic Channel Theorem',desc:'光子チャネル定理: 視覚的情報チャネルの開放度は光環境に比例する',dim:'photonic',rule:function(d){return{state:d.photonic>.5?'OPEN':'NARROW',score:d.photonic,msg:'光チャネル帯域: '+(d.photonic*100).toFixed(0)+'%'};}},
+  {id:'PL-004',name:'Kinetic Stability Principle',desc:'運動安定性原理: 計測精度は計測系の安定性に支配される',dim:'kinetic',rule:function(d){return d.kinetic>.7?{state:'STABLE',score:d.kinetic,msg:'高精度計測条件 — 静止状態'}:{state:'UNSTABLE',score:d.kinetic,msg:'計測精度低下 — 運動検出'};}},
+  {id:'PL-005',name:'RF Spectral Density Law',desc:'RF帯域占有則: 無線スペクトラムの占有率は空間の情報通信密度を定量化する',dim:'rfDensity',rule:function(d){return{state:d.rfDensity>.3?'DENSE':'SPARSE',score:d.rfDensity,msg:'RF占有率: '+(d.rfDensity*100).toFixed(0)+'%'};}},
+  {id:'PL-006',name:'Spatial Completeness Axiom',desc:'空間完備性公理: 物理空間の幾何学的マッピング網羅度が情報構造化の基盤を成す',dim:'spatial',rule:function(d){return{state:d.spatial>.5?'COMPLETE':'PARTIAL',score:d.spatial,msg:'空間マッピング: '+(d.spatial*100).toFixed(0)+'%'};}},
+  {id:'PL-007',name:'Mesh Connectivity Theorem',desc:'メッシュ接続定理: 近接デバイスのメッシュ密度は空間の情報伝搬効率を決定する',dim:'bleMesh',rule:function(d){return{state:d.bleMesh>.4?'CONNECTED':'ISOLATED',score:d.bleMesh,msg:'メッシュ密度: '+(d.bleMesh*100).toFixed(0)+'%'};}},
+  {id:'PL-008',name:'Information-Physical Coupling Principle',desc:'情報物理結合原理（主定理）: μ(x,t)は空間の全次元にわたる情報と物理の結合度を表す不変量である',dim:'composite',rule:function(d,composite){return{state:composite>.6?'COUPLED':composite>.3?'PARTIAL':'DECOUPLED',score:composite,msg:'結合係数 μ='+(composite).toFixed(4)+' — '+(composite>.6?'情報と物理が強く結合':composite>.3?'部分的結合':'結合が弱い')};}}
+];
 
-/* Common BLE service UUIDs for identification */
-var BLE_SERVICES={
-  'heart_rate':'Heart Rate','battery_service':'Battery','device_information':'Device Info',
-  'environmental_sensing':'Environmental','generic_access':'Generic Access'
-};
-
-function useBLEMesh(){
-  var _s=useState({
-    available:BLE_SUPPORTED,
-    scanning:false,
-    source:BLE_SUPPORTED?'bluetooth':'simulation',
-    error:null,
-    devices:[],
-    meshLinks:[],
-    totalDevices:0,
-    avgRSSI:-80,
-    meshDensity:0
+function evaluatePhaseLaws(dims,composite){
+  return PHASE_LAWS.map(function(law){
+    var result=law.rule(dims,composite);
+    return Object.assign({},law,{result:result});
   });
-  var state=_s[0],setState=_s[1];
-  var simTimerRef=useRef(null);
-
-  /* Scan for BLE devices */
-  var startScan=useCallback(function(){
-    if(BLE_SUPPORTED){
-      /* Web Bluetooth API — requires user gesture and can only discover one device at a time.
-         For mesh discovery, we'd need Web Bluetooth Scanning API (experimental).
-         Fall back to sequential device requests + simulation augmentation. */
-      setState(function(s){return Object.assign({},s,{scanning:true,error:null});});
-
-      /* Try experimental Bluetooth.requestLEScan if available */
-      if(navigator.bluetooth.requestLEScan){
-        navigator.bluetooth.requestLEScan({acceptAllAdvertisements:true}).then(function(scan){
-          navigator.bluetooth.addEventListener('advertisementreceived',function(ev){
-            var dev={
-              id:ev.device.id||genId(),
-              name:ev.device.name||'Unknown',
-              rssi:ev.rssi||-80,
-              txPower:ev.txPower||null,
-              time:new Date(),
-              services:ev.uuids||[],
-              source:'ble_scan'
-            };
-            setState(function(s){
-              var existing=s.devices.findIndex(function(d){return d.id===dev.id;});
-              var newDevs=s.devices.slice();
-              if(existing>=0){newDevs[existing]=dev;}else{newDevs.push(dev);}
-              newDevs=newDevs.slice(-20);
-              return Object.assign({},s,{devices:newDevs,totalDevices:newDevs.length});
-            });
-          });
-        }).catch(function(err){
-          setState(function(s){return Object.assign({},s,{error:'BLE Scan: '+err.message});});
-          startSimBLE();
-        });
-      }else{
-        /* Fall back to simulation with occasional real device discovery */
-        startSimBLE();
-      }
-    }else{
-      startSimBLE();
-    }
-  },[]);
-
-  var startSimBLE=useCallback(function(){
-    setState(function(s){return Object.assign({},s,{scanning:true,source:'simulation'});});
-
-    /* Generate initial simulated BLE devices */
-    var simNames=['iPhone-Pro','Galaxy-S24','AirPods-L','Mi Band 8','Tile Mate','ESP32-Sensor',
-      'BLE-Beacon-01','Smart Lock','Philips Hue','Arduino-BLE','RPi-Pico-W','BLE-Thermo',
-      'SmartWatch','BLE-Tag-02','Desk Lamp','Air Purifier'];
-    var initialDevs=[];
-    var devCount=4+Math.floor(Math.random()*8);
-    for(var i=0;i<devCount;i++){
-      var nameIdx=Math.floor(Math.random()*simNames.length);
-      initialDevs.push({
-        id:'sim_'+i+'_'+genId(),name:simNames[nameIdx],
-        rssi:-45-Math.floor(Math.random()*50),
-        txPower:-12-Math.floor(Math.random()*20),
-        time:new Date(),services:[],source:'simulation',
-        distance:null/* will compute */
-      });
-    }
-    /* Estimate distance from RSSI: d = 10^((txPower - rssi) / (10*n)) where n~2 */
-    initialDevs.forEach(function(d){
-      var txP=d.txPower||-20;
-      d.distance=Math.pow(10,(txP-d.rssi)/(10*2));
-    });
-
-    /* Generate mesh links (simulated connections between nearby devices) */
-    var links=[];
-    for(var i=0;i<initialDevs.length;i++){
-      for(var j=i+1;j<initialDevs.length;j++){
-        if(Math.random()>0.6){
-          links.push({from:initialDevs[i].id,to:initialDevs[j].id,strength:Math.random()});
-        }
-      }
-    }
-
-    var avgR=initialDevs.reduce(function(s,d){return s+d.rssi;},0)/initialDevs.length;
-    setState(function(s){return Object.assign({},s,{
-      devices:initialDevs,meshLinks:links,totalDevices:initialDevs.length,
-      avgRSSI:Math.round(avgR),meshDensity:links.length/(initialDevs.length*(initialDevs.length-1)/2)
-    });});
-
-    /* Simulate ongoing discovery */
-    simTimerRef.current=setInterval(function(){
-      setState(function(s){
-        var devs=s.devices.map(function(d){
-          return Object.assign({},d,{
-            rssi:d.rssi+Math.floor(Math.random()*6-3),
-            time:new Date()
-          });
-        });
-        /* Recompute distances */
-        devs.forEach(function(d){
-          var txP=d.txPower||-20;
-          d.distance=Math.pow(10,(txP-d.rssi)/(10*2));
-        });
-        /* Occasionally discover new device */
-        if(Math.random()>.88&&devs.length<16){
-          devs.push({
-            id:'sim_new_'+genId(),name:'BLE-'+genId(),
-            rssi:-55-Math.floor(Math.random()*35),txPower:-15,
-            time:new Date(),services:[],source:'simulation',
-            distance:null
-          });
-          var last=devs[devs.length-1];
-          last.distance=Math.pow(10,(-15-last.rssi)/20);
-        }
-        /* Occasionally lose a device */
-        if(Math.random()>.92&&devs.length>3){
-          devs.splice(Math.floor(Math.random()*devs.length),1);
-        }
-        var avgR=devs.length?devs.reduce(function(ss,d){return ss+d.rssi;},0)/devs.length:-80;
-        var links=[];
-        for(var i=0;i<devs.length;i++)for(var j=i+1;j<devs.length;j++)
-          if(Math.abs(devs[i].rssi-devs[j].rssi)<20&&Math.random()>.4)
-            links.push({from:devs[i].id,to:devs[j].id,strength:Math.random()});
-        var maxLinks=devs.length*(devs.length-1)/2;
-        return Object.assign({},s,{
-          devices:devs,meshLinks:links,totalDevices:devs.length,
-          avgRSSI:Math.round(avgR),meshDensity:maxLinks>0?links.length/maxLinks:0
-        });
-      });
-    },3000);
-  },[]);
-
-  var stopScan=useCallback(function(){
-    if(simTimerRef.current){clearInterval(simTimerRef.current);simTimerRef.current=null;}
-    setState(function(s){return Object.assign({},s,{scanning:false});});
-  },[]);
-
-  useEffect(function(){return function(){if(simTimerRef.current)clearInterval(simTimerRef.current);};},[]);
-
-  return{state:state,startScan:startScan,stopScan:stopScan};
 }
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  MEDIATION COEFFICIENT v0.9 — 9 dimensions                 */
+/*  MEDIATION COEFFICIENT v1.0 — 11 dimensions                */
 /* ═══════════════════════════════════════════════════════════ */
-function calcMediation(acoustic,mag,light,motion,rfData,nfcData,thermalData,spatialData,bleData){
+function calcMed(acoustic,mag,light,motion,rfData,nfcData,thermalData,spatialData,bleData,netData){
   var dims={};
-  if(acoustic&&acoustic.rtt!=null){dims.acoustic=Math.min(1,acoustic.cf||0);}else{dims.acoustic=0;}
-  if(mag.available){dims.emField=mag.source==='magnetometer'?Math.min(1,mag.mag/100):Math.min(1,mag.mag/90);}else{dims.emField=0.5;}
-  if(light.available&&light.lux!=null){dims.photonic=Math.min(1,light.lux/1000);}else{dims.photonic=0.5;}
-  if(motion.available){dims.kinetic=Math.max(0,1-Math.abs(motion.mag-9.81)/5);}else{dims.kinetic=0.5;}
-  if(rfData&&rfData.spectrum){dims.rfDensity=rfDensity(rfData.spectrum,-70);}else{dims.rfDensity=0;}
-  if(nfcData){dims.nfcField=nfcData.state.fieldStrength||0;}else{dims.nfcField=0;}
-  if(thermalData&&thermalData.data.available){var temp=thermalData.data.estimatedTemp||22;dims.thermal=Math.max(0,Math.min(1,1-(temp-20)/40));}else{dims.thermal=0.5;}
-  /* v0.9: Spatial coverage */
-  if(spatialData&&spatialData.state.active){
-    var planeScore=Math.min(1,spatialData.state.planeCount/10);
-    var areaScore=Math.min(1,spatialData.state.totalArea/50);
-    var pointScore=Math.min(1,spatialData.state.pointCloud.length/500);
-    dims.spatial=(planeScore*0.4+areaScore*0.3+pointScore*0.3);
-  }else{dims.spatial=0;}
-  /* v0.9: BLE Mesh density */
-  if(bleData&&bleData.state.scanning){
-    var devScore=Math.min(1,bleData.state.totalDevices/10);
-    var meshScore=bleData.state.meshDensity;
-    dims.bleMesh=(devScore*0.6+meshScore*0.4);
-  }else{dims.bleMesh=0;}
+  dims.acoustic=acoustic&&acoustic.rtt!=null?Math.min(1,acoustic.cf||0):0;
+  dims.emField=mag.available?(mag.source==='magnetometer'?Math.min(1,mag.mag/100):Math.min(1,mag.mag/90)):0.5;
+  dims.photonic=light.available&&light.lux!=null?Math.min(1,light.lux/1000):0.5;
+  dims.kinetic=motion.available?Math.max(0,1-Math.abs(motion.mag-9.81)/5):0.5;
+  dims.rfDensity=rfData&&rfData.spectrum?rfDensity(rfData.spectrum,-70):0;
+  dims.nfcField=nfcData?nfcData.state.fieldStrength||0:0;
+  dims.thermal=thermalData&&thermalData.data.available?Math.max(0,Math.min(1,1-((thermalData.data.est||22)-20)/40)):0.5;
+  if(spatialData&&spatialData.state.active){var ps=Math.min(1,spatialData.state.planeCount/10),as=Math.min(1,spatialData.state.totalArea/50),pts=Math.min(1,spatialData.state.pointCloud.length/500);dims.spatial=ps*.4+as*.3+pts*.3;}else dims.spatial=0;
+  if(bleData&&bleData.state.scanning){dims.bleMesh=Math.min(1,bleData.state.total/10)*.6+bleData.state.density*.4;}else dims.bleMesh=0;
+  /* v1.0: Network connectivity dimension */
+  if(netData&&netData.connected){dims.network=Math.min(1,netData.stats.peers/5)*.6+(netData.stats.recv>0?Math.min(1,netData.stats.recv/50)*.4:0);}else dims.network=0;
+  /* v1.0: Collaborative coverage — how much shared data from peers */
+  if(netData&&netData.peers.length>0){var avgPeerMed=netData.peers.reduce(function(s,p){return s+(p.mediation||0);},0)/netData.peers.length;dims.collaborative=avgPeerMed;}else dims.collaborative=0;
 
-  var weights={acoustic:0.20,emField:0.10,photonic:0.08,kinetic:0.10,rfDensity:0.12,nfcField:0.08,thermal:0.07,spatial:0.15,bleMesh:0.10};
+  var weights={acoustic:.15,emField:.08,photonic:.06,kinetic:.08,rfDensity:.10,nfcField:.05,thermal:.05,spatial:.12,bleMesh:.08,network:.13,collaborative:.10};
   var total=0,wSum=0;for(var k in dims){if(weights[k]!=null){total+=dims[k]*weights[k];wSum+=weights[k];}}
   return{composite:wSum>0?total/wSum:0,dims:dims};
 }
 
-/* ═══════════════════════════════════════════════════════════ */
-/*  SPACE PROFILE v0.9                                        */
-/* ═══════════════════════════════════════════════════════════ */
-function classifySpace(med,acousticHist){
+function classifySpace(med,hist){
   var tags=[],d=med.dims;
-  if(acousticHist&&acousticHist.length>2){var avgR=0,cnt=0;for(var i=0;i<acousticHist.length;i++){if(acousticHist[i].rtt!=null){avgR+=acousticHist[i].rtt;cnt++;}}if(cnt>0){avgR/=cnt;if(avgR<5)tags.push({l:'ENCLOSED',c:'#00ffaa'});else if(avgR<20)tags.push({l:'INDOOR',c:'#00ddff'});else if(avgR<50)tags.push({l:'OPEN-INDOOR',c:'#ffcc00'});else tags.push({l:'OUTDOOR',c:'#ff8800'});}}
-  if(d.emField>.7)tags.push({l:'HIGH-EM',c:'#ff4466'});else if(d.emField>.3)tags.push({l:'MOD-EM',c:'#cc66ff'});else tags.push({l:'LOW-EM',c:'#00ffaa'});
-  if(d.photonic>.8)tags.push({l:'BRIGHT',c:'#ffcc00'});else if(d.photonic>.3)tags.push({l:'LIT',c:'#8899aa'});else tags.push({l:'DIM',c:'#556677'});
-  if(d.kinetic>.8)tags.push({l:'STABLE',c:'#00ffaa'});else if(d.kinetic>.4)tags.push({l:'MOVING',c:'#ffcc00'});else tags.push({l:'UNSTABLE',c:'#ff3333'});
-  if(d.rfDensity>.4)tags.push({l:'RF-DENSE',c:'#ff4466'});else if(d.rfDensity>.1)tags.push({l:'RF-PRESENT',c:'#ff8800'});else tags.push({l:'RF-QUIET',c:'#556677'});
-  if(d.nfcField>.5)tags.push({l:'NFC-ACTIVE',c:'#cc66ff'});
-  if(d.thermal>.7)tags.push({l:'COOL-ENV',c:'#00ddff'});else if(d.thermal<.3)tags.push({l:'WARM-ENV',c:'#ff8800'});
-  /* v0.9 */
-  if(d.spatial>.6)tags.push({l:'MAPPED',c:'#22ee88'});else if(d.spatial>.2)tags.push({l:'PARTIAL-MAP',c:'#88aa66'});
-  if(d.bleMesh>.5)tags.push({l:'BLE-RICH',c:'#4488ff'});else if(d.bleMesh>.1)tags.push({l:'BLE-SPARSE',c:'#667788'});
+  if(hist&&hist.length>2){var ar=0,c=0;for(var i=0;i<hist.length;i++)if(hist[i].rtt!=null){ar+=hist[i].rtt;c++;}if(c>0){ar/=c;if(ar<5)tags.push({l:'ENCLOSED',c:'#00ffaa'});else if(ar<20)tags.push({l:'INDOOR',c:'#00ddff'});else if(ar<50)tags.push({l:'OPEN-INDOOR',c:'#ffcc00'});else tags.push({l:'OUTDOOR',c:'#ff8800'});}}
+  if(d.emField>.7)tags.push({l:'HIGH-EM',c:'#ff4466'});else if(d.emField>.3)tags.push({l:'MOD-EM',c:'#cc66ff'});
+  if(d.photonic>.8)tags.push({l:'BRIGHT',c:'#ffcc00'});else if(d.photonic<.3)tags.push({l:'DIM',c:'#556677'});
+  if(d.kinetic>.8)tags.push({l:'STABLE',c:'#00ffaa'});else if(d.kinetic<.4)tags.push({l:'UNSTABLE',c:'#ff3333'});
+  if(d.rfDensity>.3)tags.push({l:'RF-DENSE',c:'#ff4466'});
+  if(d.spatial>.5)tags.push({l:'MAPPED',c:'#22ee88'});
+  if(d.bleMesh>.4)tags.push({l:'BLE-RICH',c:'#4488ff'});
+  /* v1.0 */
+  if(d.network>.5)tags.push({l:'NETWORKED',c:'#00ffaa'});else if(d.network>.1)tags.push({l:'P2P-ACTIVE',c:'#88ddaa'});
+  if(d.collaborative>.5)tags.push({l:'COLLAB-HIGH',c:'#ffaa00'});
   if(med.composite>.7)tags.push({l:'HIGH-CONNECT',c:'#00ffaa'});else if(med.composite>.4)tags.push({l:'MED-CONNECT',c:'#ffcc00'});else tags.push({l:'LOW-CONNECT',c:'#ff4444'});
   return tags;
 }
@@ -771,165 +463,25 @@ function classifySpace(med,acousticHist){
 /* ═══════════════════════════════════════════════════════════ */
 /*  CANVAS COMPONENTS                                          */
 /* ═══════════════════════════════════════════════════════════ */
-function CorrCanvas(p){var corr=p.corr,pL=p.pL,bS=p.bS,cf=p.cf,th=p.th,sigColor=p.sigColor||'#00ddff';var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!corr||!corr.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=100*dpr;cv.width=W;cv.height=H;cv.style.height='100px';ctx.clearRect(0,0,W,H);var mC=0;for(var i=0;i<corr.length;i++){var a=Math.abs(corr[i]);if(a>mC)mC=a;}mC=Math.max(mC,.1)*1.15;var xS=W/corr.length,yM=H/2,yS=(H/2)/mC;ctx.strokeStyle='#1a2530';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,yM);ctx.lineTo(W,yM);ctx.stroke();if(th>0&&th<=1){var ty=yM-th*yS;ctx.strokeStyle='#ff880044';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);}ctx.strokeStyle=sigColor+'66';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<corr.length;i++){var x=i*xS,y=yM-corr[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();if(pL>=0){var ai=pL-(bS||0);if(ai>=0&&ai<corr.length){var px=ai*xS,py=yM-corr[ai]*yS;var det=cf>=th;ctx.strokeStyle=(det?cC(cf):'#ff3333')+'cc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();ctx.fillStyle=det?cC(cf):'#ff3333';ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();ctx.font=(11*dpr)+'px IBM Plex Mono';ctx.fillText(lagMs(pL).toFixed(1)+'ms',px+6*dpr,14*dpr);}};},[corr,pL,bS,cf,th,sigColor]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'100px'}});}
-function WaveCanvas(p){var smp=p.smp,blMs=p.blMs,sigColor=p.sigColor||'#00ffaa';var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!smp||!smp.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=46*dpr;cv.width=W;cv.height=H;cv.style.height='46px';ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(smp.length/(W/dpr)));var mV=0;for(var i=0;i<smp.length;i+=step){var a=Math.abs(smp[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;var bx=(blMs/CFG.listenMs)*W;ctx.fillStyle='rgba(255,255,255,.015)';ctx.fillRect(0,0,bx,H);ctx.strokeStyle=sigColor+'33';ctx.lineWidth=1;ctx.beginPath();for(var i=0;i<smp.length;i+=step){var x=(i/smp.length)*W,y=yM-smp[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();},[smp,blMs,sigColor]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'46px'}});}
-function SigPreview(p){var sig=p.sig;var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!sig)return;var buf=genSignal(sig,CFG.sr);var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=32*dpr;cv.width=W;cv.height=H;cv.style.height='32px';ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(buf.length/(W/dpr)));var mV=0;for(var i=0;i<buf.length;i+=step){var a=Math.abs(buf[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;ctx.strokeStyle=sig.color+'88';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<buf.length;i+=step){var x=(i/buf.length)*W,y=yM-buf[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();},[sig]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'32px'}});}
-function SpectrumCanvas(p){var spectrum=p.spectrum,band=p.band;var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!spectrum||!spectrum.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=140*dpr;cv.width=W;cv.height=H;cv.style.height='140px';ctx.clearRect(0,0,W,H);var minDb=-100,maxDb=-20,range=maxDb-minDb;ctx.strokeStyle='#1a253044';ctx.lineWidth=1;for(var db=minDb;db<=maxDb;db+=10){var y=H-(db-minDb)/range*H;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.fillStyle='#33445544';ctx.font=(8*dpr)+'px IBM Plex Mono';ctx.fillText(db+'dBm',2*dpr,y-2*dpr);}var grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,band.color+'cc');grad.addColorStop(.5,band.color+'44');grad.addColorStop(1,band.color+'08');ctx.beginPath();ctx.moveTo(0,H);var xS=W/spectrum.length;for(var i=0;i<spectrum.length;i++){var y=H-((spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));ctx.lineTo(i*xS,y);}ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();ctx.beginPath();for(var i=0;i<spectrum.length;i++){var y=H-((spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));i===0?ctx.moveTo(i*xS,y):ctx.lineTo(i*xS,y);}ctx.strokeStyle=band.color;ctx.lineWidth=1.5;ctx.stroke();},[spectrum,band]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'140px'}});}
-function WaterfallCanvas(p){var waterfall=p.waterfall,band=p.band;var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!waterfall||!waterfall.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=80*dpr;cv.width=W;cv.height=H;cv.style.height='80px';ctx.clearRect(0,0,W,H);var rows=waterfall.length,rowH=H/Math.min(rows,64);var minDb=-100,maxDb=-20,range=maxDb-minDb;for(var r=0;r<Math.min(rows,64);r++){var sp=waterfall[r];if(!sp)continue;var xS=W/sp.length;for(var i=0;i<sp.length;i++){var norm=(sp[i]-minDb)/range;norm=Math.max(0,Math.min(1,norm));var rr,gg,bb;if(norm<.25){rr=0;gg=Math.floor(norm*4*100);bb=Math.floor(80+norm*4*175);}else if(norm<.5){rr=0;gg=Math.floor(100+(norm-.25)*4*155);bb=Math.floor(255-(norm-.25)*4*255);}else if(norm<.75){rr=Math.floor((norm-.5)*4*255);gg=255;bb=0;}else{rr=255;gg=Math.floor(255-(norm-.75)*4*255);bb=0;}ctx.fillStyle='rgb('+rr+','+gg+','+bb+')';ctx.fillRect(i*xS,r*rowH,Math.ceil(xS)+1,Math.ceil(rowH)+1);}}},[waterfall,band]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'80px'}});}
-function ThermalHistCanvas(p){var history=p.history||[];var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!history.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=60*dpr;cv.width=W;cv.height=H;cv.style.height='60px';ctx.clearRect(0,0,W,H);var minT=15,maxT=55,range=maxT-minT;ctx.strokeStyle='#1a253044';ctx.lineWidth=1;for(var t=20;t<=50;t+=10){var y=H-(t-minT)/range*H;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}var n=Math.min(history.length,32),xS=W/Math.max(n-1,1);ctx.beginPath();for(var i=0;i<n;i++){var snap=history[n-1-i];var y=H-((snap.estTemp-minT)/range)*H;y=Math.max(0,Math.min(H,y));i===0?ctx.moveTo(i*xS,y):ctx.lineTo(i*xS,y);}ctx.strokeStyle='#ff8800';ctx.lineWidth=2;ctx.stroke();},[history]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'60px'}});}
+function CorrCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.corr||!p.corr.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=100*dpr;cv.width=W;cv.height=H;cv.style.height='100px';ctx.clearRect(0,0,W,H);var mC=0;for(var i=0;i<p.corr.length;i++){var a=Math.abs(p.corr[i]);if(a>mC)mC=a;}mC=Math.max(mC,.1)*1.15;var xS=W/p.corr.length,yM=H/2,yS=(H/2)/mC;ctx.strokeStyle='#1a2530';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,yM);ctx.lineTo(W,yM);ctx.stroke();if(p.th>0){var ty=yM-p.th*yS;ctx.strokeStyle='#ff880044';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);}ctx.strokeStyle=(p.sigColor||'#00ddff')+'66';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<p.corr.length;i++){var x=i*xS,y=yM-p.corr[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();if(p.pL>=0){var ai=p.pL-(p.bS||0);if(ai>=0&&ai<p.corr.length){var px=ai*xS,py=yM-p.corr[ai]*yS;var det=p.cf>=p.th;ctx.strokeStyle=(det?cC(p.cf):'#ff3333')+'cc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();ctx.fillStyle=det?cC(p.cf):'#ff3333';ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();ctx.font=(10*dpr)+'px IBM Plex Mono';ctx.fillText(lagMs(p.pL).toFixed(1)+'ms',px+6*dpr,14*dpr);}}},[p.corr,p.pL,p.bS,p.cf,p.th,p.sigColor]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'100px'}});}
+function WaveCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.smp||!p.smp.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=46*dpr;cv.width=W;cv.height=H;cv.style.height='46px';ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(p.smp.length/(W/dpr)));var mV=0;for(var i=0;i<p.smp.length;i+=step){var a=Math.abs(p.smp[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;ctx.strokeStyle=(p.sigColor||'#00ffaa')+'33';ctx.lineWidth=1;ctx.beginPath();for(var i=0;i<p.smp.length;i+=step){var x=(i/p.smp.length)*W,y=yM-p.smp[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();},[p.smp,p.sigColor]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'46px'}});}
+function SigPreview(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.sig)return;var buf=genSignal(p.sig,CFG.sr);var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=32*dpr;cv.width=W;cv.height=H;cv.style.height='32px';ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(buf.length/(W/dpr)));var mV=0;for(var i=0;i<buf.length;i+=step){var a=Math.abs(buf[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01);var yM=H/2,yS=(H/2)/mV;ctx.strokeStyle=p.sig.color+'88';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<buf.length;i+=step){var x=(i/buf.length)*W,y=yM-buf[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();},[p.sig]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'32px'}});}
+function SpectrumCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.spectrum)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=120*dpr;cv.width=W;cv.height=H;cv.style.height='120px';ctx.clearRect(0,0,W,H);var minDb=-100,maxDb=-20,range=maxDb-minDb;var grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,p.band.color+'cc');grad.addColorStop(1,p.band.color+'08');ctx.beginPath();ctx.moveTo(0,H);var xS=W/p.spectrum.length;for(var i=0;i<p.spectrum.length;i++){var y=H-((p.spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));ctx.lineTo(i*xS,y);}ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();ctx.beginPath();for(var i=0;i<p.spectrum.length;i++){var y=H-((p.spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));i===0?ctx.moveTo(i*xS,y):ctx.lineTo(i*xS,y);}ctx.strokeStyle=p.band.color;ctx.lineWidth=1.5;ctx.stroke();},[p.spectrum,p.band]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'120px'}});}
 
-/* ═══ Mediation Ring & Radar for 9D ═══ */
-function MedRing(p){var val=p.value||0,dims=p.dims||{};var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var S=120*dpr;cv.width=S;cv.height=S;cv.style.width='120px';cv.style.height='120px';ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,r=S/2-8*dpr;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#1a2530';ctx.lineWidth=6*dpr;ctx.stroke();var sa=-Math.PI/2,ea=sa+Math.PI*2*val;var grad=ctx.createLinearGradient(0,0,S,S);if(val>.6){grad.addColorStop(0,'#00ffaa');grad.addColorStop(1,'#00ddff');}else if(val>.3){grad.addColorStop(0,'#ffcc00');grad.addColorStop(1,'#ff8800');}else{grad.addColorStop(0,'#ff4444');grad.addColorStop(1,'#ff3333');}ctx.beginPath();ctx.arc(cx,cy,r,sa,ea);ctx.strokeStyle=grad;ctx.lineWidth=6*dpr;ctx.lineCap='round';ctx.stroke();var dK=['acoustic','emField','photonic','kinetic','rfDensity','nfcField','thermal','spatial','bleMesh'];var dC=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff'];for(var i=0;i<dK.length;i++){var angle=sa+(Math.PI*2/dK.length)*i;var dv=dims[dK[i]]||0;var ir=r-12*dpr,or=r-4*dpr;var tickR=ir+dv*(or-ir);ctx.beginPath();ctx.arc(cx+Math.cos(angle)*tickR,cy+Math.sin(angle)*tickR,2*dpr,0,Math.PI*2);ctx.fillStyle=dC[i];ctx.fill();}},[val,dims]);return h('canvas',{ref:ref,style:{width:'120px',height:'120px'}});}
+/* Radar for 11D */
+function RadarCanvas(p){var dims=p.dims||{};var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,S=280*dpr;cv.width=S;cv.height=S;cv.style.width='280px';cv.style.height='280px';ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,maxR=S/2-30*dpr;var keys=['acoustic','emField','photonic','kinetic','rfDensity','nfcField','thermal','spatial','bleMesh','network','collaborative'];var labels=['ACOUS','EM','PHOTO','KINET','RF','NFC','THERM','SPACE','BLE','NET','COLLAB'];var colors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00'];var n=keys.length;for(var r=1;r<=4;r++){ctx.beginPath();ctx.arc(cx,cy,maxR*(r/4),0,Math.PI*2);ctx.strokeStyle='#1a253044';ctx.lineWidth=1;ctx.stroke();}for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angle)*maxR,cy+Math.sin(angle)*maxR);ctx.strokeStyle='#1a253066';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=colors[i];ctx.font='bold '+(6.5*dpr)+'px IBM Plex Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(labels[i],cx+Math.cos(angle)*(maxR+16*dpr),cy+Math.sin(angle)*(maxR+16*dpr));}ctx.beginPath();for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);var px=cx+Math.cos(angle)*maxR*v,py=cy+Math.sin(angle)*maxR*v;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}ctx.closePath();ctx.fillStyle='rgba(0,255,170,.06)';ctx.fill();ctx.strokeStyle='#00ffaa88';ctx.lineWidth=2;ctx.stroke();for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);ctx.beginPath();ctx.arc(cx+Math.cos(angle)*maxR*v,cy+Math.sin(angle)*maxR*v,3*dpr,0,Math.PI*2);ctx.fillStyle=colors[i];ctx.fill();}},[dims]);return h('canvas',{ref:ref,style:{width:'280px',height:'280px'}});}
 
-function RadarCanvas(p){var dims=p.dims||{};var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var S=260*dpr;cv.width=S;cv.height=S;cv.style.width='260px';cv.style.height='260px';ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,maxR=S/2-28*dpr;var keys=['acoustic','emField','photonic','kinetic','rfDensity','nfcField','thermal','spatial','bleMesh'];var labels=['ACOUSTIC','EM','PHOTONIC','KINETIC','RF','NFC','THERMAL','SPATIAL','BLE'];var colors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff'];var n=keys.length;for(var ring=1;ring<=4;ring++){var rr=maxR*(ring/4);ctx.beginPath();ctx.arc(cx,cy,rr,0,Math.PI*2);ctx.strokeStyle='#1a253055';ctx.lineWidth=1;ctx.stroke();}for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var ex=cx+Math.cos(angle)*maxR,ey=cy+Math.sin(angle)*maxR;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.strokeStyle='#1a253088';ctx.lineWidth=1;ctx.stroke();var lx=cx+Math.cos(angle)*(maxR+14*dpr);var ly=cy+Math.sin(angle)*(maxR+14*dpr);ctx.fillStyle=colors[i];ctx.font='bold '+(7*dpr)+'px IBM Plex Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(labels[i],lx,ly);}ctx.beginPath();for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);var px=cx+Math.cos(angle)*maxR*v;var py=cy+Math.sin(angle)*maxR*v;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}ctx.closePath();ctx.fillStyle='rgba(0,255,170,.06)';ctx.fill();ctx.strokeStyle='#00ffaa88';ctx.lineWidth=2;ctx.stroke();for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);var px=cx+Math.cos(angle)*maxR*v;var py=cy+Math.sin(angle)*maxR*v;ctx.beginPath();ctx.arc(px,py,3*dpr,0,Math.PI*2);ctx.fillStyle=colors[i];ctx.fill();}},[dims]);return h('canvas',{ref:ref,style:{width:'260px',height:'260px'}});}
+/* MedRing for 11D */
+function MedRing(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,S=120*dpr;cv.width=S;cv.height=S;cv.style.width='120px';cv.style.height='120px';ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,r=S/2-8*dpr;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#1a2530';ctx.lineWidth=6*dpr;ctx.stroke();var sa=-Math.PI/2,ea=sa+Math.PI*2*(p.value||0);var grad=ctx.createLinearGradient(0,0,S,S);if(p.value>.6){grad.addColorStop(0,'#00ffaa');grad.addColorStop(1,'#00ddff');}else if(p.value>.3){grad.addColorStop(0,'#ffcc00');grad.addColorStop(1,'#ff8800');}else{grad.addColorStop(0,'#ff4444');grad.addColorStop(1,'#ff3333');}ctx.beginPath();ctx.arc(cx,cy,r,sa,ea);ctx.strokeStyle=grad;ctx.lineWidth=6*dpr;ctx.lineCap='round';ctx.stroke();},[p.value]);return h('canvas',{ref:ref,style:{width:'120px',height:'120px'}});}
 
-/* ═══ v0.9: Point Cloud Canvas (3D isometric projection) ═══ */
-function PointCloudCanvas(p){
-  var points=p.points||[];var planes=p.planes||[];var anchors=p.anchors||[];
-  var ref=useRef(null);var angleRef=useRef(0);var animRef=useRef(null);
+/* Network Topology Canvas */
+function NetTopoCanvas(p){var peers=p.peers||[];var self=p.self;var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=200*dpr;cv.width=W;cv.height=H;cv.style.height='200px';ctx.clearRect(0,0,W,H);var cx=W/2,cy=H/2;/* Self node */ctx.beginPath();ctx.arc(cx,cy,10*dpr,0,Math.PI*2);ctx.fillStyle='#00ffaa';ctx.fill();ctx.font='bold '+(8*dpr)+'px IBM Plex Mono';ctx.textAlign='center';ctx.fillStyle='#00ffaa';ctx.fillText('YOU',cx,cy+20*dpr);/* Peer nodes */var maxR=Math.min(W,H)/2-40*dpr;peers.forEach(function(peer,i){var angle=(Math.PI*2/Math.max(peers.length,1))*i-Math.PI/2;var r=maxR*(.4+Math.random()*.4);var px=cx+Math.cos(angle)*r,py=cy+Math.sin(angle)*r;/* Link */ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);var mc=peer.mediation||0;ctx.strokeStyle=mc>.5?'rgba(0,255,170,.3)':mc>.2?'rgba(255,204,0,.2)':'rgba(255,68,68,.15)';ctx.lineWidth=(1+mc*2)*dpr;ctx.stroke();/* Node */ctx.beginPath();ctx.arc(px,py,6*dpr,0,Math.PI*2);ctx.fillStyle=peer.simulated?'#4488ff':'#ffcc00';ctx.fill();/* Label */ctx.fillStyle='#667788';ctx.font=(7*dpr)+'px IBM Plex Mono';var name=(peer.name||'?').substring(0,12);ctx.fillText(name,px,py+14*dpr);ctx.fillStyle='#44556688';ctx.fillText('μ='+(peer.mediation||0).toFixed(2),px,py+24*dpr);if(peer.rtt)ctx.fillText(peer.rtt+'ms',px,py+34*dpr);});},[peers,self]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'200px'}});}
 
-  useEffect(function(){
-    var cv=ref.current;if(!cv)return;
-    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var W=cv.offsetWidth*dpr,H=200*dpr;cv.width=W;cv.height=H;cv.style.height='200px';
-
-    var draw=function(){
-      ctx.clearRect(0,0,W,H);
-      angleRef.current+=0.003;
-      var angle=angleRef.current;
-      var cos=Math.cos(angle),sin=Math.sin(angle);
-      var scale=W/8;
-      var cx=W/2,cy=H*0.65;
-
-      /* Project 3D→2D with rotation */
-      var proj=function(x,y,z){
-        var rx=x*cos-z*sin;
-        var rz=x*sin+z*cos;
-        var sx=cx+rx*scale;
-        var sy=cy-y*scale*0.8+rz*scale*0.3;
-        return{x:sx,y:sy,depth:rz};
-      };
-
-      /* Draw planes as outlines */
-      planes.forEach(function(pl){
-        var pp=pl.position;var pw=(pl.w||1)/2;var pd=(pl.d||1)/2;
-        var corners;
-        if(pl.orientation==='horizontal-up'||pl.orientation==='horizontal-down'){
-          corners=[[pp.x-pw,pp.y,pp.z-pd],[pp.x+pw,pp.y,pp.z-pd],[pp.x+pw,pp.y,pp.z+pd],[pp.x-pw,pp.y,pp.z+pd]];
-        }else{
-          corners=[[pp.x-pw,pp.y-pd,pp.z],[pp.x+pw,pp.y-pd,pp.z],[pp.x+pw,pp.y+pd,pp.z],[pp.x-pw,pp.y+pd,pp.z]];
-        }
-        var projected=corners.map(function(c){return proj(c[0],c[1],c[2]);});
-        ctx.beginPath();
-        projected.forEach(function(pt,i){i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y);});
-        ctx.closePath();
-        ctx.fillStyle=(pl.color||'#00ffaa')+'12';ctx.fill();
-        ctx.strokeStyle=(pl.color||'#00ffaa')+'44';ctx.lineWidth=1;ctx.stroke();
-      });
-
-      /* Draw points */
-      if(points.length>0){
-        var sortedPts=points.map(function(pt){var pp=proj(pt.x,pt.y,pt.z);return{sx:pp.x,sy:pp.y,d:pt.d,depth:pp.depth};});
-        sortedPts.sort(function(a,b){return a.depth-b.depth;});
-        for(var i=0;i<sortedPts.length;i++){
-          var pt=sortedPts[i];
-          if(pt.sx<0||pt.sx>W||pt.sy<0||pt.sy>H)continue;
-          var norm=Math.min(1,pt.d/5);
-          var r=Math.floor(norm*255);var g=Math.floor((1-norm)*255);var b=Math.floor(128+norm*60);
-          var alpha=0.3+norm*0.4;
-          var size=Math.max(1,(1-norm)*3)*dpr;
-          ctx.fillStyle='rgba('+r+','+g+','+b+','+alpha+')';
-          ctx.fillRect(pt.sx-size/2,pt.sy-size/2,size,size);
-        }
-      }
-
-      /* Draw anchors */
-      anchors.forEach(function(a){
-        var pp=proj(a.position.x,a.position.y,a.position.z);
-        ctx.beginPath();ctx.arc(pp.x,pp.y,4*dpr,0,Math.PI*2);
-        ctx.fillStyle='#ff4466';ctx.fill();
-        ctx.strokeStyle='#ff446688';ctx.lineWidth=1;
-        ctx.beginPath();ctx.arc(pp.x,pp.y,8*dpr,0,Math.PI*2);ctx.stroke();
-      });
-
-      /* Labels */
-      ctx.fillStyle='#33445566';ctx.font=(9*dpr)+'px IBM Plex Mono';
-      ctx.fillText('POINT CLOUD: '+points.length+' pts | PLANES: '+planes.length+' | ANCHORS: '+anchors.length,4*dpr,12*dpr);
-
-      animRef.current=requestAnimationFrame(draw);
-    };
-    draw();
-    return function(){if(animRef.current)cancelAnimationFrame(animRef.current);};
-  },[points,planes,anchors]);
-
-  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'200px'}});
-}
-
-/* ═══ v0.9: BLE Mesh Topology Canvas ═══ */
-function BLEMeshCanvas(p){
-  var devices=p.devices||[];var links=p.links||[];
-  var ref=useRef(null);
-
-  useEffect(function(){
-    var cv=ref.current;if(!cv||!devices.length)return;
-    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var W=cv.offsetWidth*dpr,H=180*dpr;cv.width=W;cv.height=H;cv.style.height='180px';
-    ctx.clearRect(0,0,W,H);
-    var cx=W/2,cy=H/2,maxR=Math.min(W,H)/2-30*dpr;
-
-    /* Position devices in a circle, sorted by RSSI (strongest center) */
-    var sorted=devices.slice().sort(function(a,b){return b.rssi-a.rssi;});
-    var positions={};
-    sorted.forEach(function(d,i){
-      var angle=(Math.PI*2/sorted.length)*i-Math.PI/2;
-      var rssiNorm=Math.min(1,(-d.rssi-30)/60);/* 0=strong, 1=weak */
-      var r=maxR*0.2+maxR*0.8*rssiNorm;
-      positions[d.id]={x:cx+Math.cos(angle)*r,y:cy+Math.sin(angle)*r};
-    });
-
-    /* Draw links */
-    links.forEach(function(link){
-      var from=positions[link.from],to=positions[link.to];
-      if(from&&to){
-        ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);
-        ctx.strokeStyle='rgba(68,136,255,'+(link.strength*0.3)+')';ctx.lineWidth=1;ctx.stroke();
-      }
-    });
-
-    /* Draw devices */
-    sorted.forEach(function(d){
-      var pos=positions[d.id];if(!pos)return;
-      var rssiNorm=Math.min(1,Math.max(0,(-d.rssi-30)/60));
-      var nodeR=(4+6*(1-rssiNorm))*dpr;
-
-      /* Glow */
-      var grad=ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,nodeR*3);
-      grad.addColorStop(0,'rgba(68,136,255,0.15)');grad.addColorStop(1,'rgba(68,136,255,0)');
-      ctx.fillStyle=grad;ctx.fillRect(pos.x-nodeR*3,pos.y-nodeR*3,nodeR*6,nodeR*6);
-
-      /* Node */
-      ctx.beginPath();ctx.arc(pos.x,pos.y,nodeR,0,Math.PI*2);
-      var color=d.rssi>-50?'#00ffaa':d.rssi>-70?'#4488ff':d.rssi>-85?'#ffcc00':'#ff4444';
-      ctx.fillStyle=color;ctx.fill();
-
-      /* Label */
-      ctx.fillStyle='#667788';ctx.font=(8*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
-      var name=d.name.length>10?d.name.substring(0,10)+'…':d.name;
-      ctx.fillText(name,pos.x,pos.y+nodeR+10*dpr);
-      ctx.fillStyle='#44556688';ctx.fillText(d.rssi+'dBm',pos.x,pos.y+nodeR+20*dpr);
-    });
-
-    /* Center label */
-    ctx.fillStyle='#22334444';ctx.font=(9*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
-    ctx.fillText('YOU',cx,cy+4*dpr);
-    ctx.beginPath();ctx.arc(cx,cy,6*dpr,0,Math.PI*2);ctx.strokeStyle='#33445544';ctx.lineWidth=1;ctx.stroke();
-  },[devices,links]);
-
-  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'180px'}});
-}
+/* Point Cloud Canvas */
+function PointCloudCanvas(p){var ref=useRef(null);var angleRef=useRef(0);var animRef=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=180*dpr;cv.width=W;cv.height=H;cv.style.height='180px';var draw=function(){ctx.clearRect(0,0,W,H);angleRef.current+=.003;var a=angleRef.current,cos=Math.cos(a),sin=Math.sin(a),scale=W/8,cx=W/2,cy=H*.65;var proj=function(x,y,z){var rx=x*cos-z*sin,rz=x*sin+z*cos;return{x:cx+rx*scale,y:cy-y*scale*.8+rz*scale*.3,d:rz};};(p.planes||[]).forEach(function(pl){var pp=pl.position,pw=(pl.w||1)/2,pd=(pl.d||1)/2;var corners=pl.orientation!=='vert'?[[pp.x-pw,pp.y,pp.z-pd],[pp.x+pw,pp.y,pp.z-pd],[pp.x+pw,pp.y,pp.z+pd],[pp.x-pw,pp.y,pp.z+pd]]:[[pp.x-pw,pp.y-pd,pp.z],[pp.x+pw,pp.y-pd,pp.z],[pp.x+pw,pp.y+pd,pp.z],[pp.x-pw,pp.y+pd,pp.z]];var projected=corners.map(function(c){return proj(c[0],c[1],c[2]);});ctx.beginPath();projected.forEach(function(pt,i){i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y);});ctx.closePath();ctx.fillStyle=(pl.color||'#00ffaa')+'0a';ctx.fill();ctx.strokeStyle=(pl.color||'#00ffaa')+'33';ctx.lineWidth=1;ctx.stroke();});var pts=p.points||[];for(var i=0;i<pts.length;i++){var pt=pts[i],pp=proj(pt.x,pt.y,pt.z);if(pp.x<0||pp.x>W||pp.y<0||pp.y>H)continue;var n=Math.min(1,pt.d/5);ctx.fillStyle='rgba('+Math.floor(n*255)+','+Math.floor((1-n)*255)+','+Math.floor(128+n*60)+','+(0.2+n*0.4)+')';ctx.fillRect(pp.x-1,pp.y-1,2,2);}animRef.current=requestAnimationFrame(draw);};draw();return function(){if(animRef.current)cancelAnimationFrame(animRef.current);};},[p.points,p.planes]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'180px'}});}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  APP                                                       */
+/*  MAIN APP                                                   */
 /* ═══════════════════════════════════════════════════════════ */
 function App(){
   var _ly=useState('sonar'),layer=_ly[0],setLayer=_ly[1];
@@ -946,14 +498,14 @@ function App(){
   var _lw=useState(null),lWave=_lw[0],setLWave=_lw[1];
   var _lr=useState(null),lRes=_lr[0],setLRes=_lr[1];
   var _sig=useState('chirp_mid'),sigId=_sig[0],setSigId=_sig[1];
-  var sensorPerm=useSensorPermissions();
-  var mag=useMagnetometer();var light=useAmbientLight();var motion=useMotion();
-  var _geo=useGeoLocation(),geo=_geo[0],fetchGeo=_geo[1];
+  var sensorPerm=useSP();
+  var mag=useMag(),light=useLight(),motion=useMotion();
+  var _geo=useGeo(),geo=_geo[0],fetchGeo=_geo[1];
   var _emH=useState([]),emHist=_emH[0],setEmHist=_emH[1];
-  var rf=useRFSpectrum();var nfc=useNFC();var thermal=useThermal();
-  /* v0.9 */
-  var spatial=useSpatialMapping();
-  var ble=useBLEMesh();
+  var rf=useRF();var nfc=useNFC();var thermal=useThermal();
+  var spatial=useSpatial();var ble=useBLE();
+  /* v1.0 */
+  var net=usePTCPNetwork();
 
   var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),ambRef=useRef(null),sigBufRef=useRef(null);
   var rec=useRef({on:false,buf:[]});
@@ -962,16 +514,21 @@ function App(){
   var curSig=SIGNALS[sigId];
   useEffect(function(){sigBufRef.current=genSignal(curSig,CFG.sr);setAmb(null);ambRef.current=null;setInfo(null);},[sigId]);
 
-  var mediation=calcMediation(lRes,mag,light,motion,{spectrum:rf.spectrum},{state:nfc.state},thermal,spatial,ble);
+  var mediation=calcMed(lRes,mag,light,motion,{spectrum:rf.spectrum},{state:nfc.state},thermal,spatial,ble,net);
   var spaceTags=classifySpace(mediation,hist);
+  var phaseLaws=evaluatePhaseLaws(mediation.dims,mediation.composite);
 
-  var scanEM=useCallback(function(){setEmHist(function(p){return[{time:new Date(),mag:{mag:mag.mag},light:{lux:light.lux},motion:{mag:motion.mag},mediation:mediation.composite}].concat(p).slice(0,32);});},[mag,light,motion,mediation]);
+  /* Broadcast mediation periodically */
+  useEffect(function(){if(!net.connected)return;var iv=setInterval(function(){net.broadcastMediation({composite:mediation.composite,dims:mediation.dims});},5000);return function(){clearInterval(iv);};},[net.connected,mediation.composite]);
+
+  var scanEM=useCallback(function(){setEmHist(function(p){return[{time:new Date(),mag:{mag:mag.mag},light:{lux:light.lux},motion:{mag:motion.mag},med:mediation.composite}].concat(p).slice(0,32);});},[mag,light,motion,mediation]);
   useEffect(function(){var iv=setInterval(scanEM,2000);return function(){clearInterval(iv);};},[scanEM]);
 
+  /* Audio */
   var initAudio=useCallback(function(){return new Promise(function(ok){if(acRef.current&&acRef.current.state!=='closed'){if(acRef.current.state==='suspended')acRef.current.resume().then(function(){ok(true);});else ok(true);return;}var ctx;try{ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});}catch(ex){setErr('AudioContext: '+ex.message);ok(false);return;}(ctx.state==='suspended'?ctx.resume():Promise.resolve()).then(function(){return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}).then(function(stream){acRef.current=ctx;var src=ctx.createMediaStreamSource(stream);var proc=ctx.createScriptProcessor(CFG.bufSize,1,1);proc.onaudioprocess=function(ev){var inp=ev.inputBuffer.getChannelData(0);var sum=0;for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];setLvl(Math.sqrt(sum/inp.length));if(rec.current.on){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.buf.push(cp);}};src.connect(proc);proc.connect(ctx.destination);setErr(null);ok(true);}).catch(function(ex){setErr('マイクアクセスが必要: '+(ex.message||ex));ok(false);});});},[]);
-  var playSignal=useCallback(function(){var ctx=acRef.current,buf=sigBufRef.current;if(!ctx||!buf)return;var ab=ctx.createBuffer(1,buf.length,CFG.sr);ab.getChannelData(0).set(buf);var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1.0;s.connect(g);g.connect(ctx.destination);s.start();},[]);
-  var calibrate=useCallback(function(){return initAudio().then(function(ok){if(!ok)return;setStatus('calibrating');setInfo('環境ノイズ計測中... 2秒');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,2000);});}).then(function(){rec.current.on=false;var bufs=rec.current.buf;if(!bufs||!bufs.length){setErr('音声データなし');setInfo(null);setStatus('idle');return;}var f=flat(bufs),r=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);var a={rms:r,cn:ac.peakVal};setAmb(a);ambRef.current=a;var th=calcTh(ac.peakVal);setInfo('完了: noise='+(r*1000).toFixed(2)+'mRMS / th='+th.toFixed(4));setStatus('idle');});},[initAudio]);
-  var execPing=useCallback(function(){return initAudio().then(function(ok){if(!ok)return null;var a=ambRef.current;if(!a){setStatus('calibrating');setInfo('初回キャリブ...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,1500);}).then(function(){rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);a={rms:r2,cn:ac.peakVal};setAmb(a);ambRef.current=a;return a;});}return a;}).then(function(a){if(!a)return null;var th=calcTh(a.cn);setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){rec.current.on=false;var signal=flat(rec.current.buf);var ref=sigBufRef.current,res=xcorr(signal,ref,CFG.sr,CFG.blanking);var rtt=null,cf=res.peakVal;if(cf>=th)rtt=lagMs(res.peakLag);var id=genId();var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId};setCount(cntRef.current);setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th});setLWave(signal);setLRes(entry);setStatus('idle');return entry;});});},[initAudio,playSignal,sigId]);
+  var playSignal=useCallback(function(){var ctx=acRef.current,buf=sigBufRef.current;if(!ctx||!buf)return;var ab=ctx.createBuffer(1,buf.length,CFG.sr);ab.getChannelData(0).set(buf);var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1;s.connect(g);g.connect(ctx.destination);s.start();},[]);
+  var calibrate=useCallback(function(){return initAudio().then(function(ok){if(!ok)return;setStatus('calibrating');setInfo('環境ノイズ計測中...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,2000);});}).then(function(){rec.current.on=false;var bufs=rec.current.buf;if(!bufs||!bufs.length){setErr('音声データなし');setInfo(null);setStatus('idle');return;}var f=flat(bufs),r=rmsV(f),rf=sigBufRef.current,ac=xcorr(f,rf,CFG.sr,0);var a={rms:r,cn:ac.peakVal};setAmb(a);ambRef.current=a;setInfo('noise='+(r*1000).toFixed(2)+'mRMS / th='+calcTh(ac.peakVal).toFixed(4));setStatus('idle');});},[initAudio]);
+  var execPing=useCallback(function(){return initAudio().then(function(ok){if(!ok)return null;var a=ambRef.current;if(!a){setStatus('calibrating');setInfo('初回キャリブ...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,1500);}).then(function(){rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),rf=sigBufRef.current,ac=xcorr(f,rf,CFG.sr,0);a={rms:r2,cn:ac.peakVal};setAmb(a);ambRef.current=a;return a;});}return a;}).then(function(a){if(!a)return null;var th=calcTh(a.cn);setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){rec.current.on=false;var signal=flat(rec.current.buf);var rf=sigBufRef.current,res=xcorr(signal,rf,CFG.sr,CFG.blanking);var rtt=null,cf=res.peakVal;if(cf>=th)rtt=lagMs(res.peakLag);var id=genId();var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId};setCount(cntRef.current);setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th});setLWave(signal);setLRes(entry);setStatus('idle');return entry;});});},[initAudio,playSignal,sigId]);
   var startCont=useCallback(function(){setCont(true);contRef.current=true;var run=function(){if(!contRef.current)return;execPing().then(function(){if(contRef.current)timerRef.current=setTimeout(run,intv);});};run();},[execPing,intv]);
   var stopCont=useCallback(function(){setCont(false);contRef.current=false;if(timerRef.current)clearTimeout(timerRef.current);},[]);
   var clear=useCallback(function(){setHist([]);setCount(0);cntRef.current=0;setLCorr(null);setLWave(null);setLRes(null);},[]);
@@ -982,37 +539,43 @@ function App(){
   var mn=ok.length?Math.min.apply(null,ok.map(function(x){return x.rtt;})):null;
   var mx=ok.length?Math.max.apply(null,ok.map(function(x){return x.rtt;})):null;
   var loss=hist.length?((hist.length-ok.length)/hist.length*100):0;
-  var jit=ok.length>1?ok.slice(0,-1).reduce(function(s,x,i){return s+Math.abs(x.rtt-ok[i+1].rtt);},0)/(ok.length-1):null;
-  var avgCf=ok.length?ok.reduce(function(s,x){return s+x.cf;},0)/ok.length:null;
   var aTh=amb?calcTh(amb.cn):CFG.minConf;
 
   var ch=[];
 
   /* ── HEADER ── */
   ch.push(h('div',{className:'hdr',key:'hd'},
-    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v0.9 IPC')),
-    h('div',{className:'sub'},'INFORMATION PHYSICAL CONNECTOR · SPATIAL MAPPING + BLE MESH'),
-    h('p',null,'音響ソナー＋EM＋RF＋NFC＋熱＋WebXR Spatial Mapping＋BLE Meshで物理空間を9次元プローブ。')));
+    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v1.0')),
+    h('div',{className:'sub'},'FULL PHASE-LAW ARCHITECTURE · pTCP/IP FOR PHYSICAL SPACE'),
+    h('p',null,'11次元センシング＋P2Pネットワーク＋Phase-Law Engine。物理空間のためのTCP/IP完全実装。'),
+    net.connected?h('div',{style:{fontSize:'9px',color:'#00ffaa88',marginTop:'4px',display:'flex',gap:'8px',alignItems:'center'}},
+      h('span',{style:{width:6,height:6,borderRadius:'50%',background:'#00ffaa',display:'inline-block',animation:'pulse 2s infinite'}}),
+      'NETWORK ACTIVE | '+DEVICE_NAME+' | PEERS: '+net.stats.peers+' | UP: '+net.stats.uptime+'s'):null));
 
-  /* ── LAYER TABS ── */
+  /* ── TABS ── */
   var tabs=[
     {id:'sonar',icon:'◎',label:'SONAR',color:'#00ffaa'},
     {id:'em',icon:'⚡',label:'EM',color:'#cc66ff'},
     {id:'rf',icon:'〜',label:'RF',color:'#ff4466'},
-    {id:'nfc_thermal',icon:'◇',label:'NFC/TH',color:'#ff8800'},
+    {id:'nfc_th',icon:'◇',label:'NFC/TH',color:'#ff8800'},
     {id:'spatial',icon:'△',label:'SPATIAL',color:'#22ee88'},
     {id:'ble',icon:'◌',label:'BLE',color:'#4488ff'},
+    {id:'network',icon:'⬡',label:'NET',color:'#00ffaa'},
+    {id:'protocol',icon:'⟐',label:'PROTO',color:'#88aacc'},
+    {id:'phase',icon:'Φ',label:'PHASE',color:'#ff66aa'},
     {id:'mediation',icon:'◈',label:'MED',color:'#ffcc00'},
     {id:'profile',icon:'◉',label:'PROFILE',color:'#00ddff'}
   ];
   ch.push(h('div',{className:'layer-tabs',key:'tabs'},tabs.map(function(t){return h('button',{key:t.id,className:'layer-tab'+(layer===t.id?' active':''),onClick:function(){setLayer(t.id);},style:layer===t.id?{borderBottom:'2px solid '+t.color}:{}},h('span',{className:'tab-icon'},t.icon),t.label);})));
 
-  /* ═══ SONAR ═══ */
+  /* ═══════════════════════════════════════════ */
+  /*  SONAR TAB                                 */
+  /* ═══════════════════════════════════════════ */
   if(layer==='sonar'){
     ch.push(h('div',{className:'sec',key:'sig'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:curSig.color}}),'SIGNAL'),h('div',{className:'sel-row'},h('div',{className:'sel-grp'},h('select',{value:sigId,onChange:function(ev){setSigId(ev.target.value);},style:{borderColor:curSig.color+'66',color:curSig.color}},SIG_ORDER.map(function(id){return h('option',{value:id,key:id},SIGNALS[id].name);}))),h('div',{className:'sig-info'},h('span',{style:{color:curSig.color}},'● '),curSig.desc)),h(SigPreview,{sig:curSig})));
-    ch.push(h('div',{className:'sec',key:'lv'},h('div',{className:'lv-row'},h('span',{className:'lv-lbl'},'MIC'),h('div',{className:'lv-bg'},h('div',{className:'lv-bar',style:{width:Math.min(100,lvl*3000)+'%',background:lvl>.001?'linear-gradient(90deg,'+curSig.color+'44,'+curSig.color+'88)':'#ff333322'}})),h('span',{className:'lv-val',style:{color:lvl>.001?curSig.color:'#ff3333'}},(lvl*1000).toFixed(1)+' mRMS')),h('div',{className:'lv-stat',style:{color:lvl>.001?curSig.color+'55':'#ff333366'}},lvl>.001?'● MIC ACTIVE':'○ NO SIGNAL')));
+    ch.push(h('div',{className:'sec',key:'lv'},h('div',{className:'lv-row'},h('span',{className:'lv-lbl'},'MIC'),h('div',{className:'lv-bg'},h('div',{className:'lv-bar',style:{width:Math.min(100,lvl*3000)+'%',background:lvl>.001?'linear-gradient(90deg,'+curSig.color+'44,'+curSig.color+'88)':'#ff333322'}})),h('span',{className:'lv-val',style:{color:lvl>.001?curSig.color:'#ff3333'}},(lvl*1000).toFixed(1)+' mRMS'))));
     var ctrls=[];
-    if(!cont){ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',style:{borderColor:curSig.color+'44',color:curSig.color}},status==='calibrating'?'● CALIB...':status==='pinging'?'● XCORR...':'▶ PING'));ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'◉ CONT'));}else{ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'));}
+    if(!cont){ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',style:{borderColor:curSig.color+'44',color:curSig.color}},status==='calibrating'?'CALIB...':status==='pinging'?'XCORR...':'▶ PING'));ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'◉ CONT'));}else ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'));
     ctrls.push(h('button',{className:'btn btn-sm btn-calib',onClick:amb?resetCal:calibrate,key:'cal'},amb?'↻ RECAL':'⚡ CALIB'));
     ctrls.push(h('div',{className:'sel-grp',key:'iv'},h('span',null,'INT'),h('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
       [1000,1500,2000,3000,5000].map(function(v){return h('option',{value:v,key:v},v+'ms');}))));
@@ -1020,11 +583,11 @@ function App(){
     ch.push(h('div',{className:'ctrl',key:'ctrl'},ctrls));
     if(err)ch.push(h('div',{className:'err',key:'err'},'⚠ '+err));
     if(info)ch.push(h('div',{className:'nfo',key:'nfo'},info));
-    if(hist.length>0){ch.push(h('div',{className:'sts',key:'st'},[{l:'SENT',v:count,c:'#c0d0e0'},{l:'AVG',v:avg!=null?Math.round(avg)+'ms':'---',c:'#00ffaa'},{l:'MIN',v:mn!=null?Math.round(mn)+'ms':'---',c:'#00ddff'},{l:'MAX',v:mx!=null?Math.round(mx)+'ms':'---',c:'#ffcc00'},{l:'JITTER',v:jit!=null?jit.toFixed(1)+'ms':'---',c:'#ff8800'},{l:'LOSS',v:loss.toFixed(0)+'%',c:loss>30?'#ff3333':'#667788'},{l:'CONF',v:avgCf!=null?avgCf.toFixed(2):'---',c:avgCf?cC(avgCf):'#667788'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));}
+    if(hist.length>0){ch.push(h('div',{className:'sts',key:'st'},[{l:'SENT',v:count,c:'#c0d0e0'},{l:'AVG',v:avg!=null?Math.round(avg)+'ms':'---',c:'#00ffaa'},{l:'MIN',v:mn!=null?Math.round(mn)+'ms':'---',c:'#00ddff'},{l:'MAX',v:mx!=null?Math.round(mx)+'ms':'---',c:'#ffcc00'},{l:'LOSS',v:loss.toFixed(0)+'%',c:loss>30?'#ff3333':'#667788'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));}
     if(lCorr&&lCorr.corr&&lCorr.corr.length>0)ch.push(h('div',{className:'cv-wrap',key:'xc'},h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),h('span',null,'peak @ '+(lCorr.pL>=0?lagMs(lCorr.pL).toFixed(1)+'ms':'---'))),h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color})));
-    if(lWave&&lWave.length>0)ch.push(h('div',{className:'cv-wrap',key:'rw'},h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE'),h('span',null,lWave.length+' smp')),h(WaveCanvas,{smp:lWave,blMs:CFG.blanking,sigColor:curSig.color})));
-    if(hist.length>1)ch.push(h('div',{className:'sec',key:'tl'},h('div',{className:'sec-label'},'RTT TIMELINE'),h('div',{className:'tl-bars'},hist.slice().reverse().slice(-48).map(function(x,i){var c=cls(x.rtt),bH=x.rtt!=null?Math.max(3,Math.min(40,(x.rtt/200)*40)):40;var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:c.c;return h('div',{className:'tl-b',key:i,style:{height:bH+'px',background:x.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':sc,opacity:x.rtt==null?.5:.6}});}))));
-    if(hist.length>0)ch.push(h('div',{className:'log',key:'log'},h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'SIG')),h('div',{className:'log-b'},hist.map(function(x){var c=cls(x.rtt),d=eD(x.rtt);var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788';var sn=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?';return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id},h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),h('span',{style:{color:c.c,fontSize:'9px'}},c.l),h('span',null,d!=null?d.toFixed(1)+'m':'---'),h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),h('span',{style:{fontSize:'9px',color:sc}},sn));}))));
+    if(lWave&&lWave.length>0)ch.push(h('div',{className:'cv-wrap',key:'rw'},h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE')),h(WaveCanvas,{smp:lWave,sigColor:curSig.color})));
+    if(hist.length>1)ch.push(h('div',{className:'sec',key:'tl'},h('div',{className:'sec-label'},'RTT TIMELINE'),h('div',{className:'tl-bars'},hist.slice().reverse().slice(-48).map(function(x,i){var c=cls(x.rtt),bH=x.rtt!=null?Math.max(3,Math.min(40,(x.rtt/200)*40)):40;return h('div',{className:'tl-b',key:i,style:{height:bH+'px',background:x.rtt==null?'#ff333322':(x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:c.c),opacity:x.rtt==null?.5:.6}});}))));
+    if(hist.length>0)ch.push(h('div',{className:'log',key:'log'},h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'SIG')),h('div',{className:'log-b'},hist.slice(0,30).map(function(x){var c=cls(x.rtt),d=eD(x.rtt);return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id},h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),h('span',{style:{color:c.c,fontSize:'9px'}},c.l),h('span',null,d!=null?d.toFixed(1)+'m':'---'),h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),h('span',{style:{fontSize:'9px',color:x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788'}},x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?'));}))));
     if(hist.length===0&&!err)ch.push(h('div',{className:'empty',key:'emp'},h('div',{className:'empty-i'},'◎'),h('div',{className:'empty-t'},'ACOUSTIC SONAR'),h('div',{className:'empty-d'},'信号を選択してPING。')));
   }
 
@@ -1033,293 +596,255 @@ function App(){
     ch.push(h('div',{className:'sec',key:'em-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#cc66ff'}}),'EM / ENVIRONMENTAL SENSORS')));
     if(sensorPerm.needsRequest)ch.push(h('div',{key:'perm',style:{padding:'14px',marginBottom:'14px',background:'rgba(204,102,255,.06)',border:'1px solid #cc66ff44',borderRadius:'2px',textAlign:'center'}},h('button',{className:'btn',onClick:sensorPerm.requestAll,style:{background:'#cc66ff22',border:'1px solid #cc66ff66',color:'#cc66ff'}},'▶ GRANT SENSOR ACCESS')));
     ch.push(h('div',{className:'em-grid',key:'em-cards'},
-      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MAGNETIC'),h('span',{style:{color:mag.available?'#00ffaa':'#ff3333',fontSize:'8px'}},mag.available?'● ON':'○ OFF')),h('div',{className:'em-card-v',style:{color:'#cc66ff'}},mag.mag.toFixed(1),h('span',{className:'em-card-u'},mag.source==='magnetometer'?'μT':'°')),h('div',{className:'em-card-sub'},'src: '+mag.source)),
-      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'LIGHT'),h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},light.available?'● ON':'○ OFF')),h('div',{className:'em-card-v',style:{color:'#ffcc00'}},light.lux!=null?light.lux.toFixed(0):'---',h('span',{className:'em-card-u'},'lux')),h('div',{className:'em-card-sub'},'src: '+light.source)),
-      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MOTION'),h('span',{style:{color:motion.available?'#00ffaa':'#ff3333',fontSize:'8px'}},motion.available?'● ON':'○ OFF')),h('div',{className:'em-card-v',style:{color:'#00ddff'}},motion.mag.toFixed(2),h('span',{className:'em-card-u'},'m/s²')),h('div',{className:'em-card-sub'},'src: '+motion.source)),
-      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'GEO'),h('span',{style:{color:geo.available?'#00ffaa':'#556677',fontSize:'8px'}},geo.available?'● FIX':'○')),h('div',{className:'em-card-v',style:{color:'#ff8800',fontSize:'14px'}},geo.available?geo.lat.toFixed(4)+', '+geo.lon.toFixed(4):'---'),h('button',{className:'btn btn-sm',onClick:fetchGeo,style:{marginTop:'6px',background:'transparent',border:'1px solid #ff880044',color:'#ff8800'}},'↻ FIX'))
-    ));
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MAGNETIC'),h('span',{style:{color:mag.available?'#00ffaa':'#ff3333',fontSize:'8px'}},mag.available?'●':'○')),h('div',{className:'em-card-v',style:{color:'#cc66ff'}},mag.mag.toFixed(1),h('span',{className:'em-card-u'},mag.source==='magnetometer'?'μT':'°')),h('div',{className:'em-card-sub'},'src: '+mag.source)),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'LIGHT'),h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},light.available?'●':'○')),h('div',{className:'em-card-v',style:{color:'#ffcc00'}},light.lux!=null?light.lux.toFixed(0):'---',h('span',{className:'em-card-u'},'lux'))),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MOTION')),h('div',{className:'em-card-v',style:{color:'#00ddff'}},motion.mag.toFixed(2),h('span',{className:'em-card-u'},'m/s²'))),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'GEO')),h('div',{className:'em-card-v',style:{color:'#ff8800',fontSize:'14px'}},geo.available?geo.lat.toFixed(4)+', '+geo.lon.toFixed(4):'---'),h('button',{className:'btn btn-sm',onClick:fetchGeo,style:{marginTop:'4px',background:'transparent',border:'1px solid #ff880044',color:'#ff8800'}},'↻ FIX'))));
   }
 
   /* ═══ RF ═══ */
   if(layer==='rf'){
-    var band=rf.band;
-    ch.push(h('div',{className:'sec',key:'rf-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff4466'}}),'RF SPECTRUM ANALYZER'),h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.6'}},'SRC: '+(rf.state.source==='simulation'?'SIMULATION':'WEBUSB SDR'))));
-    ch.push(h('div',{className:'sec',key:'rf-band'},h('div',{className:'sec-label'},'BAND'),h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'6px'}},RF_BAND_ORDER.map(function(id){var b=RF_BANDS[id];return h('span',{key:id,className:'rf-band-tag'+(rf.bandId===id?' active':''),onClick:function(){rf.setBandId(id);},style:{background:b.color+'15',border:'1px solid '+(rf.bandId===id?b.color+'88':b.color+'33'),color:b.color}},b.name);})),h('div',{style:{fontSize:'9px',color:'#334455'}},band.fStart+' → '+band.fEnd+' '+band.unit)));
-    ch.push(h('div',{className:'ctrl',key:'rf-ctrl'},!rf.state.scanning?h('button',{className:'btn',onClick:rf.startScan,style:{background:'#ff446622',border:'1px solid #ff446644',color:'#ff4466'}},'▶ SCAN'):h('button',{className:'btn btn-stop',onClick:rf.stopScan},'■ STOP')));
-    if(rf.spectrum){ch.push(h('div',{className:'rf-spectrum-wrap',key:'rf-sp'},h('div',{className:'cv-lbl'},h('span',null,'POWER SPECTRUM')),h(SpectrumCanvas,{spectrum:rf.spectrum,band:band})));if(rf.waterfall.length>1)ch.push(h('div',{className:'rf-waterfall-wrap',key:'rf-wf'},h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},h('span',null,'WATERFALL')),h(WaterfallCanvas,{waterfall:rf.waterfall,band:band})));}
-    if(!rf.spectrum&&!rf.state.scanning)ch.push(h('div',{className:'empty',key:'rf-emp'},h('div',{className:'empty-i'},'〜'),h('div',{className:'empty-t'},'RF SPECTRUM'),h('div',{className:'empty-d'},'START SCANでスペクトラムスキャンを開始。')));
+    ch.push(h('div',{className:'sec',key:'rf'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff4466'}}),'RF SPECTRUM (SIM)'),h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'8px'}},RF_ORDER.map(function(id){var b=RF_BANDS[id];return h('span',{key:id,className:'rf-band-tag'+(rf.bandId===id?' active':''),onClick:function(){rf.setBandId(id);},style:{background:b.color+'15',border:'1px solid '+(rf.bandId===id?b.color+'88':b.color+'33'),color:b.color}},b.name);})),h('div',{className:'ctrl'},!rf.state.scanning?h('button',{className:'btn',onClick:rf.start,style:{background:'#ff446622',border:'1px solid #ff446644',color:'#ff4466'}},'▶ SCAN'):h('button',{className:'btn btn-stop',onClick:rf.stop},'■ STOP')),rf.spectrum?h(SpectrumCanvas,{spectrum:rf.spectrum,band:rf.band}):h('div',{className:'empty'},h('div',{className:'empty-t'},'START SCAN'))));
   }
 
   /* ═══ NFC/THERMAL ═══ */
-  if(layer==='nfc_thermal'){
-    ch.push(h('div',{className:'sec',key:'nfc-sec'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#9966ff'}}),'NFC FIELD'),h('div',{style:{textAlign:'center',margin:'12px 0'}},h('div',{className:'nfc-pulse',style:{color:nfc.state.fieldStrength>.5?'#9966ff':'#1a2530',border:'2px solid '+(nfc.state.scanning?'#9966ff44':'#1a2530')}},h('span',{style:{fontSize:'24px',color:nfc.state.fieldStrength>.5?'#9966ff':'#334455'}},nfc.state.fieldStrength>.5?'◉':nfc.state.scanning?'◎':'○')),h('div',{style:{fontSize:'10px',color:nfc.state.scanning?'#9966ff':'#445566',letterSpacing:'2px'}},nfc.state.scanning?'SCANNING...':'IDLE')),h('div',{style:{display:'flex',gap:'8px'}},!nfc.state.scanning?h('button',{className:'btn',onClick:nfc.startScan,style:{background:'#9966ff22',border:'1px solid #9966ff44',color:'#9966ff'}},'▶ NFC SCAN'):h('button',{className:'btn btn-stop',onClick:nfc.stopScan},'■ STOP'))));
-    if(nfc.state.tagHistory.length>0)ch.push(h('div',{className:'sec',key:'nfc-tags'},h('div',{className:'sec-label'},'TAG HISTORY'),nfc.state.tagHistory.slice(0,6).map(function(tag,i){return h('div',{key:i,style:{padding:'6px',marginBottom:'4px',border:'1px solid #9966ff22',borderRadius:'2px',fontSize:'10px'}},h('span',{style:{color:'#9966ff'}},'UID: '+tag.serialNumber),' ',h('span',{style:{color:'#556677'}},fT(tag.time)));})));
-    ch.push(h('div',{key:'div',style:{borderTop:'1px solid #1a2530',margin:'18px 0'}}));
-    ch.push(h('div',{className:'sec',key:'therm-sec'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff8800'}}),'THERMAL ESTIMATION'),h('div',{style:{display:'flex',gap:'8px',marginBottom:'14px'}},!thermal.data.available?h('button',{className:'btn',onClick:thermal.startMonitoring,style:{background:'#ff880022',border:'1px solid #ff880044',color:'#ff8800'}},'▶ MONITOR'):h('button',{className:'btn btn-stop',onClick:thermal.stopMonitoring},'■ STOP')),h('div',{className:'em-grid'},h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'EST. TEMP')),h('div',{className:'em-card-v',style:{color:'#ff8800'}},thermal.data.estimatedTemp!=null?thermal.data.estimatedTemp.toFixed(1):'---',h('span',{className:'em-card-u'},'°C')),thermal.data.estimatedTemp!=null?h('div',{className:'thermal-gradient',style:{marginTop:'6px'}},h('div',{className:'thermal-marker',style:{left:Math.min(100,Math.max(0,((thermal.data.estimatedTemp-15)/40)*100))+'%'}})):null),h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'CPU LOAD')),h('div',{className:'em-card-v',style:{color:'#00ddff'}},(thermal.data.cpuLoad*100).toFixed(1),h('span',{className:'em-card-u'},'%')))),thermal.data.history.length>2?h('div',{className:'cv-wrap',key:'therm-cv'},h('div',{className:'cv-lbl'},h('span',null,'THERMAL HISTORY')),h(ThermalHistCanvas,{history:thermal.data.history})):null));
+  if(layer==='nfc_th'){
+    ch.push(h('div',{className:'sec',key:'nfc'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#9966ff'}}),'NFC FIELD (SIM)'),h('div',{className:'ctrl'},!nfc.state.scanning?h('button',{className:'btn',onClick:nfc.start,style:{background:'#9966ff22',border:'1px solid #9966ff44',color:'#9966ff'}},'▶ NFC SCAN'):h('button',{className:'btn btn-stop',onClick:nfc.stop},'■ STOP')),nfc.state.tagHistory.length>0?nfc.state.tagHistory.slice(0,4).map(function(t,i){return h('div',{key:i,style:{padding:'4px 8px',fontSize:'10px',borderBottom:'1px solid #1a253033'}},h('span',{style:{color:'#9966ff'}},'UID: '+t.serialNumber),' ',h('span',{style:{color:'#556677'}},fT(t.time)));}):null));
+    ch.push(h('div',{className:'sec',key:'th'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff8800'}}),'THERMAL (EST)'),h('div',{className:'ctrl'},!thermal.data.available?h('button',{className:'btn',onClick:thermal.start,style:{background:'#ff880022',border:'1px solid #ff880044',color:'#ff8800'}},'▶ MONITOR'):h('button',{className:'btn btn-stop',onClick:thermal.stop},'■ STOP')),h('div',{className:'em-grid'},h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'EST. TEMP')),h('div',{className:'em-card-v',style:{color:'#ff8800'}},thermal.data.est!=null?thermal.data.est.toFixed(1):'---',h('span',{className:'em-card-u'},'°C'))),h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'CPU')),h('div',{className:'em-card-v',style:{color:'#00ddff'}},(thermal.data.cpuLoad*100).toFixed(0),h('span',{className:'em-card-u'},'%'))))));
   }
 
-  /* ═══════════════════════════════════════════ */
-  /*  v0.9: SPATIAL MAPPING LAYER               */
-  /* ═══════════════════════════════════════════ */
+  /* ═══ SPATIAL ═══ */
   if(layer==='spatial'){
     var sp=spatial.state;
-
-    ch.push(h('div',{className:'sec',key:'sp-hdr'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#22ee88'}}),'SPATIAL MAPPING — WebXR + Point Cloud'),
-      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
-        'WebXR Device API (immersive-ar) による空間マッピング。平面検出・深度センシング・ポイントクラウド生成。',h('br'),
-        'WebXR非対応環境ではルームジオメトリのリアルタイムシミュレーションで動作。')));
-
-    /* Platform status */
-    ch.push(h('div',{key:'sp-platform',style:{padding:'6px 10px',marginBottom:'10px',fontSize:'9px',letterSpacing:'1px',color:'#445566',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
-      'WebXR: '+(WEBXR_SUPPORTED?'✔ API Available':'✘ Not Available')+
-      ' | AR Session: '+(sp.available?'✔ Supported':'✘ Not Supported')+
-      ' | Source: '+(sp.source||'none')+
-      ' | Tracking: '+(sp.trackingState||'none')));
-
-    /* Controls */
-    ch.push(h('div',{className:'ctrl',key:'sp-ctrl'},
-      !sp.active?
-        h('button',{className:'btn',onClick:sp.available?spatial.startXR:spatial.startSimulation,
-          style:{background:'linear-gradient(180deg,#22ee8822,#22ee8811)',border:'1px solid #22ee8844',color:'#22ee88'}},
-          sp.available?'▶ START AR SESSION':'▶ START SIMULATION'):
-        h('button',{className:'btn btn-stop',onClick:spatial.stop},'■ STOP'),
-      sp.active?h('button',{className:'btn btn-sm',onClick:spatial.placeAnchor,
-        style:{background:'transparent',border:'1px solid #ff446644',color:'#ff4466'}},'⊕ PLACE ANCHOR'):null
-    ));
-
-    if(sp.error)ch.push(h('div',{className:'err',key:'sp-err'},'⚠ '+sp.error));
-
-    /* Stats */
-    if(sp.active){
-      ch.push(h('div',{className:'sts',key:'sp-sts'},
-        [{l:'PLANES',v:sp.planeCount,c:'#22ee88'},
-         {l:'POINTS',v:sp.pointCloud.length,c:'#00ddff'},
-         {l:'AREA',v:sp.totalArea.toFixed(1)+'m²',c:'#ffcc00'},
-         {l:'MESH V',v:sp.meshVertices,c:'#cc66ff'},
-         {l:'MESH T',v:sp.meshTriangles,c:'#9966ff'},
-         {l:'ANCHORS',v:sp.anchors.length,c:'#ff4466'},
-         {l:'FPS',v:sp.frameRate||'---',c:'#667788'}
-        ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));
-
-      /* 3D Point Cloud Visualization */
-      ch.push(h('div',{className:'spatial-3d-wrap',key:'sp-3d'},
-        h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},
-          h('span',null,'3D POINT CLOUD + PLANES'),
-          h('span',null,'auto-rotate | '+sp.pointCloud.length+' pts')),
-        h(PointCloudCanvas,{points:sp.pointCloud,planes:sp.planes,anchors:sp.anchors})));
-
-      /* Detected Planes List */
-      if(sp.planes.length>0){
-        ch.push(h('div',{className:'sec',key:'sp-planes'},
-          h('div',{className:'sec-label'},'DETECTED PLANES'),
-          sp.planes.slice(0,12).map(function(pl,i){
-            var orient=pl.orientation||'unknown';
-            var orientLabel=PLANE_LABELS[orient]||orient.toUpperCase();
-            var orientColor=PLANE_COLORS[orient]||'#667788';
-            return h('div',{className:'plane-card',key:i},
-              h('div',null,
-                h('span',{style:{fontSize:'9px',letterSpacing:'1px',color:pl.color||orientColor,marginRight:'8px'}},
-                  (pl.label||orientLabel)),
-                h('span',{style:{fontSize:'10px',color:'#667788'}},
-                  pl.area.toFixed(2)+'m²'),
-                h('span',{style:{fontSize:'9px',color:'#445566',marginLeft:'8px'}},
-                  pl.vertexCount+' verts')),
-              h('span',{style:{fontSize:'9px',color:'#334455'}},
-                'pos: '+pl.position.x.toFixed(1)+', '+pl.position.y.toFixed(1)+', '+pl.position.z.toFixed(1)));
-          })));
-      }
-
-      /* Anchors */
-      if(sp.anchors.length>0){
-        ch.push(h('div',{className:'sec',key:'sp-anchors'},
-          h('div',{className:'sec-label'},'SPATIAL ANCHORS'),
-          sp.anchors.map(function(a,i){
-            return h('div',{key:i,style:{padding:'4px 8px',fontSize:'10px',borderBottom:'1px solid #1a253033',display:'flex',gap:'12px'}},
-              h('span',{style:{color:'#ff4466'}},'⊕ '+a.id),
-              h('span',{style:{color:'#667788'}},a.position.x.toFixed(2)+', '+a.position.y.toFixed(2)+', '+a.position.z.toFixed(2)),
-              h('span',{style:{color:'#445566'}},fT(a.time)));
-          })));
-      }
-
-      /* Spatial scan history */
-      if(sp.history.length>0){
-        ch.push(h('div',{className:'sec',key:'sp-hist'},
-          h('div',{className:'sec-label'},'SPATIAL SCAN LOG'),
-          h('div',{style:{maxHeight:'150px',overflow:'auto'}},
-            sp.history.slice(0,12).map(function(snap,i){
-              return h('div',{key:i,style:{padding:'3px 8px',fontSize:'10px',borderBottom:'1px solid #1a253044',color:'#667788',display:'flex',gap:'10px'}},
-                h('span',{style:{color:'#556677',minWidth:'56px'}},fT(snap.time)),
-                h('span',{style:{color:'#22ee88'}},snap.planeCount+' planes'),
-                h('span',{style:{color:'#00ddff'}},snap.pointCount+' pts'),
-                h('span',{style:{color:'#ffcc00'}},snap.totalArea.toFixed(1)+'m²'));
-            }))));
-      }
-    }
-
-    if(!sp.active){
-      ch.push(h('div',{className:'empty',key:'sp-emp'},
-        h('div',{className:'empty-i'},'△'),
-        h('div',{className:'empty-t'},'SPATIAL MAPPING'),
-        h('div',{className:'empty-d'},
-          'WebXR ARセッション開始で空間マッピングを実行。平面検出、深度センシング、ポイントクラウド生成を行います。',h('br'),
-          'WebXR非対応環境ではシミュレーションモードが利用可能です。')));
-    }
-
-    ch.push(h('div',{className:'nfo',key:'sp-nfo'},
-      '▸ WebXR Features: immersive-ar, plane-detection, hit-test, anchors, depth-sensing, mesh-detection',h('br'),
-      '▸ Plane Detection: floor, ceiling, walls, table surfaces — auto-classified by orientation',h('br'),
-      '▸ Point Cloud: Depth sensing → 3D point sampling (CPU-optimized luminance-alpha)',h('br'),
-      '▸ Spatial Anchors: Persistent reference points for tracking coordinate stability',h('br'),
-      '▸ Compatible: Chrome 79+ (Android w/ ARCore), Safari (iOS w/ AR QuickLook partial)'));
+    ch.push(h('div',{className:'sec',key:'sp-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#22ee88'}}),'SPATIAL MAPPING (SIM)'),h('div',{className:'ctrl'},!sp.active?h('button',{className:'btn',onClick:spatial.startSim,style:{background:'#22ee8822',border:'1px solid #22ee8844',color:'#22ee88'}},'▶ START'):h('button',{className:'btn btn-stop',onClick:spatial.stop},'■ STOP'),sp.active?h('button',{className:'btn btn-sm',onClick:function(){spatial.placeAnchor();if(net.connected)net.shareAnchor({time:Date.now()});},style:{background:'transparent',border:'1px solid #ff446644',color:'#ff4466'}},'⊕ ANCHOR'):null)));
+    if(sp.active){ch.push(h('div',{className:'sts',key:'sp-sts'},[{l:'PLANES',v:sp.planeCount,c:'#22ee88'},{l:'POINTS',v:sp.pointCloud.length,c:'#00ddff'},{l:'AREA',v:sp.totalArea.toFixed(1)+'m²',c:'#ffcc00'},{l:'ANCHORS',v:sp.anchors.length,c:'#ff4466'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));ch.push(h('div',{className:'spatial-3d-wrap',key:'sp-3d'},h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},h('span',null,'3D POINT CLOUD')),h(PointCloudCanvas,{points:sp.pointCloud,planes:sp.planes})));}
+    if(!sp.active)ch.push(h('div',{className:'empty',key:'sp-emp'},h('div',{className:'empty-i'},'△'),h('div',{className:'empty-t'},'SPATIAL MAPPING')));
   }
 
-  /* ═══════════════════════════════════════════ */
-  /*  v0.9: BLE MESH LAYER                      */
-  /* ═══════════════════════════════════════════ */
+  /* ═══ BLE ═══ */
   if(layer==='ble'){
     var bl=ble.state;
+    ch.push(h('div',{className:'sec',key:'ble-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#4488ff'}}),'BLE MESH (SIM)'),h('div',{className:'ctrl'},!bl.scanning?h('button',{className:'btn',onClick:ble.startScan,style:{background:'#4488ff22',border:'1px solid #4488ff44',color:'#4488ff'}},'▶ SCAN'):h('button',{className:'btn btn-stop',onClick:ble.stopScan},'■ STOP'))));
+    if(bl.scanning||bl.devices.length>0){ch.push(h('div',{className:'sts',key:'ble-sts'},[{l:'DEVICES',v:bl.total,c:'#4488ff'},{l:'AVG RSSI',v:bl.avgRSSI+'dBm',c:'#ffcc00'},{l:'LINKS',v:bl.links.length,c:'#cc66ff'},{l:'DENSITY',v:(bl.density*100).toFixed(0)+'%',c:'#00ffaa'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));bl.devices.slice().sort(function(a,b){return b.rssi-a.rssi;}).slice(0,8).forEach(function(d,i){var rc=d.rssi>-50?'#00ffaa':d.rssi>-70?'#4488ff':d.rssi>-85?'#ffcc00':'#ff4444';ch.push(h('div',{className:'ble-dev',key:'bd'+i},h('div',{style:{display:'flex',justifyContent:'space-between'}},h('span',{style:{color:'#c0d0e0',fontSize:'11px'}},d.name),h('span',{style:{color:rc,fontWeight:600,fontSize:'11px'}},d.rssi+'dBm')),h('div',{style:{background:'#0a0f14',borderRadius:'1px',marginTop:'3px'}},h('div',{className:'ble-rssi-bar',style:{width:Math.max(0,Math.min(100,(d.rssi+100)/60*100))+'%',background:rc}})),h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'2px'}},'dist: '+(d.distance!=null?d.distance.toFixed(1)+'m':'---'))));});}
+    if(!bl.scanning&&bl.devices.length===0)ch.push(h('div',{className:'empty',key:'ble-emp'},h('div',{className:'empty-i'},'◌'),h('div',{className:'empty-t'},'BLE MESH')));
+  }
 
-    ch.push(h('div',{className:'sec',key:'ble-hdr'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#4488ff'}}),'BLE MESH NETWORK'),
+  /* ═══════════════════════════════════════════ */
+  /*  v1.0: NETWORK TAB                         */
+  /* ═══════════════════════════════════════════ */
+  if(layer==='network'){
+    ch.push(h('div',{className:'sec',key:'net-hdr'},
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ffaa'}}),'pTCP/IP NETWORK — MULTI-DEVICE SYNC'),
       h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
-        'Web Bluetooth API / BLE Scanning APIでBLEデバイスをスキャン。RSSI距離推定＋メッシュトポロジー可視化。',h('br'),
-        'Web Bluetooth非対応環境ではシミュレーションモードで動作。')));
+        'BroadcastChannel API＋シミュレーションによるP2Pデバイスメッシュ。',h('br'),
+        '複数タブで開くとリアルタイムに相互発見・Mediation共有が行われます。')));
 
-    ch.push(h('div',{key:'ble-platform',style:{padding:'6px 10px',marginBottom:'10px',fontSize:'9px',letterSpacing:'1px',color:'#445566',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
-      'Web Bluetooth: '+(BLE_SUPPORTED?'✔ Available':'✘ Not Available')+
-      ' | Source: '+(bl.source||'none')+
-      ' | Scanning: '+(bl.scanning?'✔':'✘')));
+    ch.push(h('div',{className:'ctrl',key:'net-ctrl'},
+      !net.connected?
+        h('button',{className:'btn btn-ping',onClick:net.connect},'▶ CONNECT NETWORK'):
+        h('button',{className:'btn btn-stop',onClick:net.disconnect},'■ DISCONNECT')));
 
-    ch.push(h('div',{className:'ctrl',key:'ble-ctrl'},
-      !bl.scanning?
-        h('button',{className:'btn',onClick:ble.startScan,
-          style:{background:'linear-gradient(180deg,#4488ff22,#4488ff11)',border:'1px solid #4488ff44',color:'#4488ff'}},
-          '▶ START BLE SCAN'):
-        h('button',{className:'btn btn-stop',onClick:ble.stopScan},'■ STOP')
-    ));
+    /* Self node info */
+    ch.push(h('div',{className:'net-node self',key:'net-self'},
+      h('div',null,
+        h('div',{style:{fontSize:'12px',color:'#00ffaa',fontWeight:600}},DEVICE_NAME),
+        h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'2px'}},DEVICE_ID)),
+      h('div',{style:{textAlign:'right'}},
+        h('div',{style:{fontSize:'16px',color:'#00ffaa',fontWeight:600}},'μ='+mediation.composite.toFixed(3)),
+        h('div',{style:{fontSize:'9px',color:'#445566'}},'LOCAL'))));
 
-    if(bl.error)ch.push(h('div',{className:'err',key:'ble-err'},'⚠ '+bl.error));
+    if(net.connected){
+      /* Network stats */
+      ch.push(h('div',{className:'sts',key:'net-sts'},
+        [{l:'PEERS',v:net.stats.peers,c:'#00ffaa'},{l:'TX',v:net.stats.sent,c:'#ffcc00'},{l:'RX',v:net.stats.recv,c:'#00ddff'},{l:'UPTIME',v:net.stats.uptime+'s',c:'#667788'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));
 
-    if(bl.scanning||bl.devices.length>0){
-      /* Stats */
-      ch.push(h('div',{className:'sts',key:'ble-sts'},
-        [{l:'DEVICES',v:bl.totalDevices,c:'#4488ff'},
-         {l:'AVG RSSI',v:bl.avgRSSI+'dBm',c:bl.avgRSSI>-60?'#00ffaa':bl.avgRSSI>-80?'#ffcc00':'#ff4444'},
-         {l:'LINKS',v:bl.meshLinks.length,c:'#cc66ff'},
-         {l:'DENSITY',v:(bl.meshDensity*100).toFixed(0)+'%',c:bl.meshDensity>.5?'#00ffaa':'#667788'}
-        ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));
+      /* Topology canvas */
+      ch.push(h('div',{className:'spatial-3d-wrap',key:'net-topo'},
+        h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},h('span',null,'MESH TOPOLOGY'),h('span',null,net.peers.length+' peers')),
+        h(NetTopoCanvas,{peers:net.peers,self:{id:DEVICE_ID,name:DEVICE_NAME}})));
 
-      /* Mesh Topology */
-      if(bl.devices.length>0){
-        ch.push(h('div',{className:'spatial-3d-wrap',key:'ble-mesh'},
-          h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},
-            h('span',null,'MESH TOPOLOGY'),h('span',null,bl.totalDevices+' devices / '+bl.meshLinks.length+' links')),
-          h(BLEMeshCanvas,{devices:bl.devices,links:bl.meshLinks})));
-      }
-
-      /* Device list */
-      if(bl.devices.length>0){
-        var sorted=bl.devices.slice().sort(function(a,b){return b.rssi-a.rssi;});
-        ch.push(h('div',{className:'sec',key:'ble-devs'},
-          h('div',{className:'sec-label'},'DISCOVERED DEVICES'),
-          sorted.slice(0,12).map(function(d,i){
-            var rssiColor=d.rssi>-50?'#00ffaa':d.rssi>-70?'#4488ff':d.rssi>-85?'#ffcc00':'#ff4444';
-            var rssiPct=Math.max(0,Math.min(100,(d.rssi+100)/60*100));
-            return h('div',{className:'ble-dev',key:d.id},
-              h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'4px'}},
-                h('span',{style:{fontSize:'11px',color:'#c0d0e0'}},d.name),
-                h('span',{style:{fontSize:'11px',color:rssiColor,fontWeight:600}},d.rssi+' dBm')),
-              h('div',{style:{background:'#0a0f14',borderRadius:'1px',marginBottom:'3px'}},
-                h('div',{className:'ble-rssi-bar',style:{width:rssiPct+'%',background:rssiColor}})),
-              h('div',{style:{display:'flex',gap:'10px',fontSize:'9px',color:'#445566'}},
-                h('span',null,'dist: '+(d.distance!=null?d.distance.toFixed(1)+'m':'---')),
-                h('span',null,'src: '+d.source),
-                h('span',null,fT(d.time))));
+      /* Peer list */
+      if(net.peers.length>0){
+        ch.push(h('div',{className:'sec',key:'net-peers'},
+          h('div',{className:'sec-label'},'CONNECTED PEERS'),
+          net.peers.map(function(peer,i){
+            var mc=peer.mediation||0;var mcC=mc>.5?'#00ffaa':mc>.2?'#ffcc00':'#ff4444';
+            return h('div',{className:'net-node',key:i},
+              h('div',null,
+                h('div',{style:{fontSize:'11px',color:peer.simulated?'#4488ff':'#c0d0e0'}},(peer.name||'Unknown')+(peer.simulated?' (sim)':'')),
+                h('div',{style:{fontSize:'9px',color:'#334455',marginTop:'2px'}},peer.id.substring(0,16)+'...')),
+              h('div',{style:{textAlign:'right',display:'flex',gap:'12px',alignItems:'center'}},
+                h('div',null,h('div',{style:{fontSize:'14px',color:mcC,fontWeight:600}},'μ='+mc.toFixed(3)),peer.rtt?h('div',{style:{fontSize:'9px',color:'#667788'}},peer.rtt+'ms'):null),
+                h('button',{className:'btn btn-sm',onClick:function(){net.pingPeer(peer.id);},style:{background:'transparent',border:'1px solid #00ffaa33',color:'#00ffaa',padding:'4px 8px',fontSize:'9px'}},'PING')));
           })));
       }
     }
 
-    if(!bl.scanning&&bl.devices.length===0){
-      ch.push(h('div',{className:'empty',key:'ble-emp'},
-        h('div',{className:'empty-i'},'◌'),
-        h('div',{className:'empty-t'},'BLE MESH NETWORK'),
-        h('div',{className:'empty-d'},
-          'BLEスキャンを開始してデバイスを検出。RSSI距離推定とメッシュトポロジーをリアルタイム可視化します。',h('br'),
-          'Web Bluetooth Scanning API対応: Chrome (Android) / 他環境はシミュレーション。')));
-    }
-
-    ch.push(h('div',{className:'nfo',key:'ble-nfo'},
-      '▸ Web Bluetooth: requestLEScan() for passive BLE advertisement monitoring',h('br'),
-      '▸ RSSI Distance Model: d = 10^((txPower - RSSI) / (10×n)), n=2 (path loss exponent)',h('br'),
-      '▸ Mesh Links: RSSI proximity-based virtual mesh topology (not actual BLE Mesh protocol)',h('br'),
-      '▸ Compatible: Chrome 56+ (Android), limited on iOS/Desktop'));
+    ch.push(h('div',{className:'nfo',key:'net-nfo'},
+      '▸ TRANSPORT: BroadcastChannel (same-origin real-time) + Simulation peers',h('br'),
+      '▸ PROTOCOL: pTCP v1.0 — SYN/SYN-ACK/ACK handshake, HEARTBEAT, MEDIATION_BROADCAST',h('br'),
+      '▸ P2P: 各デバイスが自身のMediation Coefficientをネットワークに共有',h('br'),
+      '▸ 複数タブを開くと実際のBroadcastChannelで相互発見されます'));
   }
 
-  /* ═══ MEDIATION (9D) ═══ */
+  /* ═══════════════════════════════════════════ */
+  /*  v1.0: PROTOCOL MONITOR TAB                */
+  /* ═══════════════════════════════════════════ */
+  if(layer==='protocol'){
+    ch.push(h('div',{className:'sec',key:'proto-hdr'},
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#88aacc'}}),'pTCP PROTOCOL MONITOR'),
+      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.6'}},'リアルタイムパケットインスペクター。全pTCPパケットの送受信を監視。')));
+
+    if(!net.connected){
+      ch.push(h('div',{className:'nfo',key:'proto-connect'},'NETタブからネットワークに接続するとパケットが表示されます。'));
+    }
+
+    if(net.packets.length>0){
+      ch.push(h('div',{className:'sts',key:'proto-sts'},
+        [{l:'TOTAL',v:net.packets.length,c:'#88aacc'},{l:'TX',v:net.packets.filter(function(p){return p.dir==='TX';}).length,c:'#00ffaa'},{l:'RX',v:net.packets.filter(function(p){return p.dir==='RX';}).length,c:'#ffcc00'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));
+
+      /* Packet header row */
+      ch.push(h('div',{className:'log',key:'proto-log'},
+        h('div',{style:{display:'grid',gridTemplateColumns:'52px 32px 42px 60px 36px 1fr',padding:'4px 8px',fontSize:'8px',letterSpacing:'1.5px',color:'#334455',borderBottom:'1px solid #1a2530',background:'rgba(0,0,0,.3)'}},
+          h('span',null,'TIME'),h('span',null,'DIR'),h('span',null,'TYPE'),h('span',null,'SRC'),h('span',null,'TTL'),h('span',null,'PAYLOAD')),
+        h('div',{style:{maxHeight:'400px',overflow:'auto'}},
+          net.packets.slice(0,64).map(function(p,i){
+            var pkt=p.pkt;var typeName=PKT_NAMES[pkt.type]||'0x'+pkt.type.toString(16);
+            var dirColor=p.dir==='TX'?'#00ffaa':'#ffcc00';
+            var typeColor=pkt.type<=0x03?'#00ddff':pkt.type<=0x11?'#00ffaa':pkt.type<=0x22?'#cc66ff':pkt.type<=0x31?'#ffcc00':pkt.type===0x40?'#ff66aa':'#667788';
+            var srcName=pkt.src===DEVICE_ID?'SELF':pkt.src.substring(0,8);
+            var payload=JSON.stringify(pkt.payload||{}).substring(0,40);
+            return h('div',{className:'pkt-row',key:i},
+              h('span',{style:{color:'#556677'}},fT(p.time)),
+              h('span',{style:{color:dirColor,fontWeight:600,fontSize:'9px'}},p.dir),
+              h('span',{style:{color:typeColor,fontSize:'9px',letterSpacing:'1px'}},typeName.substring(0,8)),
+              h('span',{style:{color:'#667788',fontSize:'9px'}},srcName),
+              h('span',{style:{color:'#445566'}},pkt.ttl),
+              h('span',{style:{color:'#334455',fontSize:'9px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},payload));
+          }))));
+    }
+
+    /* Packet format documentation */
+    ch.push(h('div',{className:'sec',key:'proto-fmt'},
+      h('div',{className:'sec-label'},'pTCP PACKET FORMAT v1.0'),
+      h('div',{style:{fontSize:'10px',color:'#556677',lineHeight:'2',fontFamily:'monospace'}},
+        '┌──────┬──────┬──────┬──────┬──────┐',h('br'),
+        '│ VER  │ TYPE │ SEQ  │ SRC  │ DST  │',h('br'),
+        '├──────┼──────┼──────┼──────┤      │',h('br'),
+        '│ TS   │ TTL  │ CKSM │ PAYLOAD...  │',h('br'),
+        '└──────┴──────┴──────┴─────────────┘',h('br'),h('br'),
+        h('span',{style:{color:'#445566'}},'TYPES: '),
+        'SYN(0x01) SYN_ACK(0x02) ACK(0x03) PING(0x10) PONG(0x11)',h('br'),
+        'SENSOR_DATA(0x20) SPATIAL_SHARE(0x21) ANCHOR_SHARE(0x22)',h('br'),
+        'MEDIATION_BROADCAST(0x30) PROFILE_SYNC(0x31)',h('br'),
+        'PHASE_LAW_UPDATE(0x40) HEARTBEAT(0x50) DISCONNECT(0xFF)')));
+  }
+
+  /* ═══════════════════════════════════════════ */
+  /*  v1.0: PHASE-LAW ENGINE TAB                */
+  /* ═══════════════════════════════════════════ */
+  if(layer==='phase'){
+    ch.push(h('div',{className:'sec',key:'pl-hdr'},
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff66aa'}}),'PHASE-LAW ENGINE — Φ'),
+      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8'}},
+        'Phase-Law（位相法則）は、情報空間と物理空間の結合を記述する法則体系。',h('br'),
+        '各法則がリアルタイムセンサーデータに基づいて評価され、空間の情報物理状態を規定する。')));
+
+    /* Phase Law cards */
+    phaseLaws.forEach(function(law,i){
+      var res=law.result;
+      var stateColor=res.state==='MATCHED'||res.state==='CONTINUOUS'||res.state==='OPEN'||res.state==='STABLE'||res.state==='DENSE'||res.state==='COMPLETE'||res.state==='CONNECTED'||res.state==='COUPLED'?'#00ffaa':
+        res.state==='MISMATCHED'||res.state==='SPARSE'||res.state==='NARROW'||res.state==='UNSTABLE'||res.state==='PARTIAL'||res.state==='ISOLATED'||res.state==='DECOUPLED'?'#ff4444':'#ffcc00';
+      ch.push(h('div',{className:'phase-law-card',key:'pl-'+i,style:{'--law-color':stateColor}},
+        h('div',{style:{position:'absolute',left:0,top:0,bottom:0,width:'3px',background:stateColor}}),
+        h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'6px'}},
+          h('div',null,
+            h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px'}},law.id),
+            h('div',{style:{fontSize:'12px',color:'#c0d0e0',marginTop:'2px'}},law.name)),
+          h('div',{style:{textAlign:'right'}},
+            h('div',{style:{fontSize:'14px',color:stateColor,fontWeight:600}},res.state),
+            h('div',{style:{fontSize:'11px',color:'#667788'}},res.score.toFixed(3)))),
+        h('div',{style:{fontSize:'9px',color:'#445566',marginBottom:'4px'}},law.desc),
+        h('div',{style:{fontSize:'10px',color:stateColor+'aa'}},res.msg),
+        h('div',{className:'em-bar-row',style:{marginTop:'6px'}},
+          h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(res.score*100)+'%',background:stateColor+'88'}})))));
+    });
+
+    ch.push(h('div',{className:'sec',key:'pl-summary'},
+      h('div',{className:'sec-label'},'PHASE-LAW SUMMARY'),
+      h('div',{style:{fontSize:'10px',color:'#556677',lineHeight:'2'}},
+        'Active Laws: '+phaseLaws.length,h('br'),
+        'COUPLED: '+phaseLaws.filter(function(l){return l.result.state==='MATCHED'||l.result.state==='CONTINUOUS'||l.result.state==='OPEN'||l.result.state==='STABLE'||l.result.state==='DENSE'||l.result.state==='COMPLETE'||l.result.state==='CONNECTED'||l.result.state==='COUPLED';}).length,
+        ' | PARTIAL: '+phaseLaws.filter(function(l){return l.result.state==='PARTIAL'||l.result.state==='NARROW';}).length,
+        ' | DECOUPLED: '+phaseLaws.filter(function(l){return l.result.state==='MISMATCHED'||l.result.state==='SPARSE'||l.result.state==='UNSTABLE'||l.result.state==='ISOLATED'||l.result.state==='DECOUPLED';}).length)));
+  }
+
+  /* ═══ MEDIATION (11D) ═══ */
   if(layer==='mediation'){
     var mc=mediation.composite,mcC=mc>.6?'#00ffaa':mc>.3?'#ffcc00':'#ff4444';
     ch.push(h('div',{className:'med-coeff',key:'med'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ffcc00'}}),'MEDIATION COEFFICIENT — μ(x,t) v0.9'),
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ffcc00'}}),'MEDIATION COEFFICIENT — μ(x,t) v1.0'),
       h('div',{style:{textAlign:'center',margin:'12px 0'}},h(MedRing,{value:mc,dims:mediation.dims}),
-        h('div',{className:'med-center',style:{position:'relative',marginTop:'-80px',marginBottom:'40px'}},h('div',{className:'med-val',style:{color:mcC}},mc.toFixed(3)),h('div',{className:'med-lbl'},'COMPOSITE'))),
+        h('div',{style:{position:'relative',marginTop:'-80px',marginBottom:'40px',textAlign:'center'}},h('div',{className:'med-val',style:{color:mcC}},mc.toFixed(3)),h('div',{className:'med-lbl'},'COMPOSITE'))),
       h('div',{className:'med-dims'},
-        [{k:'acoustic',l:'ACOUSTIC',c:'#00ffaa',d:'音響反射率'},
-         {k:'emField',l:'EM FIELD',c:'#cc66ff',d:'電磁場密度'},
-         {k:'photonic',l:'PHOTONIC',c:'#ffcc00',d:'光環境'},
-         {k:'kinetic',l:'KINETIC',c:'#00ddff',d:'運動安定性'},
-         {k:'rfDensity',l:'RF DENSITY',c:'#ff4466',d:'RF帯域占有率'},
-         {k:'nfcField',l:'NFC FIELD',c:'#9966ff',d:'NFC近接場'},
-         {k:'thermal',l:'THERMAL',c:'#ff8800',d:'熱環境安定性'},
-         {k:'spatial',l:'SPATIAL',c:'#22ee88',d:'空間マッピング'},
-         {k:'bleMesh',l:'BLE MESH',c:'#4488ff',d:'BLEメッシュ密度'}
-        ].map(function(dd){var v=mediation.dims[dd.k]||0;return h('div',{className:'med-dim',key:dd.k},h('div',{className:'med-dim-l'},dd.l),h('div',{className:'med-dim-v',style:{color:dd.c}},v.toFixed(3)),h('div',{style:{fontSize:'8px',color:'#334455',marginTop:'2px'}},dd.d),h('div',{className:'em-bar-row',style:{marginTop:'4px'}},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(v*100)+'%',background:dd.c+'88'}}))));}))
+        [{k:'acoustic',l:'ACOUSTIC',c:'#00ffaa'},{k:'emField',l:'EM',c:'#cc66ff'},{k:'photonic',l:'PHOTONIC',c:'#ffcc00'},
+         {k:'kinetic',l:'KINETIC',c:'#00ddff'},{k:'rfDensity',l:'RF',c:'#ff4466'},{k:'nfcField',l:'NFC',c:'#9966ff'},
+         {k:'thermal',l:'THERMAL',c:'#ff8800'},{k:'spatial',l:'SPATIAL',c:'#22ee88'},{k:'bleMesh',l:'BLE',c:'#4488ff'},
+         {k:'network',l:'NETWORK',c:'#00ffaa'},{k:'collaborative',l:'COLLAB',c:'#ffaa00'}
+        ].map(function(dd){var v=mediation.dims[dd.k]||0;return h('div',{className:'med-dim',key:dd.k},h('div',{className:'med-dim-l'},dd.l),h('div',{className:'med-dim-v',style:{color:dd.c}},v.toFixed(3)),h('div',{className:'em-bar-row',style:{marginTop:'4px'}},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(v*100)+'%',background:dd.c+'88'}}))));}))
     ));
-    ch.push(h('div',{className:'sec',key:'med-f'},h('div',{className:'sec-label'},'FORMULA v0.9'),
-      h('div',{style:{fontSize:'11px',color:'#667788',lineHeight:'2',fontFamily:'monospace'}},
+    ch.push(h('div',{className:'sec',key:'med-f'},h('div',{className:'sec-label'},'FORMULA v1.0'),
+      h('div',{style:{fontSize:'10px',color:'#667788',lineHeight:'2',fontFamily:'monospace'}},
         'μ(x,t) = Σ wᵢ · dᵢ(x,t)',h('br'),
-        'dᵢ ∈ {acoustic, emField, photonic, kinetic, rfDensity, nfcField, thermal, spatial, bleMesh}',h('br'),
-        'w = [0.20, 0.10, 0.08, 0.10, 0.12, 0.08, 0.07, 0.15, 0.10]',h('br'),h('br'),
-        h('span',{style:{color:'#445566'}},'v0.9では9次元に拡張。Spatial Mapping（空間形状）とBLE Mesh（近接デバイス密度）を追加。'))));
-    ch.push(h('div',{className:'radar-wrap',key:'radar'},h('div',{className:'sec-label',style:{marginBottom:'8px'}},'9-DIMENSIONAL RADAR'),h(RadarCanvas,{dims:mediation.dims})));
+        'dᵢ ∈ {acoustic, emField, photonic, kinetic, rfDensity, nfcField, thermal,',h('br'),
+        '       spatial, bleMesh, network, collaborative}',h('br'),
+        'w = [.15, .08, .06, .08, .10, .05, .05, .12, .08, .13, .10]',h('br'),h('br'),
+        h('span',{style:{color:'#445566'}},'v1.0では11次元に拡張。Network（P2P接続性）とCollaborative（協調計測カバレッジ）を追加。'))));
+    ch.push(h('div',{className:'radar-wrap',key:'radar'},h('div',{className:'sec-label',style:{marginBottom:'8px'}},'11-DIMENSIONAL RADAR'),h(RadarCanvas,{dims:mediation.dims})));
   }
 
   /* ═══ PROFILE ═══ */
   if(layer==='profile'){
-    ch.push(h('div',{className:'sec',key:'sp'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'SPACE PROFILE v0.9'),h('div',{style:{margin:'10px 0'}},spaceTags.map(function(t,i){return h('span',{key:i,className:'sp-tag',style:{background:t.c+'15',border:'1px solid '+t.c+'44',color:t.c}},t.l);})),h('div',{style:{fontSize:'10px',color:'#445566',marginTop:'10px',lineHeight:'1.8'}},'全9センサーレイヤーの統合分類。各タブでセンサーを有効化するとプロファイルが詳細化。')));
+    ch.push(h('div',{className:'sec',key:'sp'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'SPACE PROFILE v1.0'),h('div',{style:{margin:'10px 0'}},spaceTags.map(function(t,i){return h('span',{key:i,className:'sp-tag',style:{background:t.c+'15',border:'1px solid '+t.c+'44',color:t.c}},t.l);})),h('div',{style:{fontSize:'10px',color:'#445566',marginTop:'10px',lineHeight:'1.8'}},'全11センサーレイヤー＋P2Pネットワーク＋Phase-Law Engineの統合分類。')));
 
-    ch.push(h('div',{className:'sec',key:'ipc'},h('div',{className:'sec-label'},'IPC PROTOCOL STACK — pTCP v0.9'),
-      h('div',{style:{fontSize:'10px',lineHeight:'2.2',color:'#556677'}},
-        ['L6: SPACE PROFILE — 空間分類・行動推奨・環境適応',
-         'L5: MEDIATION — μ(x,t) 9次元情報物理結合係数',
-         'L4: SENSOR FUSION — 音響+EM+光+慣性+RF+NFC+熱+空間+BLE 統合',
-         'L3: ACOUSTIC SONAR — チャープ・相互相関',
-         'L3: EM FIELD — 磁力計・環境光・加速度',
-         'L3: RF SPECTRUM — WebUSB SDR・周波数解析',
-         'L3: NFC FIELD — 近接場検出・タグ読取',
-         'L3: THERMAL — CPU負荷・バッテリー・推定温度',
-         'L3: SPATIAL — WebXR 平面検出・深度・ポイントクラウド',
-         'L3: BLE MESH — Web Bluetooth・RSSI距離推定・メッシュ',
-         'L2: DEVICE HARDWARE — マイク・スピーカー・センサー・USB・NFC・AR',
-         'L1: PHYSICAL MEDIUM — 音波・電磁波・光・慣性力・近接場・空間形状'
+    ch.push(h('div',{className:'sec',key:'ipc'},h('div',{className:'sec-label'},'pTCP/IP PROTOCOL STACK v1.0'),
+      h('div',{style:{fontSize:'10px',lineHeight:'2',color:'#556677'}},
+        ['L9: APPLICATION — 空間プロファイル・協調マッピング・環境適応',
+         'L8: pIP NETWORK — 物理空間アドレッシング・ルーティング',
+         'L7: pTCP TRANSPORT — 信頼性パケット配送・フロー制御',
+         'L6: PHASE-LAW ENGINE — 情報物理結合則の評価・適用',
+         'L5: MEDIATION — μ(x,t) 11次元情報物理結合係数',
+         'L4: SENSOR FUSION — 全11チャネル統合',
+         'L3: SONAR — チャープ・相互相関',
+         'L3: EM — 磁力計・環境光・加速度',
+         'L3: RF — スペクトラム解析',
+         'L3: NFC — 近接場検出',
+         'L3: THERMAL — 温度推定',
+         'L3: SPATIAL — 平面検出・ポイントクラウド',
+         'L3: BLE — RSSI距離推定・メッシュ',
+         'L3: NETWORK — P2Pデバイスメッシュ',
+         'L3: COLLABORATIVE — 協調計測',
+         'L2: DEVICE HW — マイク・スピーカー・センサー',
+         'L1: PHYSICAL — 音波・電磁波・光・慣性・空間形状'
         ].map(function(line,i){
-          var colors=['#00ddff','#ffcc00','#cc66ff','#00ffaa','#cc66ff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#556677','#334455'];
-          return h('div',{key:i,style:{padding:'4px 10px',borderLeft:'3px solid '+colors[i],marginBottom:'2px',background:colors[i]+'08'}},h('span',{style:{color:colors[i]}},line));
+          var colors=['#00ddff','#88aacc','#88aacc','#ff66aa','#ffcc00','#cc66ff','#00ffaa','#cc66ff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00','#556677','#334455'];
+          return h('div',{key:i,style:{padding:'3px 10px',borderLeft:'3px solid '+colors[i],marginBottom:'1px',background:colors[i]+'06',fontSize:'10px'}},h('span',{style:{color:colors[i]}},line));
         }))));
 
-    ch.push(h('div',{className:'sec',key:'roadmap'},h('div',{className:'sec-label'},'DEVELOPMENT ROADMAP'),
+    ch.push(h('div',{className:'sec',key:'arch'},h('div',{className:'sec-label'},'PHASE-LAW ARCHITECTURE v1.0'),
       h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'2'}},
-        h('span',{style:{color:'#556677'}},'v0.6'),' — Acoustic Sonar + Magnetometer + AmbientLight + Accelerometer',h('br'),
-        h('span',{style:{color:'#556677'}},'v0.8'),' — RF Spectrum (WebUSB SDR) + NFC + Thermal + 7D Mediation',h('br'),
-        h('span',{style:{color:'#22ee88'}},'v0.9 [CURRENT]'),' — WebXR Spatial Mapping + Point Cloud + BLE Mesh + 9D Mediation',h('br'),
-        h('span',{style:{color:'#ff8800'}},'v1.0 [NEXT]'),' — Full Phase-Law Architecture: pTCP/IP for physical space protocol',h('br'),
-        h('span',{style:{color:'#ff4466'}},'v1.0'),' — Multi-device sync, P2P spatial anchoring, Collaborative mapping')));
+        h('span',{style:{color:'#00ffaa'}},'pTCP v1.0'),' — Full Phase-Law Architecture: 物理空間のためのTCP/IP完全実装。',h('br'),
+        '▸ 11次元Mediation Coefficient（音響・EM・光・慣性・RF・NFC・熱・空間・BLE・ネットワーク・協調）',h('br'),
+        '▸ Phase-Law Engine: 8つの位相法則によるリアルタイム空間評価',h('br'),
+        '▸ pTCP/IP: SYN/ACK ハンドシェイク、HEARTBEAT、MEDIATION_BROADCAST',h('br'),
+        '▸ P2P Spatial Anchoring: 複数デバイス間での空間アンカー共有',h('br'),
+        '▸ Collaborative Mapping: ピアのMediation Coefficientを統合',h('br'),
+        '▸ Protocol Monitor: リアルタイムパケットインスペクション')));
   }
 
-  /* ── FOOTER ── */
+  /* FOOTER */
   ch.push(h('div',{className:'leg',key:'leg'},[{l:'NEAR',c:'#00ffaa',r:'<5ms'},{l:'ROOM',c:'#00ddff',r:'5-20ms'},{l:'HALL',c:'#ffcc00',r:'20-50ms'},{l:'OPEN',c:'#ff8800',r:'50-150ms'},{l:'DISTANT',c:'#ff4444',r:'>150ms'}].map(function(x){return h('span',{className:'leg-i',key:x.l},h('span',{className:'leg-d',style:{background:x.c}}),x.l+' '+x.r);})));
-  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v0.9 IPC | Spatial Mapping + BLE Mesh + 9D Mediation | Phase-Law Architecture'));
-
+  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Full Phase-Law Architecture | 11D Mediation + P2P Network + Phase-Law Engine | pTCP/IP for Physical Space'));
   return h('div',null,ch);
 }
 
