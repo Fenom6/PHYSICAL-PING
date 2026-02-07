@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v0.4</title>
+<title>Physical Ping — pTCP v0.5</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -38,9 +38,12 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .btn-sm{padding:6px 12px;font-size:10px;letter-spacing:1px}
 .btn-clear{background:transparent;border:1px solid #1a2530;color:#445566;margin-left:auto}
 .btn-calib{background:transparent;border:1px solid #ffcc0044;color:#ffcc00}
-.iv-ctrl{display:flex;align-items:center;gap:6px;margin-left:8px}
-.iv-ctrl span{font-size:10px;color:#445566}
-.iv-ctrl select{background:#0d1520;border:1px solid #1a2530;color:#8899aa;padding:4px 8px;font-size:11px;font-family:inherit;border-radius:2px}
+.sel-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:stretch}
+.sel-grp{display:flex;align-items:center;gap:6px}
+.sel-grp span{font-size:10px;color:#445566;letter-spacing:1px}
+.sel-grp select{background:#0d1520;border:1px solid #1a2530;color:#8899aa;padding:4px 8px;font-size:11px;font-family:inherit;border-radius:2px}
+.sig-info{font-size:10px;color:#556677;padding:6px 10px;background:rgba(0,0,0,.15);border:1px solid #1a2530;border-radius:2px;flex:1;min-width:200px;line-height:1.6}
+.sig-info b{color:#8899aa;font-weight:500}
 .err{padding:10px 14px;background:rgba(255,50,50,.08);border:1px solid #ff333344;border-radius:2px;font-size:11px;color:#ff6666;margin-bottom:12px}
 .nfo{padding:10px 14px;background:rgba(0,255,170,.04);border:1px solid #00ffaa22;border-radius:2px;font-size:11px;color:#00ffaa88;margin-bottom:12px;line-height:1.6}
 .sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(85px,1fr));gap:1px;background:#1a2530;border:1px solid #1a2530;border-radius:2px;margin-bottom:14px;overflow:hidden}
@@ -64,7 +67,7 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .empty{text-align:center;padding:44px 20px;color:#334455}
 .empty-i{font-size:32px;margin-bottom:10px;opacity:.3}
 .empty-t{font-size:11px;letter-spacing:2px;margin-bottom:8px}
-.empty-d{font-size:10px;color:#223344;max-width:380px;margin:0 auto;line-height:1.8}
+.empty-d{font-size:10px;color:#223344;max-width:400px;margin:0 auto;line-height:1.8}
 .leg{margin-top:14px;padding-top:10px;border-top:1px solid #1a2530;display:flex;flex-wrap:wrap;gap:10px;font-size:9px;color:#445566;letter-spacing:1px}
 .leg-i{display:flex;align-items:center;gap:4px}
 .leg-d{width:6px;height:6px;border-radius:1px}
@@ -87,32 +90,63 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 <script>
 var h=React.createElement,useState=React.useState,useRef=React.useRef,useCallback=React.useCallback,useEffect=React.useEffect;
 
-/*
- * pTCP v0.4 — THRESHOLD FIX
- *
- * v0.3 bug: ambient xcorr noise = ~0.4 → threshold = 0.4 × 3.5 = 1.4 (impossible)
- * Fix: Hard cap threshold at 0.45. Actual echoes score 0.7-0.93, noise < 0.2
- *
- * Also: blanking reduced 35ms→8ms for room-scale detection
- */
-var CFG={
-  sr:44100,
-  f1:1500, f2:2500,
-  chirpDur:0.020,    // 20ms chirp
-  listenMs:500,
-  bufSize:256,
-  blanking:8,        // ★ 35ms→8ms — room echoes arrive at 5-30ms
-  maxThresh:0.45,    // ★ HARD CAP — NCC max is 1.0, cap threshold well below
-  minConf:0.04,      // ★ absolute floor
-  histMax:64,
+/* ═══ SIGNAL PRESETS ═══ */
+var SIGNALS={
+  chirp_mid:{
+    id:'chirp_mid', name:'CHIRP MID',
+    desc:'1.5\u21922.5kHz / 20ms \u2014 \u6A19\u6E96\u30C1\u30E3\u30FC\u30D7\u3002\u5BA4\u5185\u7528\u9014\u306B\u6700\u9069\u3002',
+    type:'chirp', f1:1500, f2:2500, dur:0.020, color:'#00ffaa'
+  },
+  chirp_low:{
+    id:'chirp_low', name:'CHIRP LOW',
+    desc:'500\u21921.5kHz / 30ms \u2014 \u4F4E\u5468\u6CE2\u3002\u58C1\u3084\u969C\u5BB3\u7269\u3092\u8CAB\u901A\u3057\u3084\u3059\u304F\u3001\u5EFA\u7269\u5168\u4F53\u306E\u63A2\u7D22\u306B\u3002',
+    type:'chirp', f1:500, f2:1500, dur:0.030, color:'#ff8800'
+  },
+  chirp_high:{
+    id:'chirp_high', name:'CHIRP HIGH',
+    desc:'3\u21926kHz / 15ms \u2014 \u9AD8\u5468\u6CE2\u3002\u6307\u5411\u6027\u304C\u5F37\u304F\u5C0F\u3055\u306A\u7269\u4F53\u3082\u691C\u51FA\u3002',
+    type:'chirp', f1:3000, f2:6000, dur:0.015, color:'#00ddff'
+  },
+  chirp_wide:{
+    id:'chirp_wide', name:'CHIRP WIDE',
+    desc:'800\u21924kHz / 25ms \u2014 \u5E83\u5E2F\u57DF\u30B9\u30A4\u30FC\u30D7\u3002\u6700\u5927\u306E\u60C5\u5831\u91CF\u3002\u7D20\u6750\u5224\u5225\u306B\u3082\u3002',
+    type:'chirp', f1:800, f2:4000, dur:0.025, color:'#ffcc00'
+  },
+  pulse_2k:{
+    id:'pulse_2k', name:'PULSE 2kHz',
+    desc:'2kHz\u5358\u4E00\u30C8\u30FC\u30F3 / 15ms \u2014 \u30B7\u30F3\u30D7\u30EB\u306A\u30D1\u30EB\u30B9\u3002\u57FA\u6E96\u8A08\u6E2C\u7528\u3002',
+    type:'tone', freq:2000, dur:0.015, color:'#cc66ff'
+  },
+  click:{
+    id:'click', name:'CLICK',
+    desc:'\u5E83\u5E2F\u57DF\u30A4\u30F3\u30D1\u30EB\u30B9 / 2ms \u2014 \u30BD\u30CA\u30FC\u539F\u7406\u306E\u30AF\u30EA\u30C3\u30AF\u97F3\u3002\u8DDD\u96E2\u5206\u89E3\u80FD\u6700\u5927\u3002',
+    type:'click', dur:0.002, color:'#ff4466'
+  },
 };
+var SIG_ORDER=['chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
 
-function genChirp(sr,f1,f2,dur){
-  var N=Math.floor(sr*dur),b=new Float32Array(N);
-  for(var i=0;i<N;i++){var t=i/sr;
-    b[i]=Math.sin(2*Math.PI*(f1*t+(f2-f1)*t*t/(2*dur)))*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}
+/* ═══ SIGNAL GENERATION ═══ */
+function genSignal(sig,sr){
+  var N=Math.floor(sr*sig.dur);
+  var b=new Float32Array(N);
+  if(sig.type==='chirp'){
+    for(var i=0;i<N;i++){var t=i/sr;
+      b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}
+  }else if(sig.type==='tone'){
+    for(var i=0;i<N;i++){var t=i/sr;
+      b[i]=Math.sin(2*Math.PI*sig.freq*t)*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}
+  }else if(sig.type==='click'){
+    // Gaussian-windowed broadband impulse
+    var mid=N/2;
+    for(var i=0;i<N;i++){
+      var x=(i-mid)/(N/6);
+      b[i]=Math.exp(-x*x)*((i%2===0)?1:-1);}
+  }
   return b;
 }
+
+/* ═══ CONFIG ═══ */
+var CFG={sr:44100,listenMs:500,bufSize:256,blanking:8,maxThresh:0.45,minConf:0.04,histMax:64};
 
 function xcorr(sig,ref,sr,blankMs){
   var rL=ref.length,sL=sig.length,bS=Math.floor(sr*blankMs/1000),mL=sL-rL;
@@ -129,6 +163,7 @@ function xcorr(sig,ref,sr,blankMs){
 }
 
 function lagMs(l){return(l/CFG.sr)*1000;}
+function calcTh(cn){return Math.max(CFG.minConf,Math.min(cn*2.5,CFG.maxThresh));}
 function genId(){return Math.floor(Math.random()*0xFFFF).toString(16).padStart(4,'0').toUpperCase();}
 function fMs(v){return v==null?'---':v<1?'<1ms':Math.round(v)+'ms';}
 function fT(d){return d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});}
@@ -138,14 +173,8 @@ function cC(c){return c>=.5?'#00ffaa':c>=.3?'#00ddff':c>=.15?'#ffcc00':'#ff4444'
 function flat(b){var t=0;for(var i=0;i<b.length;i++)t+=b[i].length;var f=new Float32Array(t);var o=0;for(var i=0;i<b.length;i++){f.set(b[i],o);o+=b[i].length;}return f;}
 function rmsV(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i]*a[i];return Math.sqrt(s/a.length);}
 
-/* ★ THRESHOLD: cap at maxThresh, never exceed 1.0 */
-function calcThresh(ambCN){
-  var adaptive=ambCN*2.5; // multiplier
-  return Math.max(CFG.minConf, Math.min(adaptive, CFG.maxThresh));
-}
-
 function CorrCanvas(p){
-  var corr=p.corr,pL=p.pL,bS=p.bS,cf=p.cf,th=p.th;
+  var corr=p.corr,pL=p.pL,bS=p.bS,cf=p.cf,th=p.th,sigColor=p.sigColor||'#00ddff';
   var ref=useRef(null);
   useEffect(function(){
     var cv=ref.current;if(!cv||!corr||!corr.length)return;
@@ -155,40 +184,31 @@ function CorrCanvas(p){
     var mC=0;for(var i=0;i<corr.length;i++){var a=Math.abs(corr[i]);if(a>mC)mC=a;}
     mC=Math.max(mC,.1)*1.15;
     var xS=W/corr.length,yM=H/2,yS=(H/2)/mC;
-    // zero
     ctx.strokeStyle='#1a2530';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,yM);ctx.lineTo(W,yM);ctx.stroke();
-    // threshold
-    if(th>0&&th<=1.0){
-      var ty=yM-th*yS;
-      ctx.strokeStyle='#ff880044';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    if(th>0&&th<=1){
+      var ty=yM-th*yS;ctx.strokeStyle='#ff880044';ctx.lineWidth=1;ctx.setLineDash([4,4]);
       ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);
       ctx.fillStyle='#ff880055';ctx.font=(9*dpr)+'px IBM Plex Mono,monospace';
-      ctx.fillText('threshold='+th.toFixed(3),4*dpr,ty-3*dpr);
-    }
-    // curve
-    ctx.strokeStyle='#00ddff55';ctx.lineWidth=1.5;ctx.beginPath();
+      ctx.fillText('th='+th.toFixed(3),4*dpr,ty-3*dpr);}
+    ctx.strokeStyle=sigColor+'66';ctx.lineWidth=1.5;ctx.beginPath();
     for(var i=0;i<corr.length;i++){var x=i*xS,y=yM-corr[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
     ctx.stroke();
-    // peak
     if(pL>=0){var ai=pL-(bS||0);
       if(ai>=0&&ai<corr.length){var px=ai*xS,py=yM-corr[ai]*yS;
-        var detected=cf>=th;
-        ctx.strokeStyle=(detected?cC(cf):'#ff3333')+'cc';ctx.lineWidth=2;
+        var det=cf>=th;ctx.strokeStyle=(det?cC(cf):'#ff3333')+'cc';ctx.lineWidth=2;
         ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
-        ctx.fillStyle=detected?cC(cf):'#ff3333';
-        ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=det?cC(cf):'#ff3333';ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();
         ctx.font=(11*dpr)+'px IBM Plex Mono,monospace';
         ctx.fillText(lagMs(pL).toFixed(1)+'ms ('+cf.toFixed(3)+')',px+6*dpr,14*dpr);}}
-    // time axis
     ctx.fillStyle='#33445544';ctx.font=(9*dpr)+'px IBM Plex Mono,monospace';
     var tMs=(corr.length/CFG.sr)*1000;
     for(var t=25;t<tMs;t+=50){ctx.fillText(t+'ms',(t/tMs)*W,H-4*dpr);}
-  },[corr,pL,bS,cf,th]);
+  },[corr,pL,bS,cf,th,sigColor]);
   return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'100px'}});
 }
 
 function WaveCanvas(p){
-  var smp=p.smp,blMs=p.blMs;var ref=useRef(null);
+  var smp=p.smp,blMs=p.blMs,sigColor=p.sigColor||'#00ffaa';var ref=useRef(null);
   useEffect(function(){
     var cv=ref.current;if(!cv||!smp||!smp.length)return;
     var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
@@ -198,13 +218,33 @@ function WaveCanvas(p){
     var mV=0;for(var i=0;i<smp.length;i+=step){var a=Math.abs(smp[i]);if(a>mV)mV=a;}
     mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;
     var bx=(blMs/CFG.listenMs)*W;ctx.fillStyle='rgba(255,255,255,.015)';ctx.fillRect(0,0,bx,H);
-    ctx.strokeStyle='#00ffaa22';ctx.lineWidth=1;ctx.beginPath();
+    ctx.strokeStyle=sigColor+'33';ctx.lineWidth=1;ctx.beginPath();
     for(var i=0;i<smp.length;i+=step){var x=(i/smp.length)*W,y=yM-smp[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
     ctx.stroke();
-  },[smp,blMs]);
+  },[smp,blMs,sigColor]);
   return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'46px'}});
 }
 
+/* ═══ SIGNAL PREVIEW ═══ */
+function SigPreview(p){
+  var sig=p.sig;var ref=useRef(null);
+  useEffect(function(){
+    var cv=ref.current;if(!cv||!sig)return;
+    var buf=genSignal(sig,CFG.sr);
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    var W=cv.offsetWidth*dpr,H=32*dpr;cv.width=W;cv.height=H;cv.style.height='32px';
+    ctx.clearRect(0,0,W,H);
+    var step=Math.max(1,Math.floor(buf.length/(W/dpr)));
+    var mV=0;for(var i=0;i<buf.length;i+=step){var a=Math.abs(buf[i]);if(a>mV)mV=a;}
+    mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;
+    ctx.strokeStyle=sig.color+'88';ctx.lineWidth=1.5;ctx.beginPath();
+    for(var i=0;i<buf.length;i+=step){var x=(i/buf.length)*W,y=yM-buf[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.stroke();
+  },[sig]);
+  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'32px'}});
+}
+
+/* ═══ APP ═══ */
 function App(){
   var _s=useState('idle'),status=_s[0],setStatus=_s[1];
   var _h=useState([]),hist=_h[0],setHist=_h[1];
@@ -218,12 +258,20 @@ function App(){
   var _lc=useState(null),lCorr=_lc[0],setLCorr=_lc[1];
   var _lw=useState(null),lWave=_lw[0],setLWave=_lw[1];
   var _lr=useState(null),lRes=_lr[0],setLRes=_lr[1];
+  var _sig=useState('chirp_mid'),sigId=_sig[0],setSigId=_sig[1];
 
-  var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),ambRef=useRef(null),chirpRef=useRef(null);
+  var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),ambRef=useRef(null),sigBufRef=useRef(null);
   var rec=useRef({on:false,buf:[]});
   useEffect(function(){contRef.current=cont;},[cont]);
   useEffect(function(){ambRef.current=amb;},[amb]);
-  useEffect(function(){chirpRef.current=genChirp(CFG.sr,CFG.f1,CFG.f2,CFG.chirpDur);},[]);
+
+  // regenerate signal buffer when signal changes
+  var curSig=SIGNALS[sigId];
+  useEffect(function(){
+    sigBufRef.current=genSignal(curSig,CFG.sr);
+    // reset calibration when signal changes
+    setAmb(null);ambRef.current=null;setInfo(null);
+  },[sigId]);
 
   var initAudio=useCallback(function(){
     return new Promise(function(ok){
@@ -236,37 +284,36 @@ function App(){
         return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
       }).then(function(stream){
         acRef.current=ctx;var src=ctx.createMediaStreamSource(stream);
-        var bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=(CFG.f1+CFG.f2)/2;bp.Q.value=1.2;src.connect(bp);
         var proc=ctx.createScriptProcessor(CFG.bufSize,1,1);
         proc.onaudioprocess=function(ev){
           var inp=ev.inputBuffer.getChannelData(0);var sum=0;
           for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];
           setLvl(Math.sqrt(sum/inp.length));
           if(rec.current.on){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.buf.push(cp);}};
-        bp.connect(proc);proc.connect(ctx.destination);setErr(null);ok(true);
+        src.connect(proc);proc.connect(ctx.destination);setErr(null);ok(true);
       }).catch(function(ex){setErr('\u30DE\u30A4\u30AF\u30A2\u30AF\u30BB\u30B9\u304C\u5FC5\u8981: '+(ex.message||ex));ok(false);});
     });
   },[]);
 
-  var playChirp=useCallback(function(){
-    var ctx=acRef.current,ch=chirpRef.current;if(!ctx||!ch)return;
-    var ab=ctx.createBuffer(1,ch.length,CFG.sr);ab.getChannelData(0).set(ch);
+  var playSignal=useCallback(function(){
+    var ctx=acRef.current,buf=sigBufRef.current;if(!ctx||!buf)return;
+    var ab=ctx.createBuffer(1,buf.length,CFG.sr);ab.getChannelData(0).set(buf);
     var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1.0;
     s.connect(g);g.connect(ctx.destination);s.start();
   },[]);
 
   var calibrate=useCallback(function(){
     return initAudio().then(function(ok){if(!ok)return;
-      setStatus('calibrating');setInfo('\u74B0\u5883\u30CE\u30A4\u30BA\u8A08\u6E2C\u4E2D... 2\u79D2\u9593\u9759\u304B\u306B');
+      setStatus('calibrating');setInfo('\u74B0\u5883\u30CE\u30A4\u30BA\u8A08\u6E2C\u4E2D... 2\u79D2');
       rec.current.on=true;rec.current.buf=[];
       return new Promise(function(r){setTimeout(r,2000);});
     }).then(function(){
       rec.current.on=false;var bufs=rec.current.buf;
       if(!bufs||!bufs.length){setErr('\u97F3\u58F0\u30C7\u30FC\u30BF\u306A\u3057');setInfo(null);setStatus('idle');return;}
-      var f=flat(bufs),r=rmsV(f),ch=chirpRef.current,ac=xcorr(f,ch,CFG.sr,0);
+      var f=flat(bufs),r=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);
       var a={rms:r,cn:ac.peakVal};setAmb(a);ambRef.current=a;
-      var th=calcThresh(ac.peakVal);
-      setInfo('\u5B8C\u4E86: noise='+(r*1000).toFixed(2)+'mRMS / ambient_corr='+ac.peakVal.toFixed(4)+' / threshold='+th.toFixed(4)+(ac.peakVal*2.5>CFG.maxThresh?' (CAPPED at '+CFG.maxThresh+')':''));
+      var th=calcTh(ac.peakVal);
+      setInfo('\u5B8C\u4E86: noise='+(r*1000).toFixed(2)+'mRMS / amb_corr='+ac.peakVal.toFixed(4)+' / th='+th.toFixed(4)+(ac.peakVal*2.5>CFG.maxThresh?' (CAPPED)':''));
       setStatus('idle');
     });
   },[initAudio]);
@@ -277,30 +324,26 @@ function App(){
       if(!a){setStatus('calibrating');setInfo('\u521D\u56DE\u30AD\u30E3\u30EA\u30D6...');
         rec.current.on=true;rec.current.buf=[];
         return new Promise(function(r){setTimeout(r,1500);}).then(function(){
-          rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),ch=chirpRef.current,ac=xcorr(f,ch,CFG.sr,0);
+          rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);
           a={rms:r2,cn:ac.peakVal};setAmb(a);ambRef.current=a;
-          var th=calcThresh(a.cn);
-          setInfo('noise='+(r2*1000).toFixed(2)+'mRMS / threshold='+th.toFixed(4)+(a.cn*2.5>CFG.maxThresh?' (CAPPED)':''));
-          return a;});}
+          setInfo('noise='+(r2*1000).toFixed(2)+'mRMS / th='+calcTh(a.cn).toFixed(4)+(a.cn*2.5>CFG.maxThresh?' (CAP)':''));return a;});}
       return a;
     }).then(function(a){if(!a)return null;
-      var th=calcThresh(a.cn);
-      setStatus('pinging');
+      var th=calcTh(a.cn);setStatus('pinging');
       rec.current.on=true;rec.current.buf=[];
-      playChirp();
+      playSignal();
       return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
         rec.current.on=false;var signal=flat(rec.current.buf);
-        var ch=chirpRef.current,res=xcorr(signal,ch,CFG.sr,CFG.blanking);
-        var rtt=null,cf=res.peakVal;
-        if(cf>=th)rtt=lagMs(res.peakLag);
+        var ref=sigBufRef.current,res=xcorr(signal,ref,CFG.sr,CFG.blanking);
+        var rtt=null,cf=res.peakVal;if(cf>=th)rtt=lagMs(res.peakLag);
         var id=genId();
-        var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++};
+        var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId};
         setCount(cntRef.current);setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});
         setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th});
         setLWave(signal);setLRes(entry);setStatus('idle');
         return entry;});
     });
-  },[initAudio,playChirp]);
+  },[initAudio,playSignal,sigId]);
 
   var startCont=useCallback(function(){setCont(true);contRef.current=true;
     var run=function(){if(!contRef.current)return;execPing().then(function(){if(contRef.current)timerRef.current=setTimeout(run,intv);});};run();
@@ -316,30 +359,45 @@ function App(){
   var loss=hist.length?((hist.length-ok.length)/hist.length*100):0;
   var jit=ok.length>1?ok.slice(0,-1).reduce(function(s,x,i){return s+Math.abs(x.rtt-ok[i+1].rtt);},0)/(ok.length-1):null;
   var avgCf=ok.length?ok.reduce(function(s,x){return s+x.cf;},0)/ok.length:null;
-  var aTh=amb?calcThresh(amb.cn):CFG.minConf;
+  var aTh=amb?calcTh(amb.cn):CFG.minConf;
 
   var ch=[];
 
   ch.push(h('div',{className:'hdr',key:'hd'},
-    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v0.4')),
-    h('div',{className:'sub'},'CHIRP SONAR \u00B7 CROSS-CORRELATION \u00B7 THRESHOLD FIX'),
-    h('p',null,'\u30C1\u30E3\u30FC\u30D7\u4FE1\u53F7\uFF08'+CFG.f1+'\u2192'+CFG.f2+'Hz / '+CFG.chirpDur*1000+'ms\uFF09\u3092\u767A\u5C04\u3057\u3001\u76F8\u4E92\u76F8\u95A2\u3067\u53CD\u97FF\u30D1\u30BF\u30FC\u30F3\u3092\u691C\u51FA\u3002\u95BE\u5024\u4E0A\u9650='+CFG.maxThresh+' / blanking='+CFG.blanking+'ms\u3002')));
+    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v0.5')),
+    h('div',{className:'sub'},'MULTI-SIGNAL CHIRP SONAR \u00B7 CROSS-CORRELATION'),
+    h('p',null,'\u8907\u6570\u306E\u97F3\u97FF\u4FE1\u53F7\u3067\u7269\u7406\u7A7A\u9593\u3092\u30D7\u30ED\u30FC\u30D6\u3002\u5468\u6CE2\u6570\u306B\u3088\u308B\u900F\u904E\u30FB\u53CD\u5C04\u7279\u6027\u306E\u9055\u3044\u3092\u6BD4\u8F03\u53EF\u80FD\u3002')));
 
+  // Signal selector
+  ch.push(h('div',{className:'sec',key:'sig'},
+    h('div',{className:'sec-label'},'SIGNAL'),
+    h('div',{className:'sel-row'},
+      h('div',{className:'sel-grp'},
+        h('select',{value:sigId,onChange:function(ev){setSigId(ev.target.value);},
+          style:{borderColor:curSig.color+'66',color:curSig.color}},
+          SIG_ORDER.map(function(id){var s=SIGNALS[id];return h('option',{value:id,key:id},s.name);}))),
+      h('div',{className:'sig-info'},h('span',{style:{color:curSig.color}},'\u25CF '),curSig.desc)),
+    h(SigPreview,{sig:curSig})
+  ));
+
+  // Mic level
   ch.push(h('div',{className:'sec',key:'lv'},
     h('div',{className:'lv-row'},h('span',{className:'lv-lbl'},'MIC'),
-      h('div',{className:'lv-bg'},h('div',{className:'lv-bar',style:{width:Math.min(100,lvl*3000)+'%',background:lvl>.001?'linear-gradient(90deg,#00ffaa44,#00ffaa88)':'#ff333322'}})),
-      h('span',{className:'lv-val',style:{color:lvl>.001?'#00ffaa':'#ff3333'}},(lvl*1000).toFixed(1)+' mRMS')),
-    h('div',{className:'lv-stat',style:{color:lvl>.001?'#00ffaa55':'#ff333366'}},
-      lvl>.001?'\u25CF MIC ACTIVE'+(amb?' | threshold='+aTh.toFixed(3)+(amb.cn*2.5>CFG.maxThresh?' (CAPPED)':''):''):'\u25CB NO SIGNAL')));
+      h('div',{className:'lv-bg'},h('div',{className:'lv-bar',style:{width:Math.min(100,lvl*3000)+'%',background:lvl>.001?'linear-gradient(90deg,'+curSig.color+'44,'+curSig.color+'88)':'#ff333322'}})),
+      h('span',{className:'lv-val',style:{color:lvl>.001?curSig.color:'#ff3333'}},(lvl*1000).toFixed(1)+' mRMS')),
+    h('div',{className:'lv-stat',style:{color:lvl>.001?curSig.color+'55':'#ff333366'}},
+      lvl>.001?'\u25CF MIC ACTIVE'+(amb?' | th='+aTh.toFixed(3)+(amb.cn*2.5>CFG.maxThresh?' (CAP)':''):''):'\u25CB NO SIGNAL')));
 
+  // Controls
   var ctrls=[];
   if(!cont){
-    ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb'},
-      status==='calibrating'?'\u25CF CALIB...':status==='pinging'?'\u25CF XCORR...':'\u25B6 CHIRP PING'));
-    ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'\u25C9 CONTINUOUS'));
+    ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',
+      style:{borderColor:curSig.color+'44',color:curSig.color}},
+      status==='calibrating'?'\u25CF CALIB...':status==='pinging'?'\u25CF XCORR...':'\u25B6 PING'));
+    ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'\u25C9 CONT'));
   }else{ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'\u25A0 STOP'));}
   ctrls.push(h('button',{className:'btn btn-sm btn-calib',onClick:amb?resetCal:calibrate,key:'cal'},amb?'\u21BB RECAL':'\u26A1 CALIB'));
-  ctrls.push(h('div',{className:'iv-ctrl',key:'iv'},h('span',null,'INT'),
+  ctrls.push(h('div',{className:'sel-grp',key:'iv'},h('span',null,'INT'),
     h('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
       [1000,1500,2000,3000,5000].map(function(v){return h('option',{value:v,key:v},v+'ms');}))));
   if(hist.length>0)ctrls.push(h('button',{className:'btn btn-sm btn-clear',onClick:clear,key:'cl'},'CLEAR'));
@@ -348,6 +406,7 @@ function App(){
   if(err)ch.push(h('div',{className:'err',key:'err'},'\u26A0 '+err));
   if(info)ch.push(h('div',{className:'nfo',key:'nfo'},info));
 
+  // Stats
   if(hist.length>0){ch.push(h('div',{className:'sts',key:'st'},
     [{l:'SENT',v:count,u:'',c:'#c0d0e0'},{l:'AVG',v:avg!=null?Math.round(avg):'---',u:avg!=null?'ms':'',c:'#00ffaa'},
      {l:'MIN',v:mn!=null?Math.round(mn):'---',u:mn!=null?'ms':'',c:'#00ddff'},{l:'MAX',v:mx!=null?Math.round(mx):'---',u:mx!=null?'ms':'',c:'#ffcc00'},
@@ -355,55 +414,63 @@ function App(){
      {l:'CONF',v:avgCf!=null?avgCf.toFixed(2):'---',u:'',c:avgCf?cC(avgCf):'#667788'}
     ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v,s.u?h('span',{className:'st-u'},s.u):null));})));}
 
+  // Confidence
   if(lRes){var cc=lRes.cf;
     ch.push(h('div',{className:'sec',key:'cb'},
       h('div',{className:'sec-label'},'DETECTION CONFIDENCE'),
       h('div',{className:'conf-row'},h('div',{className:'conf-bg'},h('div',{className:'conf-bar',style:{width:Math.min(100,cc*100)+'%',background:cC(cc)}})),
         h('span',{className:'conf-lbl',style:{color:cC(cc)}},cc.toFixed(3))),
       h('div',{style:{fontSize:'9px',color:'#33445577',marginTop:'4px'}},
-        'threshold='+lRes.th.toFixed(4)+' | '+(cc>=lRes.th?'\u2714 PATTERN MATCHED (RTT='+fMs(lRes.rtt)+')':'\u2718 BELOW THRESHOLD'))));}
+        'th='+lRes.th.toFixed(4)+' | '+(cc>=lRes.th?'\u2714 MATCHED (RTT='+fMs(lRes.rtt)+')':'\u2718 BELOW'))));}
 
+  // Xcorr
   if(lCorr&&lCorr.corr&&lCorr.corr.length>0){
     ch.push(h('div',{className:'cv-wrap',key:'xc'},
       h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),
         h('span',null,'blanking '+CFG.blanking+'ms | peak @ '+(lCorr.pL>=0?lagMs(lCorr.pL).toFixed(1)+'ms':'---'))),
-      h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th})));}
+      h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color})));}
 
+  // Raw
   if(lWave&&lWave.length>0){
     ch.push(h('div',{className:'cv-wrap',key:'rw'},
       h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE'),h('span',null,lWave.length+' smp / '+CFG.listenMs+'ms')),
-      h(WaveCanvas,{smp:lWave,blMs:CFG.blanking})));}
+      h(WaveCanvas,{smp:lWave,blMs:CFG.blanking,sigColor:curSig.color})));}
 
+  // Timeline
   if(hist.length>1){ch.push(h('div',{className:'sec',key:'tl'},
     h('div',{className:'sec-label'},'RTT TIMELINE'),
     h('div',{className:'tl-bars'},hist.slice().reverse().slice(-48).map(function(x,i){
       var c=cls(x.rtt),bH=x.rtt!=null?Math.max(3,Math.min(40,(x.rtt/200)*40)):40;
+      var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:c.c;
       return h('div',{className:'tl-b',key:i,style:{height:bH+'px',
-        background:x.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':c.c,
+        background:x.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':sc,
         opacity:x.rtt==null?.5:.6}});}))));}
 
+  // Log
   if(hist.length>0){ch.push(h('div',{className:'log',key:'log'},
-    h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'')),
+    h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'SIG')),
     h('div',{className:'log-b'},hist.map(function(x){var c=cls(x.rtt),d=eD(x.rtt);
+      var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788';
+      var sn=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?';
       return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id},
         h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),
         h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),
         h('span',{style:{color:c.c,fontSize:'9px',letterSpacing:'1px'}},c.l),
-        h('span',null,d!=null?d.toFixed(2)+'m':'---'),
+        h('span',null,d!=null?d.toFixed(1)+'m':'---'),
         h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),
-        h('span',{style:{fontSize:'9px',color:x.rtt!=null?'#00ffaa44':'#ff333344'}},x.rtt!=null?'\u2714':'\u2718'));}))));}
+        h('span',{style:{fontSize:'9px',color:sc,letterSpacing:'1px'}},sn));}))));}
 
   if(hist.length===0&&!err){ch.push(h('div',{className:'empty',key:'emp'},
-    h('div',{className:'empty-i'},'\u25CE'),h('div',{className:'empty-t'},'CHIRP SONAR v0.4 READY'),
-    h('div',{className:'empty-d'},'CALIB \u2192 CHIRP PING\u3002\u76F8\u4E92\u76F8\u95A2\u691C\u51FA + \u95BE\u5024\u4E0A\u9650\u5236\u5FA1\u3002',
-      h('br'),'\u30B9\u30D4\u30FC\u30AB\u30FC\u3068\u30DE\u30A4\u30AF\u306E\u8A31\u53EF\u304C\u5FC5\u8981\u3002')));}
+    h('div',{className:'empty-i'},'\u25CE'),h('div',{className:'empty-t'},'MULTI-SIGNAL SONAR v0.5'),
+    h('div',{className:'empty-d'},'\u4FE1\u53F7\u3092\u9078\u629E\u3057\u3066PING\u3002\u5468\u6CE2\u6570\u5E2F\u306B\u3088\u308B\u7A7A\u9593\u53CD\u5FDC\u306E\u9055\u3044\u3092\u6BD4\u8F03\u3067\u304D\u307E\u3059\u3002',
+      h('br'),'\u4F4E\u5468\u6CE2=\u900F\u904E\u3001\u9AD8\u5468\u6CE2=\u6307\u5411\u6027\u3001\u30AF\u30EA\u30C3\u30AF=\u6700\u9AD8\u89E3\u50CF\u5EA6\u3002')));}
 
   ch.push(h('div',{className:'leg',key:'leg'},
     [{l:'NEAR',c:'#00ffaa',r:'<5ms'},{l:'ROOM',c:'#00ddff',r:'5-20ms'},{l:'HALL',c:'#ffcc00',r:'20-50ms'},{l:'OPEN',c:'#ff8800',r:'50-150ms'},{l:'DISTANT',c:'#ff4444',r:'>150ms'}].map(function(x){
       return h('span',{className:'leg-i',key:x.l},h('span',{className:'leg-d',style:{background:x.c}}),x.l+' '+x.r);})));
 
   ch.push(h('div',{className:'ftr',key:'ft'},
-    'v0.4: '+CFG.f1+'\u2192'+CFG.f2+'Hz chirp '+CFG.chirpDur*1000+'ms (Hann) | BPF Q=1.2 | blanking '+CFG.blanking+'ms | xcorr threshold: adaptive \u00D72.5 capped at '+CFG.maxThresh+' | pTCP v0.4'));
+    'pTCP v0.5 | xcorr + adaptive threshold (cap='+CFG.maxThresh+') | blanking '+CFG.blanking+'ms | '+SIG_ORDER.length+' signal modes'));
 
   return h('div',null,ch);
 }
