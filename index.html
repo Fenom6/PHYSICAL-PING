@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Physical Ping — pTCP v0.1</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: auto; -webkit-overflow-scrolling: touch; }
+body {
+  background: linear-gradient(170deg, #0a0f14 0%, #0d1520 40%, #0a1218 100%);
+  color: #8899aa;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0a0f14; }
+::-webkit-scrollbar-thumb { background: #1a2a3a; border-radius: 2px; }
+
+/* Scanline overlay */
+.scanline {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,170,0.008) 2px, rgba(0,255,170,0.008) 4px);
+  pointer-events: none; z-index: 100;
+}
+
+.container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+/* Header */
+.header { margin-bottom: 24px; border-bottom: 1px solid #1a2530; padding-bottom: 16px; }
+.header-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+.header h1 {
+  font-size: 18px; font-weight: 600; color: #00ffaa; letter-spacing: 3px; margin: 0;
+  text-shadow: 0 0 20px rgba(0,255,170,0.3);
+}
+.header .version { font-size: 10px; color: #334455; letter-spacing: 1px; }
+.header p { font-size: 11px; color: #445566; line-height: 1.6; max-width: 600px; }
+
+/* Controls */
+.controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.btn {
+  border: none; padding: 8px 20px; font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace; letter-spacing: 2px;
+  cursor: pointer; border-radius: 2px; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-ping {
+  background: linear-gradient(180deg, #00ffaa22, #00ffaa11);
+  border: 1px solid #00ffaa44; color: #00ffaa;
+}
+.btn-ping:disabled { background: #0a2a1a; cursor: wait; }
+.btn-ping:active:not(:disabled) { background: #00ffaa33; }
+.btn-cont {
+  background: transparent; border: 1px solid #334455; color: #667788;
+  padding: 8px 16px; font-size: 11px; letter-spacing: 1px;
+}
+.btn-stop {
+  background: linear-gradient(180deg, #ff333322, #ff333311);
+  border: 1px solid #ff333344; color: #ff3333;
+  animation: pulse 1s infinite;
+}
+.btn-clear {
+  background: transparent; border: 1px solid #1a2530; color: #445566;
+  padding: 6px 12px; font-size: 10px; letter-spacing: 1px; margin-left: auto;
+}
+.interval-ctrl { display: flex; align-items: center; gap: 6px; margin-left: 8px; }
+.interval-ctrl span { font-size: 10px; color: #445566; }
+.interval-ctrl select {
+  background: #0d1520; border: 1px solid #1a2530; color: #8899aa;
+  padding: 4px 8px; font-size: 11px; font-family: 'IBM Plex Mono', monospace; border-radius: 2px;
+}
+
+/* Error */
+.error {
+  padding: 10px 14px; background: rgba(255,50,50,0.08); border: 1px solid #ff333344;
+  border-radius: 2px; font-size: 11px; color: #ff6666; margin-bottom: 16px;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1px; background: #1a2530; border: 1px solid #1a2530;
+  border-radius: 2px; margin-bottom: 20px; overflow: hidden;
+}
+.stat-box { background: #0d1520; text-align: center; padding: 8px 12px; }
+.stat-label { font-size: 10px; letter-spacing: 2px; color: #667788; margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 600; }
+.stat-unit { font-size: 11px; color: #667788; margin-left: 3px; }
+
+/* Timeline */
+.timeline {
+  margin-bottom: 20px; padding: 12px; border: 1px solid #1a2530;
+  border-radius: 2px; background: rgba(0,0,0,0.2);
+}
+.timeline-label { font-size: 10px; color: #445566; letter-spacing: 2px; margin-bottom: 8px; }
+.timeline-bars { display: flex; align-items: flex-end; gap: 2px; height: 48px; }
+.timeline-bar { flex: 1; border-radius: 1px 1px 0 0; transition: height 0.3s ease; }
+
+/* Log table */
+.log { border: 1px solid #1a2530; border-radius: 2px; overflow: hidden; }
+.log-header, .log-row {
+  display: grid;
+  grid-template-columns: 68px 52px 64px 78px 62px 1fr 80px;
+  padding: 6px 10px; align-items: center;
+}
+.log-header {
+  font-size: 9px; letter-spacing: 1.5px; color: #334455;
+  border-bottom: 1px solid #1a2530; background: rgba(0,0,0,0.3);
+}
+.log-body { max-height: 360px; overflow: auto; }
+.log-row {
+  font-size: 11px; border-bottom: 1px solid #1a2530; color: #8899aa;
+  animation: fadeIn 0.3s ease;
+}
+.log-row:nth-child(even) { background: rgba(255,255,255,0.01); }
+.log-row.timeout { color: #555; }
+
+/* Empty state */
+.empty { text-align: center; padding: 60px 20px; color: #334455; }
+.empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
+.empty-title { font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
+.empty-desc { font-size: 10px; color: #223344; max-width: 400px; margin: 0 auto; line-height: 1.8; }
+
+/* Legend */
+.legend {
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid #1a2530;
+  display: flex; flex-wrap: wrap; gap: 12px; font-size: 9px; color: #334455; letter-spacing: 1px;
+}
+.legend-item { display: flex; align-items: center; gap: 4px; }
+.legend-dot { width: 6px; height: 6px; border-radius: 1px; display: inline-block; }
+.footer { margin-top: 12px; font-size: 9px; color: #223344; line-height: 1.8; }
+
+@media (max-width: 640px) {
+  .log-header, .log-row {
+    grid-template-columns: 56px 44px 56px 68px 52px 1fr;
+    font-size: 10px; padding: 5px 6px;
+  }
+  .log-col-energy { display: none; }
+  .stat-value { font-size: 18px; }
+  .header h1 { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useRef, useCallback, useEffect, createElement: h } = React;
+
+const SAMPLE_RATE = 44100;
+const PING_FREQ = 2000;
+const PING_DURATION = 0.005;
+const LISTEN_DURATION = 500;
+const ENERGY_THRESHOLD = 0.008;
+const HISTORY_MAX = 64;
+
+function genId() { return Math.floor(Math.random()*65535).toString(16).padStart(4,'0').toUpperCase(); }
+function fmtMs(ms) { return ms==null?'---':ms<1?'<1ms':Math.round(ms)+'ms'; }
+function fmtTime(d) { return d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+
+function classify(ms) {
+  if(ms==null) return {label:'TIMEOUT',color:'#ff3333'};
+  if(ms<5) return {label:'NEAR-FIELD',color:'#00ffaa'};
+  if(ms<20) return {label:'ROOM',color:'#00ddff'};
+  if(ms<50) return {label:'HALL',color:'#ffcc00'};
+  if(ms<150) return {label:'OPEN',color:'#ff8800'};
+  return {label:'DISTANT',color:'#ff4444'};
+}
+
+function estDist(ms) { return ms==null?null:((ms/1000)*343)/2; }
+
+function MiniWave({data,w,ht,color}) {
+  if(!data||!data.length) return null;
+  const step=Math.max(1,Math.floor(data.length/w));
+  let pts=[];
+  for(let i=0;i<w;i++){const idx=i*step;const v=idx<data.length?Math.abs(data[idx]):0;
+    pts.push(i+','+(ht-Math.max(0,Math.min(ht,v*ht*8))));}
+  return h('svg',{width:w,height:ht,style:{display:'block'}},
+    h('polyline',{points:pts.join(' '),fill:'none',stroke:color,strokeWidth:'1',opacity:'0.7'}));
+}
+
+function App() {
+  const [status,setStatus]=useState('idle');
+  const [history,setHistory]=useState([]);
+  const [cont,setCont]=useState(false);
+  const [intv,setIntv]=useState(1000);
+  const [count,setCount]=useState(0);
+  const [err,setErr]=useState(null);
+
+  const acRef=useRef(null), anRef=useRef(null), stRef=useRef(null);
+  const contRef=useRef(false), timerRef=useRef(null), cntRef=useRef(0);
+
+  useEffect(()=>{contRef.current=cont;},[cont]);
+
+  const initAudio=useCallback(async()=>{
+    if(acRef.current) return true;
+    try {
+      const ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:SAMPLE_RATE});
+      acRef.current=ctx;
+      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+      stRef.current=stream;
+      const src=ctx.createMediaStreamSource(stream);
+      const an=ctx.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=0;
+      src.connect(an);anRef.current=an;setErr(null);return true;
+    } catch(e){setErr('マイクへのアクセスが必要です。ブラウザの権限を確認してください。');return false;}
+  },[]);
+
+  const sendPulse=useCallback(()=>{
+    const ctx=acRef.current;if(!ctx)return;
+    const osc=ctx.createOscillator(),g=ctx.createGain();
+    osc.type='sine';osc.frequency.value=PING_FREQ;
+    g.gain.setValueAtTime(0.8,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+PING_DURATION);
+    osc.connect(g);g.connect(ctx.destination);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+PING_DURATION);
+  },[]);
+
+  const listenEcho=useCallback(()=>new Promise(resolve=>{
+    const an=anRef.current;
+    if(!an){resolve({rtt:null,waveform:null,peakEnergy:null});return;}
+    const buf=new Float32Array(an.frequencyBinCount);
+    const wf=[];const t0=performance.now();let det=false,settled=false,peak=0;
+    const chk=()=>{
+      const el=performance.now()-t0;
+      an.getFloatTimeDomainData(buf);
+      let e=0;for(let i=0;i<buf.length;i++)e+=buf[i]*buf[i];
+      e=Math.sqrt(e/buf.length);wf.push(e);if(e>peak)peak=e;
+      if(!settled&&el<10){requestAnimationFrame(chk);return;}
+      settled=true;
+      if(!det&&e>ENERGY_THRESHOLD&&el>10){det=true;resolve({rtt:el,waveform:[...wf],peakEnergy:peak});return;}
+      if(el<LISTEN_DURATION)requestAnimationFrame(chk);
+      else resolve({rtt:null,waveform:[...wf],peakEnergy:peak});
+    };
+    requestAnimationFrame(chk);
+  }),[]);
+
+  const execPing=useCallback(async()=>{
+    const ok=await initAudio();if(!ok)return;
+    setStatus('pinging');
+    const id=genId();sendPulse();
+    const r=await listenEcho();
+    const entry={id,time:new Date(),...r,seq:cntRef.current++};
+    setCount(cntRef.current);
+    setHistory(p=>[entry,...p].slice(0,HISTORY_MAX));
+    setStatus('idle');return entry;
+  },[initAudio,sendPulse,listenEcho]);
+
+  const startCont=useCallback(async()=>{
+    setCont(true);contRef.current=true;
+    const run=async()=>{if(!contRef.current)return;await execPing();
+      if(contRef.current)timerRef.current=setTimeout(run,intv);};
+    run();
+  },[execPing,intv]);
+
+  const stopCont=useCallback(()=>{setCont(false);contRef.current=false;
+    if(timerRef.current)clearTimeout(timerRef.current);},[]);
+
+  const clear=useCallback(()=>{setHistory([]);setCount(0);cntRef.current=0;},[]);
+
+  const ok=history.filter(h=>h.rtt!=null);
+  const avg=ok.length?ok.reduce((s,h)=>s+h.rtt,0)/ok.length:null;
+  const mn=ok.length?Math.min(...ok.map(h=>h.rtt)):null;
+  const mx=ok.length?Math.max(...ok.map(h=>h.rtt)):null;
+  const loss=history.length?((history.length-ok.length)/history.length*100):0;
+  const jit=ok.length>1?ok.slice(0,-1).reduce((s,h,i)=>s+Math.abs(h.rtt-ok[i+1].rtt),0)/(ok.length-1):null;
+
+  const legends=[
+    {label:'NEAR-FIELD',color:'#00ffaa',range:'<5ms'},
+    {label:'ROOM',color:'#00ddff',range:'5-20ms'},
+    {label:'HALL',color:'#ffcc00',range:'20-50ms'},
+    {label:'OPEN',color:'#ff8800',range:'50-150ms'},
+    {label:'DISTANT',color:'#ff4444',range:'>150ms'},
+  ];
+
+  return h('div',{className:'container'},[
+    // Header
+    h('div',{className:'header',key:'hd'},[
+      h('div',{className:'header-row',key:'hr'},[
+        h('h1',{key:'t'},'PHYSICAL PING'),
+        h('span',{className:'version',key:'v'},'pTCP v0.1 / ACOUSTIC PROBE'),
+      ]),
+      h('p',{key:'d'},'物理空間に音響パルスを送信し、環境応答から物理的レイテンシを計測。空間の音響特性・反射距離・減衰率をリアルタイムで数値化します。'),
+    ]),
+
+    // Controls
+    h('div',{className:'controls',key:'ctrl'},
+      !cont?[
+        h('button',{className:'btn btn-ping',onClick:execPing,disabled:status==='pinging',key:'pb'},
+          status==='pinging'?'● LISTENING...':'▶ PING'),
+        h('button',{className:'btn btn-cont',onClick:startCont,key:'cb'},'◉ CONTINUOUS'),
+      ]:[
+        h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'),
+      ],
+      h('div',{className:'interval-ctrl',key:'iv'},[
+        h('span',{key:'l'},'INTERVAL'),
+        h('select',{value:intv,onChange:e=>setIntv(+e.target.value),key:'s'},
+          [500,1000,2000,5000].map(v=>h('option',{value:v,key:v},v+'ms'))),
+      ]),
+      history.length>0&&h('button',{className:'btn btn-clear',onClick:clear,key:'cl'},'CLEAR'),
+    ),
+
+    // Error
+    err&&h('div',{className:'error',key:'err'},'⚠ '+err),
+
+    // Stats
+    history.length>0&&h('div',{className:'stats-grid',key:'stats'},
+      [{l:'PACKETS',v:count,u:'',c:'#c0d0e0'},
+       {l:'AVG RTT',v:avg!=null?Math.round(avg):'---',u:avg!=null?'ms':'',c:'#00ffaa'},
+       {l:'MIN',v:mn!=null?Math.round(mn):'---',u:mn!=null?'ms':'',c:'#00ddff'},
+       {l:'MAX',v:mx!=null?Math.round(mx):'---',u:mx!=null?'ms':'',c:'#ffcc00'},
+       {l:'JITTER',v:jit!=null?jit.toFixed(1):'---',u:jit!=null?'ms':'',c:'#ff8800'},
+       {l:'LOSS',v:loss.toFixed(0),u:'%',c:loss>30?'#ff3333':'#667788'},
+      ].map((s,i)=>h('div',{className:'stat-box',key:i},[
+        h('div',{className:'stat-label',key:'l'},s.l),
+        h('div',{className:'stat-value',style:{color:s.c},key:'v'},s.v,
+          s.u&&h('span',{className:'stat-unit'},s.u)),
+      ]))
+    ),
+
+    // Timeline
+    history.length>1&&h('div',{className:'timeline',key:'tl'},[
+      h('div',{className:'timeline-label',key:'l'},'RTT TIMELINE'),
+      h('div',{className:'timeline-bars',key:'b'},
+        [...history].reverse().slice(-48).map((e,i)=>{
+          const c=classify(e.rtt);const maxH=48;
+          const barH=e.rtt!=null?Math.max(3,Math.min(maxH,(e.rtt/200)*maxH)):maxH;
+          return h('div',{className:'timeline-bar',key:i,style:{
+            height:barH+'px',
+            background:e.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':c.color,
+            opacity:e.rtt==null?0.5:0.6}});
+        })
+      ),
+    ]),
+
+    // Log
+    history.length>0&&h('div',{className:'log',key:'log'},[
+      h('div',{className:'log-header',key:'lh'},[
+        h('span',{key:'a'},'TIME'),h('span',{key:'b'},'SEQ'),h('span',{key:'c'},'RTT'),
+        h('span',{key:'d'},'CLASS'),h('span',{key:'e'},'DIST'),h('span',{key:'f'},'WAVE'),
+        h('span',{key:'g',className:'log-col-energy',style:{textAlign:'right'}},'ENERGY'),
+      ]),
+      h('div',{className:'log-body',key:'lb'},
+        history.map((e,i)=>{
+          const c=classify(e.rtt);const d=estDist(e.rtt);
+          return h('div',{className:'log-row'+(e.rtt==null?' timeout':''),key:e.seq+'-'+e.id,
+            style:{background:i%2===0?'transparent':'rgba(255,255,255,0.01)'}},[
+            h('span',{key:'a',style:{color:'#556677'}},fmtTime(e.time)),
+            h('span',{key:'b',style:{color:'#445566'}},'0x'+e.id),
+            h('span',{key:'c',style:{color:c.color,fontWeight:600}},fmtMs(e.rtt)),
+            h('span',{key:'d',style:{color:c.color,fontSize:'9px',letterSpacing:'1px'}},c.label),
+            h('span',{key:'e'},d!=null?d.toFixed(2)+'m':'---'),
+            MiniWave({data:e.waveform,w:80,ht:18,color:c.color}),
+            h('span',{key:'g',className:'log-col-energy',style:{fontSize:'10px',color:'#445566',textAlign:'right'}},
+              'pk:'+(e.peakEnergy?e.peakEnergy.toFixed(4):'---')),
+          ]);
+        })
+      ),
+    ]),
+
+    // Empty
+    history.length===0&&!err&&h('div',{className:'empty',key:'emp'},[
+      h('div',{className:'empty-icon',key:'i'},'◎'),
+      h('div',{className:'empty-title',key:'t'},'READY TO PROBE PHYSICAL SPACE'),
+      h('div',{className:'empty-desc',key:'d'},
+        'PING ボタンで音響パルスを発射し、環境からの反響を計測します。スピーカーとマイクの使用許可が必要です。'),
+    ]),
+
+    // Legend
+    h('div',{className:'legend',key:'leg'},
+      legends.map(l=>h('span',{className:'legend-item',key:l.label},[
+        h('span',{className:'legend-dot',style:{background:l.color},key:'d'}),
+        l.label+' '+l.range,
+      ]))
+    ),
+
+    // Footer
+    h('div',{className:'footer',key:'ft'},
+      'PROTOCOL: '+PING_FREQ+'Hz sine pulse → '+(PING_DURATION*1000)+'ms duration → listen '+LISTEN_DURATION+'ms → threshold '+ENERGY_THRESHOLD+' RMS | DISTANCE = (RTT/2) × 343 m/s | pTCP Physical Layer v0.1'),
+  ]);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
