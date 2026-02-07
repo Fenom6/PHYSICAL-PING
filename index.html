@@ -3,167 +3,254 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v0.3</title>
+<title>Physical Ping — pTCP v0.4</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: auto; -webkit-overflow-scrolling: touch; }
-body {
-  background: linear-gradient(170deg, #0a0f14 0%, #0d1520 40%, #0a1218 100%);
-  color: #8899aa;
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 13px;
-}
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0a0f14; }
-::-webkit-scrollbar-thumb { background: #1a2a3a; border-radius: 2px; }
-.scanline {
-  position: fixed; top:0;left:0;right:0;bottom:0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,170,0.005) 2px, rgba(0,255,170,0.005) 4px);
-  pointer-events: none; z-index: 100;
-}
-.ctn { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
-.hdr { margin-bottom: 18px; border-bottom: 1px solid #1a2530; padding-bottom: 14px; }
-.hdr-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
-.hdr h1 { font-size: 18px; font-weight: 600; color: #00ffaa; letter-spacing: 3px; text-shadow: 0 0 20px rgba(0,255,170,0.3); }
-.hdr .ver { font-size: 10px; color: #334455; letter-spacing: 1px; }
-.hdr .sub { font-size: 10px; color: #00ffaa44; letter-spacing: 1.5px; margin-top: 2px; }
-.hdr p { font-size: 11px; color: #445566; line-height: 1.6; margin-top: 6px; }
-.sec { margin-bottom: 14px; padding: 12px; border: 1px solid #1a2530; border-radius: 2px; background: rgba(0,0,0,0.2); }
-.sec-label { font-size: 10px; color: #445566; letter-spacing: 2px; margin-bottom: 8px; }
-.lv-row { display: flex; align-items: center; gap: 10px; }
-.lv-lbl { font-size: 10px; color: #445566; letter-spacing: 1.5px; min-width: 44px; }
-.lv-bg { flex: 1; height: 8px; background: #0a0f14; border-radius: 1px; overflow: hidden; position: relative; }
-.lv-bar { height: 100%; border-radius: 1px; transition: width 0.06s linear; min-width: 1px; }
-.lv-val { font-size: 11px; min-width: 68px; text-align: right; font-variant-numeric: tabular-nums; }
-.lv-stat { font-size: 10px; letter-spacing: 1px; margin-top: 6px; }
-.ctrl { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-.btn { border: none; padding: 10px 20px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 2px; cursor: pointer; border-radius: 2px; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
-.btn:active { transform: scale(0.97); }
-.btn-ping { background: linear-gradient(180deg, #00ffaa22, #00ffaa11); border: 1px solid #00ffaa44; color: #00ffaa; }
-.btn-ping:disabled { background: #0a2a1a; cursor: wait; opacity: 0.6; }
-.btn-cont { background: transparent; border: 1px solid #334455; color: #667788; padding: 10px 16px; font-size: 11px; letter-spacing: 1px; }
-.btn-stop { background: linear-gradient(180deg, #ff333322, #ff333311); border: 1px solid #ff333344; color: #ff3333; animation: pulse 1s infinite; }
-.btn-sm { padding: 6px 12px; font-size: 10px; letter-spacing: 1px; }
-.btn-clear { background: transparent; border: 1px solid #1a2530; color: #445566; margin-left: auto; }
-.btn-calib { background: transparent; border: 1px solid #ffcc0044; color: #ffcc00; }
-.iv-ctrl { display: flex; align-items: center; gap: 6px; margin-left: 8px; }
-.iv-ctrl span { font-size: 10px; color: #445566; }
-.iv-ctrl select { background: #0d1520; border: 1px solid #1a2530; color: #8899aa; padding: 4px 8px; font-size: 11px; font-family: inherit; border-radius: 2px; }
-.err { padding: 10px 14px; background: rgba(255,50,50,0.08); border: 1px solid #ff333344; border-radius: 2px; font-size: 11px; color: #ff6666; margin-bottom: 12px; }
-.nfo { padding: 10px 14px; background: rgba(0,255,170,0.04); border: 1px solid #00ffaa22; border-radius: 2px; font-size: 11px; color: #00ffaa88; margin-bottom: 12px; line-height: 1.6; }
-.sts { display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 1px; background: #1a2530; border: 1px solid #1a2530; border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
-.st { background: #0d1520; text-align: center; padding: 7px 4px; }
-.st-l { font-size: 9px; letter-spacing: 1.5px; color: #556677; margin-bottom: 2px; }
-.st-v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.st-u { font-size: 10px; color: #556677; margin-left: 2px; }
-.cv-wrap { margin-bottom: 14px; border: 1px solid #1a2530; border-radius: 2px; overflow: hidden; background: rgba(0,0,0,0.2); }
-.cv-lbl { font-size: 10px; color: #445566; letter-spacing: 1.5px; padding: 8px 10px 4px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
-.cv-lbl span:last-child { color: #334455; }
-.cv { display: block; width: 100%; }
-.tl-bars { display: flex; align-items: flex-end; gap: 2px; height: 40px; }
-.tl-b { flex: 1; border-radius: 1px 1px 0 0; transition: height 0.3s ease; min-width: 2px; }
-.log { border: 1px solid #1a2530; border-radius: 2px; overflow: hidden; }
-.log-h, .log-r { display: grid; grid-template-columns: 56px 46px 60px 62px 56px 56px 1fr; padding: 5px 8px; align-items: center; }
-.log-h { font-size: 9px; letter-spacing: 1.5px; color: #334455; border-bottom: 1px solid #1a2530; background: rgba(0,0,0,0.3); }
-.log-b { max-height: 300px; overflow: auto; }
-.log-r { font-size: 11px; border-bottom: 1px solid rgba(26,37,48,0.5); color: #8899aa; animation: fadeIn 0.25s ease; }
-.log-r:nth-child(even) { background: rgba(255,255,255,0.008); }
-.log-r.to { color: #555; }
-.empty { text-align: center; padding: 44px 20px; color: #334455; }
-.empty-i { font-size: 32px; margin-bottom: 10px; opacity: 0.3; }
-.empty-t { font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
-.empty-d { font-size: 10px; color: #223344; max-width: 380px; margin: 0 auto; line-height: 1.8; }
-.leg { margin-top: 14px; padding-top: 10px; border-top: 1px solid #1a2530; display: flex; flex-wrap: wrap; gap: 10px; font-size: 9px; color: #445566; letter-spacing: 1px; }
-.leg-i { display: flex; align-items: center; gap: 4px; }
-.leg-d { width: 6px; height: 6px; border-radius: 1px; }
-.ftr { margin-top: 8px; font-size: 9px; color: #223344; line-height: 1.8; }
-.conf-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-.conf-bg { flex: 1; height: 6px; background: #0a0f14; border-radius: 1px; overflow: hidden; }
-.conf-bar { height: 100%; border-radius: 1px; transition: width 0.3s; }
-.conf-lbl { font-size: 11px; min-width: 50px; text-align: right; font-variant-numeric: tabular-nums; }
-@media (max-width: 600px) {
-  .log-h, .log-r { grid-template-columns: 50px 40px 52px 54px 48px 50px 1fr; font-size: 10px; padding: 4px 6px; }
-  .st-v { font-size: 16px; }
-  .hdr h1 { font-size: 16px; letter-spacing: 2px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);color:#8899aa;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0f14}::-webkit-scrollbar-thumb{background:#1a2a3a;border-radius:2px}
+.scan{position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,170,.005) 2px,rgba(0,255,170,.005) 4px);pointer-events:none;z-index:100}
+.ctn{max-width:900px;margin:0 auto;padding:20px 16px}
+.hdr{margin-bottom:18px;border-bottom:1px solid #1a2530;padding-bottom:14px}
+.hdr-row{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.hdr h1{font-size:18px;font-weight:600;color:#00ffaa;letter-spacing:3px;text-shadow:0 0 20px rgba(0,255,170,.3)}
+.hdr .ver{font-size:10px;color:#334455;letter-spacing:1px}
+.hdr .sub{font-size:10px;color:#00ffaa44;letter-spacing:1.5px;margin-top:2px}
+.hdr p{font-size:11px;color:#445566;line-height:1.6;margin-top:6px}
+.sec{margin-bottom:14px;padding:12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2)}
+.sec-label{font-size:10px;color:#445566;letter-spacing:2px;margin-bottom:8px}
+.lv-row{display:flex;align-items:center;gap:10px}
+.lv-lbl{font-size:10px;color:#445566;letter-spacing:1.5px;min-width:44px}
+.lv-bg{flex:1;height:8px;background:#0a0f14;border-radius:1px;overflow:hidden}
+.lv-bar{height:100%;border-radius:1px;transition:width .06s linear;min-width:1px}
+.lv-val{font-size:11px;min-width:68px;text-align:right;font-variant-numeric:tabular-nums}
+.lv-stat{font-size:10px;letter-spacing:1px;margin-top:6px}
+.ctrl{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.btn{border:none;padding:10px 20px;font-size:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn-ping{background:linear-gradient(180deg,#00ffaa22,#00ffaa11);border:1px solid #00ffaa44;color:#00ffaa}
+.btn-ping:disabled{background:#0a2a1a;cursor:wait;opacity:.6}
+.btn-cont{background:transparent;border:1px solid #334455;color:#667788;padding:10px 16px;font-size:11px;letter-spacing:1px}
+.btn-stop{background:linear-gradient(180deg,#ff333322,#ff333311);border:1px solid #ff333344;color:#ff3333;animation:pulse 1s infinite}
+.btn-sm{padding:6px 12px;font-size:10px;letter-spacing:1px}
+.btn-clear{background:transparent;border:1px solid #1a2530;color:#445566;margin-left:auto}
+.iv-ctrl{display:flex;align-items:center;gap:6px;margin-left:8px}
+.iv-ctrl span{font-size:10px;color:#445566}
+.iv-ctrl select{background:#0d1520;border:1px solid #1a2530;color:#8899aa;padding:4px 8px;font-size:11px;font-family:inherit;border-radius:2px}
+.err{padding:10px 14px;background:rgba(255,50,50,.08);border:1px solid #ff333344;border-radius:2px;font-size:11px;color:#ff6666;margin-bottom:12px}
+.nfo{padding:10px 14px;background:rgba(0,255,170,.04);border:1px solid #00ffaa22;border-radius:2px;font-size:11px;color:#00ffaa88;margin-bottom:12px;line-height:1.6}
+.dbg{padding:10px 14px;background:rgba(255,204,0,.03);border:1px solid #ffcc0022;border-radius:2px;font-size:10px;color:#ffcc0088;margin-bottom:12px;line-height:1.7;font-variant-numeric:tabular-nums;white-space:pre-wrap;word-break:break-all}
+.sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(85px,1fr));gap:1px;background:#1a2530;border:1px solid #1a2530;border-radius:2px;margin-bottom:14px;overflow:hidden}
+.st{background:#0d1520;text-align:center;padding:7px 4px}
+.st-l{font-size:9px;letter-spacing:1.5px;color:#556677;margin-bottom:2px}
+.st-v{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.st-u{font-size:10px;color:#556677;margin-left:2px}
+.cv-wrap{margin-bottom:14px;border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:rgba(0,0,0,.2)}
+.cv-lbl{font-size:10px;color:#445566;letter-spacing:1.5px;padding:8px 10px 4px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px}
+.cv-lbl span:last-child{color:#334455}
+.cv{display:block;width:100%}
+.tl-bars{display:flex;align-items:flex-end;gap:2px;height:40px}
+.tl-b{flex:1;border-radius:1px 1px 0 0;transition:height .3s ease;min-width:2px}
+.log{border:1px solid #1a2530;border-radius:2px;overflow:hidden}
+.log-h,.log-r{display:grid;grid-template-columns:56px 46px 60px 56px 56px 1fr;padding:5px 8px;align-items:center}
+.log-h{font-size:9px;letter-spacing:1.5px;color:#334455;border-bottom:1px solid #1a2530;background:rgba(0,0,0,.3)}
+.log-b{max-height:300px;overflow:auto}
+.log-r{font-size:11px;border-bottom:1px solid rgba(26,37,48,.5);color:#8899aa;animation:fadeIn .25s ease}
+.log-r:nth-child(even){background:rgba(255,255,255,.008)}
+.log-r.to{color:#555}
+.empty{text-align:center;padding:44px 20px;color:#334455}
+.empty-i{font-size:32px;margin-bottom:10px;opacity:.3}
+.empty-t{font-size:11px;letter-spacing:2px;margin-bottom:8px}
+.empty-d{font-size:10px;color:#223344;max-width:380px;margin:0 auto;line-height:1.8}
+.leg{margin-top:14px;padding-top:10px;border-top:1px solid #1a2530;display:flex;flex-wrap:wrap;gap:10px;font-size:9px;color:#445566;letter-spacing:1px}
+.leg-i{display:flex;align-items:center;gap:4px}
+.leg-d{width:6px;height:6px;border-radius:1px}
+.ftr{margin-top:8px;font-size:9px;color:#223344;line-height:1.8}
+@media(max-width:600px){
+  .log-h,.log-r{grid-template-columns:50px 40px 52px 50px 50px 1fr;font-size:10px;padding:4px 6px}
+  .st-v{font-size:16px}.hdr h1{font-size:16px;letter-spacing:2px}
 }
 </style>
 </head>
 <body>
-<div class="scanline"></div>
+<div class="scan"></div>
 <div class="ctn" id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
 var h=React.createElement,useState=React.useState,useRef=React.useRef,useCallback=React.useCallback,useEffect=React.useEffect;
 
-var CFG={sr:44100,f1:1500,f2:2500,chirpDur:0.020,listenMs:500,bufSize:256,blanking:35,threshMult:3.5,minConf:0.08,histMax:64};
+/* ═══ CONFIG ═══ */
+var CFG={
+  sr:44100,
+  f1:1500, f2:3500,      // wider chirp sweep
+  chirpDur:0.025,         // 25ms chirp
+  listenMs:400,           // total record time
+  bufSize:256,
+  directWindow:15,        // first 15ms = expect direct sound
+  gapAfterDirect:3,       // skip 3ms after direct peak before looking for echoes
+  echoThreshRatio:0.15,   // echo peak must be >= 15% of direct peak energy
+  histMax:64,
+};
 
-function generateChirp(sr,f1,f2,dur){
-  var N=Math.floor(sr*dur),buf=new Float32Array(N);
+/* ═══ CHIRP ═══ */
+function makeChirp(sr,f1,f2,dur){
+  var N=Math.floor(sr*dur),b=new Float32Array(N);
   for(var i=0;i<N;i++){var t=i/sr;
-    var phase=2*Math.PI*(f1*t+(f2-f1)*t*t/(2*dur));
-    buf[i]=Math.sin(phase)*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}
-  return buf;
+    b[i]=Math.sin(2*Math.PI*(f1*t+(f2-f1)*t*t/(2*dur)))*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}
+  return b;
 }
 
-function xcorr(signal,ref,sr,blankMs){
-  var rL=ref.length,sL=signal.length,bS=Math.floor(sr*blankMs/1000),mL=sL-rL;
-  if(mL<=bS)return{corr:new Float32Array(0),peakLag:-1,peakVal:0,bS:bS};
-  var rE=0;for(var i=0;i<rL;i++)rE+=ref[i]*ref[i];rE=Math.sqrt(rE);
-  var cL=mL-bS,corr=new Float32Array(cL),pV=0,pI=0;
-  for(var lag=bS;lag<mL;lag++){
-    var sum=0,sE=0;
-    for(var j=0;j<rL;j++){sum+=signal[lag+j]*ref[j];sE+=signal[lag+j]*signal[lag+j];}
-    sE=Math.sqrt(sE);
-    var ncc=(rE>0&&sE>0)?sum/(rE*sE):0;
-    var idx=lag-bS;corr[idx]=ncc;
-    if(ncc>pV){pV=ncc;pI=idx;}}
-  return{corr:corr,peakLag:pI+bS,peakVal:pV,bS:bS};
+/* ═══ ENVELOPE (RMS per window) ═══ */
+function computeEnvelope(signal,sr,windowMs){
+  var winSmp=Math.floor(sr*windowMs/1000);
+  if(winSmp<1)winSmp=1;
+  var n=Math.floor(signal.length/winSmp);
+  var env=new Float32Array(n);
+  for(var i=0;i<n;i++){
+    var sum=0,off=i*winSmp;
+    for(var j=0;j<winSmp;j++){var v=signal[off+j];sum+=v*v;}
+    env[i]=Math.sqrt(sum/winSmp);
+  }
+  return{env:env,winSmp:winSmp};
 }
 
-function lagMs(l,sr){return(l/sr)*1000;}
+/* ═══ PEAK DETECTION ═══
+   Strategy: 
+   1. Compute energy envelope (1ms windows)
+   2. Find strongest peak in first directWindow ms = DIRECT sound
+   3. After direct peak + gap, find next strongest peak = ECHO
+   4. RTT = echo_time - direct_time
+*/
+function detectPeaks(signal,sr){
+  var res=computeEnvelope(signal,sr,1); // 1ms resolution
+  var env=res.env, winSmp=res.winSmp;
+  var directEnd=Math.min(CFG.directWindow, env.length);
+
+  // Find direct peak
+  var dPeak=0, dIdx=-1;
+  for(var i=0;i<directEnd;i++){
+    if(env[i]>dPeak){dPeak=env[i];dIdx=i;}
+  }
+
+  if(dPeak<0.001){
+    // No direct sound detected at all - speaker not working or volume too low
+    return{direct:null,echo:null,env:env,debug:'NO DIRECT SOUND DETECTED (peak='+dPeak.toFixed(6)+')'};
+  }
+
+  // Search for echo after direct peak + gap
+  var searchStart=dIdx+CFG.gapAfterDirect;
+  if(searchStart>=env.length){
+    return{direct:{idx:dIdx,val:dPeak},echo:null,env:env,
+      debug:'DIRECT@'+dIdx+'ms peak='+dPeak.toFixed(4)+' | search window too short'};
+  }
+
+  var echoThresh=dPeak*CFG.echoThreshRatio;
+  var ePeak=0, eIdx=-1;
+
+  // Find strongest peak after the gap
+  for(var i=searchStart;i<env.length;i++){
+    if(env[i]>ePeak){ePeak=env[i];eIdx=i;}
+  }
+
+  var echoFound=ePeak>=echoThresh && eIdx>0;
+
+  var dbg='DIRECT@'+dIdx+'ms peak='+dPeak.toFixed(4);
+  dbg+=' | ECHO_SEARCH from '+(searchStart)+'ms thresh='+echoThresh.toFixed(4);
+  dbg+=' | ECHO '+(echoFound?'@'+eIdx+'ms peak='+ePeak.toFixed(4):'NOT FOUND (best='+ePeak.toFixed(4)+' @'+eIdx+'ms)');
+
+  return{
+    direct:{idx:dIdx,val:dPeak},
+    echo:echoFound?{idx:eIdx,val:ePeak}:null,
+    rtt:echoFound?(eIdx-dIdx):null,
+    env:env,
+    debug:dbg,
+  };
+}
+
+/* ═══ UTILS ═══ */
 function genId(){return Math.floor(Math.random()*0xFFFF).toString(16).padStart(4,'0').toUpperCase();}
 function fMs(v){return v==null?'---':v<1?'<1ms':Math.round(v)+'ms';}
 function fTime(d){return d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function clsfy(ms){if(ms==null)return{l:'TIMEOUT',c:'#ff3333'};if(ms<5)return{l:'NEAR',c:'#00ffaa'};if(ms<20)return{l:'ROOM',c:'#00ddff'};if(ms<50)return{l:'HALL',c:'#ffcc00'};if(ms<150)return{l:'OPEN',c:'#ff8800'};return{l:'DISTANT',c:'#ff4444'};}
 function eDist(ms){return ms==null?null:((ms/1000)*343)/2;}
-function cClr(c){return c>=0.5?'#00ffaa':c>=0.3?'#00ddff':c>=0.15?'#ffcc00':'#ff4444';}
 function flatBufs(b){var t=0;for(var i=0;i<b.length;i++)t+=b[i].length;var f=new Float32Array(t);var o=0;for(var i=0;i<b.length;i++){f.set(b[i],o);o+=b[i].length;}return f;}
-function rms(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i]*a[i];return Math.sqrt(s/a.length);}
 
-function CorrCanvas(props){
-  var corr=props.corr,pLag=props.pLag,bS=props.bS,conf=props.conf;
+/* ═══ ENVELOPE CANVAS ═══ */
+function EnvCanvas(props){
+  var env=props.env, direct=props.direct, echo=props.echo;
   var ref=useRef(null);
   useEffect(function(){
-    var cv=ref.current;if(!cv||!corr||!corr.length)return;
+    var cv=ref.current;if(!cv||!env||!env.length)return;
     var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var W=cv.offsetWidth*dpr,H=90*dpr;cv.width=W;cv.height=H;cv.style.height='90px';
+    var W=cv.offsetWidth*dpr, H=100*dpr;
+    cv.width=W;cv.height=H;cv.style.height='100px';
     ctx.clearRect(0,0,W,H);
-    var mC=0;for(var i=0;i<corr.length;i++){var a=Math.abs(corr[i]);if(a>mC)mC=a;}
-    mC=Math.max(mC,0.1)*1.15;
-    var xS=W/corr.length,yM=H/2,yS=(H/2)/mC;
-    ctx.strokeStyle='#1a2530';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,yM);ctx.lineTo(W,yM);ctx.stroke();
-    ctx.strokeStyle='#00ddff55';ctx.lineWidth=1.5;ctx.beginPath();
-    for(var i=0;i<corr.length;i++){var x=i*xS,y=yM-corr[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
-    ctx.stroke();
-    if(pLag>=0&&conf>0){var ai=pLag-(bS||0);
-      if(ai>=0&&ai<corr.length){var px=ai*xS,py=yM-corr[ai]*yS;
-        ctx.strokeStyle=cClr(conf)+'cc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
-        ctx.fillStyle=cClr(conf);ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();
-        ctx.font=(11*dpr)+'px IBM Plex Mono,monospace';
-        ctx.fillText(lagMs(pLag,CFG.sr).toFixed(1)+'ms ('+conf.toFixed(3)+')',px+6*dpr,14*dpr);}}
+
+    var maxE=0;for(var i=0;i<env.length;i++)if(env[i]>maxE)maxE=env[i];
+    maxE=Math.max(maxE,0.001)*1.1;
+    var xS=W/env.length, yS=H/maxE;
+
+    // Direct window background
+    var dwX=Math.min(CFG.directWindow,env.length)*xS;
+    ctx.fillStyle='rgba(0,255,170,0.03)';
+    ctx.fillRect(0,0,dwX,H);
+
+    // Envelope bars
+    for(var i=0;i<env.length;i++){
+      var x=i*xS, bH=env[i]*yS;
+      var inDirect=i<CFG.directWindow;
+      ctx.fillStyle=inDirect?'#00ffaa33':'#00ddff22';
+      ctx.fillRect(x,H-bH,Math.max(1,xS-0.5),bH);
+    }
+
+    // Echo threshold line (if direct found)
+    if(direct){
+      var thH=direct.val*CFG.echoThreshRatio*yS;
+      ctx.strokeStyle='#ff880055';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.moveTo(0,H-thH);ctx.lineTo(W,H-thH);ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Direct marker
+      var dx=direct.idx*xS;
+      ctx.strokeStyle='#00ffaacc';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(dx,0);ctx.lineTo(dx,H);ctx.stroke();
+      ctx.fillStyle='#00ffaa';ctx.font=(10*dpr)+'px IBM Plex Mono,monospace';
+      ctx.fillText('D:'+direct.idx+'ms',dx+4*dpr,14*dpr);
+    }
+
+    // Echo marker
+    if(echo){
+      var ex=echo.idx*xS;
+      ctx.strokeStyle='#ffcc00cc';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(ex,0);ctx.lineTo(ex,H);ctx.stroke();
+      ctx.fillStyle='#ffcc00';ctx.font=(10*dpr)+'px IBM Plex Mono,monospace';
+      ctx.fillText('E:'+echo.idx+'ms',ex+4*dpr,28*dpr);
+
+      // RTT arrow
+      if(direct){
+        var y0=H*0.15;
+        ctx.strokeStyle='#ffffff44';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(direct.idx*xS,y0);ctx.lineTo(ex,y0);ctx.stroke();
+        ctx.fillStyle='#ffffff66';ctx.font=(11*dpr)+'px IBM Plex Mono,monospace';
+        var rtt=echo.idx-direct.idx;
+        ctx.fillText('RTT='+rtt+'ms',((direct.idx+echo.idx)/2)*xS-20*dpr,y0-4*dpr);
+      }
+    }
+
+    // Time axis
     ctx.fillStyle='#33445544';ctx.font=(9*dpr)+'px IBM Plex Mono,monospace';
-    var tMs=(corr.length/CFG.sr)*1000;
-    for(var t=50;t<tMs;t+=100){ctx.fillText(t+'ms',(t/tMs)*W,H-4*dpr);}
-  },[corr,pLag,bS,conf]);
-  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'90px'}});
+    for(var t=0;t<env.length;t+=50){ctx.fillText(t+'ms',t*xS,H-3*dpr);}
+  },[env,direct,echo]);
+  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'100px'}});
 }
 
+/* ═══ RAW WAVEFORM CANVAS ═══ */
 function WaveCanvas(props){
-  var samples=props.samples,blankMs=props.blankMs;var ref=useRef(null);
+  var samples=props.samples;var ref=useRef(null);
   useEffect(function(){
     var cv=ref.current;if(!cv||!samples||!samples.length)return;
     var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
@@ -171,53 +258,56 @@ function WaveCanvas(props){
     ctx.clearRect(0,0,W,H);
     var step=Math.max(1,Math.floor(samples.length/(W/dpr)));
     var mV=0;for(var i=0;i<samples.length;i+=step){var a=Math.abs(samples[i]);if(a>mV)mV=a;}
-    mV=Math.max(mV,0.01)*1.1;var yM=H/2,yS=(H/2)/mV;
-    var bx=(blankMs/CFG.listenMs)*W;ctx.fillStyle='rgba(255,255,255,0.015)';ctx.fillRect(0,0,bx,H);
+    mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;
     ctx.strokeStyle='#00ffaa22';ctx.lineWidth=1;ctx.beginPath();
     for(var i=0;i<samples.length;i+=step){var x=(i/samples.length)*W,y=yM-samples[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
     ctx.stroke();
-  },[samples,blankMs]);
+  },[samples]);
   return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'46px'}});
 }
 
+/* ═══════════ APP ═══════════ */
 function App(){
   var _s=useState('idle'),status=_s[0],setStatus=_s[1];
   var _h=useState([]),history=_h[0],setHistory=_h[1];
   var _c=useState(false),cont=_c[0],setCont=_c[1];
-  var _i=useState(1500),intv=_i[0],setIntv=_i[1];
+  var _i=useState(2000),intv=_i[0],setIntv=_i[1];
   var _n=useState(0),count=_n[0],setCount=_n[1];
   var _e=useState(null),err=_e[0],setErr=_e[1];
   var _inf=useState(null),info=_inf[0],setInfo=_inf[1];
-  var _a=useState(null),ambient=_a[0],setAmbient=_a[1];
   var _ll=useState(0),liveLevel=_ll[0],setLiveLevel=_ll[1];
-  var _lc=useState(null),lastCorr=_lc[0],setLastCorr=_lc[1];
+  var _lp=useState(null),lastPeaks=_lp[0],setLastPeaks=_lp[1];
   var _lw=useState(null),lastWave=_lw[0],setLastWave=_lw[1];
-  var _lr=useState(null),lastRes=_lr[0],setLastRes=_lr[1];
-  var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),ambRef=useRef(null),chirpRef=useRef(null);
-  var rec=useRef({recording:false,rawBuf:[],startTime:0});
+  var _db=useState(null),debug=_db[0],setDebug=_db[1];
+
+  var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),chirpRef=useRef(null);
+  var rec=useRef({recording:false,rawBuf:[]});
   useEffect(function(){contRef.current=cont;},[cont]);
-  useEffect(function(){ambRef.current=ambient;},[ambient]);
-  useEffect(function(){chirpRef.current=generateChirp(CFG.sr,CFG.f1,CFG.f2,CFG.chirpDur);},[]);
+  useEffect(function(){chirpRef.current=makeChirp(CFG.sr,CFG.f1,CFG.f2,CFG.chirpDur);},[]);
 
   var initAudio=useCallback(function(){
     return new Promise(function(resolve){
       if(acRef.current&&acRef.current.state!=='closed'){
         if(acRef.current.state==='suspended')acRef.current.resume().then(function(){resolve(true);});
         else resolve(true);return;}
-      var ctx;try{ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});}
+      var ctx;
+      try{ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});}
       catch(ex){setErr('AudioContext: '+ex.message);resolve(false);return;}
       (ctx.state==='suspended'?ctx.resume():Promise.resolve()).then(function(){
         return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
       }).then(function(stream){
-        acRef.current=ctx;var src=ctx.createMediaStreamSource(stream);
-        var bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=(CFG.f1+CFG.f2)/2;bp.Q.value=1.2;src.connect(bp);
+        acRef.current=ctx;
+        var src=ctx.createMediaStreamSource(stream);
+        // NO bandpass filter - capture full bandwidth for envelope detection
         var proc=ctx.createScriptProcessor(CFG.bufSize,1,1);
         proc.onaudioprocess=function(ev){
-          var inp=ev.inputBuffer.getChannelData(0);var sum=0;
-          for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];
+          var inp=ev.inputBuffer.getChannelData(0);
+          var sum=0;for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];
           setLiveLevel(Math.sqrt(sum/inp.length));
-          if(rec.current.recording){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.rawBuf.push(cp);}};
-        bp.connect(proc);proc.connect(ctx.destination);setErr(null);resolve(true);
+          if(rec.current.recording){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.rawBuf.push(cp);}
+        };
+        src.connect(proc);proc.connect(ctx.destination);
+        setErr(null);resolve(true);
       }).catch(function(ex){setErr('\u30DE\u30A4\u30AF\u30A2\u30AF\u30BB\u30B9\u304C\u5FC5\u8981: '+(ex.message||ex));resolve(false);});
     });
   },[]);
@@ -225,49 +315,36 @@ function App(){
   var playChirp=useCallback(function(){
     var ctx=acRef.current,ch=chirpRef.current;if(!ctx||!ch)return;
     var ab=ctx.createBuffer(1,ch.length,CFG.sr);ab.getChannelData(0).set(ch);
-    var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1.0;
+    var s=ctx.createBufferSource();s.buffer=ab;
+    var g=ctx.createGain();g.gain.value=1.0;
     s.connect(g);g.connect(ctx.destination);s.start();
   },[]);
 
-  var calibrate=useCallback(function(){
-    return initAudio().then(function(ok){if(!ok)return;
-      setStatus('calibrating');setInfo('\u74B0\u5883\u30CE\u30A4\u30BA\u30AD\u30E3\u30EA\u30D6\u30EC\u30FC\u30B7\u30E7\u30F3\u4E2D... 2\u79D2');
-      rec.current.recording=true;rec.current.rawBuf=[];rec.current.startTime=performance.now();
-      return new Promise(function(r){setTimeout(r,2000);});
-    }).then(function(){
-      rec.current.recording=false;var bufs=rec.current.rawBuf;
-      if(!bufs||!bufs.length){setErr('\u97F3\u58F0\u30C7\u30FC\u30BF\u306A\u3057');setInfo(null);setStatus('idle');return;}
-      var flat=flatBufs(bufs),r=rms(flat),ch=chirpRef.current,ac=xcorr(flat,ch,CFG.sr,0);
-      var amb={rms:r,cn:ac.peakVal};setAmbient(amb);ambRef.current=amb;
-      var th=Math.max(ac.peakVal*CFG.threshMult,CFG.minConf);
-      setInfo('\u5B8C\u4E86: \u30CE\u30A4\u30BA='+(r*1000).toFixed(2)+' mRMS / \u76F8\u95A2NF='+ac.peakVal.toFixed(4)+' / \u95BE\u5024='+th.toFixed(4));
-      setStatus('idle');
-    });
-  },[initAudio]);
-
   var execPing=useCallback(function(){
-    return initAudio().then(function(ok){if(!ok)return null;
-      var amb=ambRef.current;
-      if(!amb){setStatus('calibrating');setInfo('\u521D\u56DE\u30AD\u30E3\u30EA\u30D6\u30EC\u30FC\u30B7\u30E7\u30F3...');
-        rec.current.recording=true;rec.current.rawBuf=[];rec.current.startTime=performance.now();
-        return new Promise(function(r){setTimeout(r,1500);}).then(function(){
-          rec.current.recording=false;var flat=flatBufs(rec.current.rawBuf),r2=rms(flat),ch=chirpRef.current,ac=xcorr(flat,ch,CFG.sr,0);
-          amb={rms:r2,cn:ac.peakVal};setAmbient(amb);ambRef.current=amb;
-          var th=Math.max(amb.cn*CFG.threshMult,CFG.minConf);
-          setInfo('\u30CE\u30A4\u30BA='+(r2*1000).toFixed(2)+' mRMS / \u76F8\u95A2\u95BE\u5024='+th.toFixed(4));return amb;});}
-      return amb;
-    }).then(function(amb){if(!amb)return null;
-      var th=Math.max(amb.cn*CFG.threshMult,CFG.minConf);setStatus('pinging');
-      rec.current.recording=true;rec.current.rawBuf=[];rec.current.startTime=performance.now();
+    return initAudio().then(function(ok){
+      if(!ok)return null;
+      setStatus('pinging');
+      rec.current.recording=true;rec.current.rawBuf=[];
       playChirp();
       return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
-        rec.current.recording=false;var signal=flatBufs(rec.current.rawBuf),ch=chirpRef.current;
-        var res=xcorr(signal,ch,CFG.sr,CFG.blanking);
-        var rtt=null,conf=res.peakVal;if(conf>=th)rtt=lagMs(res.peakLag,CFG.sr);
-        var id=genId(),entry={id:id,time:new Date(),rtt:rtt,confidence:conf,threshold:th,seq:cntRef.current++};
-        setCount(cntRef.current);setHistory(function(p){return[entry].concat(p).slice(0,CFG.histMax);});
-        setLastCorr({corr:res.corr,pLag:res.peakLag,bS:res.bS,conf:conf});
-        setLastWave(signal);setLastRes(entry);setStatus('idle');return entry;});
+        rec.current.recording=false;
+        var signal=flatBufs(rec.current.rawBuf);
+
+        // Peak detection (envelope-based)
+        var result=detectPeaks(signal,CFG.sr);
+        var rtt=result.rtt;
+        var id=genId();
+        var entry={id:id,time:new Date(),rtt:rtt,seq:cntRef.current++,
+          directPeak:result.direct?result.direct.val:0,
+          echoPeak:result.echo?result.echo.val:0};
+        setCount(cntRef.current);
+        setHistory(function(p){return[entry].concat(p).slice(0,CFG.histMax);});
+        setLastPeaks(result);
+        setLastWave(signal);
+        setDebug(result.debug);
+        setStatus('idle');
+        return entry;
+      });
     });
   },[initAudio,playChirp]);
 
@@ -275,8 +352,7 @@ function App(){
     var run=function(){if(!contRef.current)return;execPing().then(function(){if(contRef.current)timerRef.current=setTimeout(run,intv);});};run();
   },[execPing,intv]);
   var stopCont=useCallback(function(){setCont(false);contRef.current=false;if(timerRef.current)clearTimeout(timerRef.current);},[]);
-  var clear=useCallback(function(){setHistory([]);setCount(0);cntRef.current=0;setLastCorr(null);setLastWave(null);setLastRes(null);},[]);
-  var resetCalib=useCallback(function(){setAmbient(null);ambRef.current=null;setInfo(null);},[]);
+  var clear=useCallback(function(){setHistory([]);setCount(0);cntRef.current=0;setLastPeaks(null);setLastWave(null);setDebug(null);},[]);
 
   var ok=history.filter(function(x){return x.rtt!=null;});
   var avg=ok.length?ok.reduce(function(s,x){return s+x.rtt;},0)/ok.length:null;
@@ -284,29 +360,27 @@ function App(){
   var mx=ok.length?Math.max.apply(null,ok.map(function(x){return x.rtt;})):null;
   var loss=history.length?((history.length-ok.length)/history.length*100):0;
   var jit=ok.length>1?ok.slice(0,-1).reduce(function(s,x,i){return s+Math.abs(x.rtt-ok[i+1].rtt);},0)/(ok.length-1):null;
-  var avgConf=ok.length?ok.reduce(function(s,x){return s+x.confidence;},0)/ok.length:null;
-  var aTh=ambient?Math.max(ambient.cn*CFG.threshMult,CFG.minConf):CFG.minConf;
 
   var ch=[];
+
   ch.push(h('div',{className:'hdr',key:'hd'},
-    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v0.3')),
-    h('div',{className:'sub'},'CHIRP SONAR \u00B7 CROSS-CORRELATION DETECTION'),
-    h('p',null,'\u30C1\u30E3\u30FC\u30D7\u4FE1\u53F7\uFF08'+CFG.f1+'\u2192'+CFG.f2+'Hz / '+CFG.chirpDur*1000+'ms\uFF09\u3092\u767A\u5C04\u3057\u3001\u76F8\u4E92\u76F8\u95A2\u3067\u53CD\u97FF\u30D1\u30BF\u30FC\u30F3\u3092\u30DE\u30C3\u30C1\u30F3\u30B0\u691C\u51FA\u3002\u74B0\u5883\u30CE\u30A4\u30BA\u306B\u539F\u7406\u7684\u306B\u8010\u6027\u3092\u6301\u3064\u7269\u7406\u30EC\u30A4\u30C6\u30F3\u30B7\u8A08\u6E2C\u3002')));
+    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v0.4')),
+    h('div',{className:'sub'},'ENVELOPE PEAK DETECTION \u00B7 DIRECT/ECHO DIFFERENTIAL'),
+    h('p',null,'\u30C1\u30E3\u30FC\u30D7\u4FE1\u53F7\u3092\u767A\u5C04\u3057\u3001\u30A8\u30CD\u30EB\u30AE\u30FC\u5305\u7D61\u7DDA\u304B\u3089\u300C\u76F4\u9054\u97F3\u30D4\u30FC\u30AF\u300D\u3068\u300C\u53CD\u5C04\u97F3\u30D4\u30FC\u30AF\u300D\u3092\u691C\u51FA\u3002\u305D\u306E\u6642\u9593\u5DEE\u304CRTT\u3002\u30B9\u30D4\u30FC\u30AB\u30FC\u6B6A\u307F\u306B\u4F9D\u5B58\u3057\u306A\u3044\u76F8\u5BFE\u8A08\u6E2C\u65B9\u5F0F\u3002')));
 
   ch.push(h('div',{className:'sec',key:'lv'},
     h('div',{className:'lv-row'},h('span',{className:'lv-lbl'},'MIC'),
       h('div',{className:'lv-bg'},h('div',{className:'lv-bar',style:{width:Math.min(100,liveLevel*3000)+'%',background:liveLevel>0.001?'linear-gradient(90deg,#00ffaa44,#00ffaa88)':'#ff333322'}})),
       h('span',{className:'lv-val',style:{color:liveLevel>0.001?'#00ffaa':'#ff3333'}},(liveLevel*1000).toFixed(1)+' mRMS')),
     h('div',{className:'lv-stat',style:{color:liveLevel>0.001?'#00ffaa55':'#ff333366'}},
-      liveLevel>0.001?'\u25CF MIC ACTIVE'+(ambient?' | \u76F8\u95A2\u95BE\u5024: '+aTh.toFixed(4):''):'\u25CB NO SIGNAL')));
+      liveLevel>0.001?'\u25CF MIC ACTIVE':'\u25CB NO SIGNAL \u2014 \u30DE\u30A4\u30AF\u6A29\u9650\u3092\u78BA\u8A8D')));
 
   var ctrls=[];
   if(!cont){
     ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb'},
-      status==='calibrating'?'\u25CF CALIBRATING...':status==='pinging'?'\u25CF CORRELATING...':'\u25B6 CHIRP PING'));
+      status==='pinging'?'\u25CF DETECTING...':'\u25B6 PING'));
     ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'\u25C9 CONTINUOUS'));
   }else{ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'\u25A0 STOP'));}
-  ctrls.push(h('button',{className:'btn btn-sm btn-calib',onClick:ambient?resetCalib:calibrate,key:'cal'},ambient?'\u21BB RE-CALIB':'\u26A1 CALIB'));
   ctrls.push(h('div',{className:'iv-ctrl',key:'iv'},h('span',null,'INT'),
     h('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
       [1000,1500,2000,3000,5000].map(function(v){return h('option',{value:v,key:v},v+'ms');}))));
@@ -316,32 +390,33 @@ function App(){
   if(err)ch.push(h('div',{className:'err',key:'err'},'\u26A0 '+err));
   if(info)ch.push(h('div',{className:'nfo',key:'nfo'},info));
 
+  // Debug panel - always show for diagnostics
+  if(debug)ch.push(h('div',{className:'dbg',key:'dbg'},'DIAG: '+debug));
+
   if(history.length>0){ch.push(h('div',{className:'sts',key:'st'},
-    [{l:'SENT',v:count,u:'',c:'#c0d0e0'},{l:'AVG',v:avg!=null?Math.round(avg):'---',u:avg!=null?'ms':'',c:'#00ffaa'},
-     {l:'MIN',v:mn!=null?Math.round(mn):'---',u:mn!=null?'ms':'',c:'#00ddff'},{l:'MAX',v:mx!=null?Math.round(mx):'---',u:mx!=null?'ms':'',c:'#ffcc00'},
-     {l:'JITTER',v:jit!=null?jit.toFixed(1):'---',u:jit!=null?'ms':'',c:'#ff8800'},{l:'LOSS',v:loss.toFixed(0),u:'%',c:loss>30?'#ff3333':'#667788'},
-     {l:'CONF',v:avgConf!=null?avgConf.toFixed(2):'---',u:'',c:avgConf?cClr(avgConf):'#667788'}
+    [{l:'SENT',v:count,u:'',c:'#c0d0e0'},
+     {l:'AVG',v:avg!=null?Math.round(avg):'---',u:avg!=null?'ms':'',c:'#00ffaa'},
+     {l:'MIN',v:mn!=null?Math.round(mn):'---',u:mn!=null?'ms':'',c:'#00ddff'},
+     {l:'MAX',v:mx!=null?Math.round(mx):'---',u:mx!=null?'ms':'',c:'#ffcc00'},
+     {l:'JITTER',v:jit!=null?jit.toFixed(1):'---',u:jit!=null?'ms':'',c:'#ff8800'},
+     {l:'LOSS',v:loss.toFixed(0),u:'%',c:loss>30?'#ff3333':'#667788'},
     ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v,s.u?h('span',{className:'st-u'},s.u):null));})));}
 
-  if(lastRes){var cc=lastRes.confidence;
-    ch.push(h('div',{className:'sec',key:'cb'},
-      h('div',{className:'sec-label'},'DETECTION CONFIDENCE'),
-      h('div',{className:'conf-row'},h('div',{className:'conf-bg'},h('div',{className:'conf-bar',style:{width:Math.min(100,cc*100)+'%',background:cClr(cc)}})),
-        h('span',{className:'conf-lbl',style:{color:cClr(cc)}},cc.toFixed(3))),
-      h('div',{style:{fontSize:'9px',color:'#33445577',marginTop:'4px'}},
-        '\u95BE\u5024: '+lastRes.threshold.toFixed(4)+' | '+(cc>=lastRes.threshold?'\u2714 PATTERN MATCHED':'\u2718 BELOW THRESHOLD'))));}
+  // Envelope visualization
+  if(lastPeaks&&lastPeaks.env&&lastPeaks.env.length>0){
+    ch.push(h('div',{className:'cv-wrap',key:'env'},
+      h('div',{className:'cv-lbl'},
+        h('span',null,'ENERGY ENVELOPE (1ms resolution)'),
+        h('span',null,lastPeaks.env.length+'ms')),
+      h(EnvCanvas,{env:lastPeaks.env,direct:lastPeaks.direct,echo:lastPeaks.echo})));}
 
-  if(lastCorr&&lastCorr.corr&&lastCorr.corr.length>0){
-    ch.push(h('div',{className:'cv-wrap',key:'xc'},
-      h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),
-        h('span',null,'blanking '+CFG.blanking+'ms | peak @ '+(lastCorr.pLag>=0?lagMs(lastCorr.pLag,CFG.sr).toFixed(1)+'ms':'---'))),
-      h(CorrCanvas,{corr:lastCorr.corr,pLag:lastCorr.pLag,bS:lastCorr.bS,conf:lastCorr.conf})));}
-
+  // Raw waveform
   if(lastWave&&lastWave.length>0){
     ch.push(h('div',{className:'cv-wrap',key:'rw'},
-      h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE'),h('span',null,lastWave.length+' smp / '+CFG.listenMs+'ms')),
-      h(WaveCanvas,{samples:lastWave,blankMs:CFG.blanking})));}
+      h('div',{className:'cv-lbl'},h('span',null,'RAW WAVEFORM'),h('span',null,lastWave.length+' smp')),
+      h(WaveCanvas,{samples:lastWave})));}
 
+  // Timeline
   if(history.length>1){ch.push(h('div',{className:'sec',key:'tl'},
     h('div',{className:'sec-label'},'RTT TIMELINE'),
     h('div',{className:'tl-bars'},history.slice().reverse().slice(-48).map(function(x,i){
@@ -350,28 +425,29 @@ function App(){
         background:x.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':c.c,
         opacity:x.rtt==null?0.5:0.6}});}))));}
 
+  // Log
   if(history.length>0){ch.push(h('div',{className:'log',key:'log'},
-    h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'')),
+    h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'D/E RATIO')),
     h('div',{className:'log-b'},history.map(function(x){var c=clsfy(x.rtt),d=eDist(x.rtt);
+      var ratio=x.directPeak>0&&x.echoPeak>0?(x.echoPeak/x.directPeak*100).toFixed(0)+'%':'---';
       return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id},
         h('span',{style:{color:'#556677'}},fTime(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),
         h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),
         h('span',{style:{color:c.c,fontSize:'9px',letterSpacing:'1px'}},c.l),
         h('span',null,d!=null?d.toFixed(2)+'m':'---'),
-        h('span',{style:{color:cClr(x.confidence)}},x.confidence.toFixed(3)),
-        h('span',{style:{fontSize:'9px',color:x.rtt!=null?'#00ffaa44':'#ff333344'}},x.rtt!=null?'\u2714':'\u2718'));}))));}
+        h('span',{style:{fontSize:'10px',color:'#667788'}},ratio));}))));}
 
   if(history.length===0&&!err){ch.push(h('div',{className:'empty',key:'emp'},
-    h('div',{className:'empty-i'},'\u25CE'),h('div',{className:'empty-t'},'CHIRP SONAR READY'),
-    h('div',{className:'empty-d'},'CALIB \u2192 CHIRP PING \u306E\u9806\u3067\u5B9F\u884C\u3002\u30C1\u30E3\u30FC\u30D7\u4FE1\u53F7\u306E\u53CD\u5C04\u30D1\u30BF\u30FC\u30F3\u3092\u76F8\u4E92\u76F8\u95A2\u3067\u691C\u51FA\u3057\u307E\u3059\u3002',
-      h('br'),'\u30B9\u30D4\u30FC\u30AB\u30FC\u3068\u30DE\u30A4\u30AF\u306E\u4F7F\u7528\u8A31\u53EF\u304C\u5FC5\u8981\u3067\u3059\u3002')));}
+    h('div',{className:'empty-i'},'\u25CE'),h('div',{className:'empty-t'},'PHYSICAL PING v0.4 READY'),
+    h('div',{className:'empty-d'},'\u76F4\u9054\u97F3/\u53CD\u5C04\u97F3\u306E\u30A8\u30CD\u30EB\u30AE\u30FC\u5DEE\u5206\u691C\u51FA\u65B9\u5F0F\u3002',
+      h('br'),'PING \u30DC\u30BF\u30F3\u3092\u62BC\u3059\u3060\u3051\u3067\u8A08\u6E2C\u958B\u59CB\u3002\u30AD\u30E3\u30EA\u30D6\u30EC\u30FC\u30B7\u30E7\u30F3\u4E0D\u8981\u3002')));}
 
   ch.push(h('div',{className:'leg',key:'leg'},
     [{l:'NEAR',c:'#00ffaa',r:'<5ms'},{l:'ROOM',c:'#00ddff',r:'5-20ms'},{l:'HALL',c:'#ffcc00',r:'20-50ms'},{l:'OPEN',c:'#ff8800',r:'50-150ms'},{l:'DISTANT',c:'#ff4444',r:'>150ms'}].map(function(x){
       return h('span',{className:'leg-i',key:x.l},h('span',{className:'leg-d',style:{background:x.c}}),x.l+' '+x.r);})));
 
   ch.push(h('div',{className:'ftr',key:'ft'},
-    'CHIRP: '+CFG.f1+'\u2192'+CFG.f2+'Hz sweep '+CFG.chirpDur*1000+'ms (Hann) \u2192 BPF Q=1.2 \u2192 ScriptProc '+CFG.bufSize+'smp ('+(CFG.bufSize/CFG.sr*1000).toFixed(1)+'ms) \u2192 normalized xcorr \u2192 blanking '+CFG.blanking+'ms \u2192 adaptive \u00D7'+CFG.threshMult+' | pTCP v0.3'));
+    'CHIRP:'+CFG.f1+'\u2192'+CFG.f2+'Hz '+CFG.chirpDur*1000+'ms | DETECT: envelope(1ms RMS) \u2192 direct peak(0-'+CFG.directWindow+'ms) \u2192 echo search(+'+CFG.gapAfterDirect+'ms~) \u2192 thresh=direct\u00D7'+CFG.echoThreshRatio+' | pTCP v0.4'));
 
   return h('div',null,ch);
 }
