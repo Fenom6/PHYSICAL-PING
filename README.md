@@ -1,4 +1,4 @@
-# PHYSICAL-PING# Physical Ping — pTCP v0.1
+# PHYSICAL-PING# Physical Ping — pTCP v0.5
 
 **物理空間に対するPingプロトコルの実装**
 
