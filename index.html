@@ -12,379 +12,514 @@ body {
   background: linear-gradient(170deg, #0a0f14 0%, #0d1520 40%, #0a1218 100%);
   color: #8899aa;
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 13px;
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0a0f14; }
 ::-webkit-scrollbar-thumb { background: #1a2a3a; border-radius: 2px; }
-
-/* Scanline overlay */
 .scanline {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,170,0.008) 2px, rgba(0,255,170,0.008) 4px);
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,170,0.006) 2px, rgba(0,255,170,0.006) 4px);
   pointer-events: none; z-index: 100;
 }
-
-.container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
-
-/* Header */
-.header { margin-bottom: 24px; border-bottom: 1px solid #1a2530; padding-bottom: 16px; }
-.header-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
-.header h1 {
-  font-size: 18px; font-weight: 600; color: #00ffaa; letter-spacing: 3px; margin: 0;
-  text-shadow: 0 0 20px rgba(0,255,170,0.3);
-}
-.header .version { font-size: 10px; color: #334455; letter-spacing: 1px; }
-.header p { font-size: 11px; color: #445566; line-height: 1.6; max-width: 600px; }
-
-/* Controls */
-.controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+.header { margin-bottom: 20px; border-bottom: 1px solid #1a2530; padding-bottom: 14px; }
+.header-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+.header h1 { font-size: 18px; font-weight: 600; color: #00ffaa; letter-spacing: 3px; text-shadow: 0 0 20px rgba(0,255,170,0.3); }
+.header .ver { font-size: 10px; color: #334455; letter-spacing: 1px; }
+.header p { font-size: 11px; color: #445566; line-height: 1.6; }
+.level-section { margin-bottom: 16px; padding: 12px; border: 1px solid #1a2530; border-radius: 2px; background: rgba(0,0,0,0.2); }
+.level-row { display: flex; align-items: center; gap: 10px; }
+.level-label { font-size: 10px; color: #445566; letter-spacing: 1.5px; min-width: 50px; }
+.level-bar-bg { flex: 1; height: 8px; background: #0a0f14; border-radius: 1px; overflow: hidden; position: relative; }
+.level-bar { height: 100%; border-radius: 1px; transition: width 0.06s linear; min-width: 1px; }
+.level-val { font-size: 11px; min-width: 70px; text-align: right; font-variant-numeric: tabular-nums; }
+.level-status { font-size: 10px; letter-spacing: 1px; margin-top: 6px; }
+.thresh-line { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #ff8800aa; z-index: 1; }
+.controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .btn {
-  border: none; padding: 8px 20px; font-size: 12px;
+  border: none; padding: 10px 20px; font-size: 12px;
   font-family: 'IBM Plex Mono', monospace; letter-spacing: 2px;
-  cursor: pointer; border-radius: 2px; transition: all 0.2s;
+  cursor: pointer; border-radius: 2px; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.btn-ping {
-  background: linear-gradient(180deg, #00ffaa22, #00ffaa11);
-  border: 1px solid #00ffaa44; color: #00ffaa;
-}
-.btn-ping:disabled { background: #0a2a1a; cursor: wait; }
-.btn-ping:active:not(:disabled) { background: #00ffaa33; }
-.btn-cont {
-  background: transparent; border: 1px solid #334455; color: #667788;
-  padding: 8px 16px; font-size: 11px; letter-spacing: 1px;
-}
-.btn-stop {
-  background: linear-gradient(180deg, #ff333322, #ff333311);
-  border: 1px solid #ff333344; color: #ff3333;
-  animation: pulse 1s infinite;
-}
-.btn-clear {
-  background: transparent; border: 1px solid #1a2530; color: #445566;
-  padding: 6px 12px; font-size: 10px; letter-spacing: 1px; margin-left: auto;
-}
-.interval-ctrl { display: flex; align-items: center; gap: 6px; margin-left: 8px; }
-.interval-ctrl span { font-size: 10px; color: #445566; }
-.interval-ctrl select {
+.btn:active { transform: scale(0.97); }
+.btn-ping { background: linear-gradient(180deg, #00ffaa22, #00ffaa11); border: 1px solid #00ffaa44; color: #00ffaa; }
+.btn-ping:disabled { background: #0a2a1a; cursor: wait; opacity: 0.6; }
+.btn-cont { background: transparent; border: 1px solid #334455; color: #667788; padding: 10px 16px; font-size: 11px; letter-spacing: 1px; }
+.btn-stop { background: linear-gradient(180deg, #ff333322, #ff333311); border: 1px solid #ff333344; color: #ff3333; animation: pulse 1s infinite; }
+.btn-sm { padding: 6px 12px; font-size: 10px; letter-spacing: 1px; }
+.btn-clear { background: transparent; border: 1px solid #1a2530; color: #445566; margin-left: auto; }
+.btn-calib { background: transparent; border: 1px solid #ffcc0044; color: #ffcc00; }
+.intv-ctrl { display: flex; align-items: center; gap: 6px; margin-left: 8px; }
+.intv-ctrl span { font-size: 10px; color: #445566; }
+.intv-ctrl select {
   background: #0d1520; border: 1px solid #1a2530; color: #8899aa;
-  padding: 4px 8px; font-size: 11px; font-family: 'IBM Plex Mono', monospace; border-radius: 2px;
+  padding: 4px 8px; font-size: 11px; font-family: inherit; border-radius: 2px;
 }
-
-/* Error */
-.error {
-  padding: 10px 14px; background: rgba(255,50,50,0.08); border: 1px solid #ff333344;
-  border-radius: 2px; font-size: 11px; color: #ff6666; margin-bottom: 16px;
-}
-
-/* Stats */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 1px; background: #1a2530; border: 1px solid #1a2530;
-  border-radius: 2px; margin-bottom: 20px; overflow: hidden;
-}
-.stat-box { background: #0d1520; text-align: center; padding: 8px 12px; }
-.stat-label { font-size: 10px; letter-spacing: 2px; color: #667788; margin-bottom: 4px; }
-.stat-value { font-size: 22px; font-weight: 600; }
-.stat-unit { font-size: 11px; color: #667788; margin-left: 3px; }
-
-/* Timeline */
-.timeline {
-  margin-bottom: 20px; padding: 12px; border: 1px solid #1a2530;
-  border-radius: 2px; background: rgba(0,0,0,0.2);
-}
-.timeline-label { font-size: 10px; color: #445566; letter-spacing: 2px; margin-bottom: 8px; }
-.timeline-bars { display: flex; align-items: flex-end; gap: 2px; height: 48px; }
-.timeline-bar { flex: 1; border-radius: 1px 1px 0 0; transition: height 0.3s ease; }
-
-/* Log table */
+.error-box { padding: 10px 14px; background: rgba(255,50,50,0.08); border: 1px solid #ff333344; border-radius: 2px; font-size: 11px; color: #ff6666; margin-bottom: 14px; }
+.info-box { padding: 10px 14px; background: rgba(0,255,170,0.04); border: 1px solid #00ffaa22; border-radius: 2px; font-size: 11px; color: #00ffaa88; margin-bottom: 14px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 1px; background: #1a2530; border: 1px solid #1a2530; border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
+.stat { background: #0d1520; text-align: center; padding: 8px 6px; }
+.stat-l { font-size: 9px; letter-spacing: 1.5px; color: #556677; margin-bottom: 3px; }
+.stat-v { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat-u { font-size: 10px; color: #556677; margin-left: 2px; }
+.wave-section { margin-bottom: 16px; border: 1px solid #1a2530; border-radius: 2px; overflow: hidden; background: rgba(0,0,0,0.2); }
+.wave-label { font-size: 10px; color: #445566; letter-spacing: 2px; padding: 8px 12px 4px; }
+.wave-canvas { display: block; width: 100%; }
+.timeline { margin-bottom: 16px; padding: 12px; border: 1px solid #1a2530; border-radius: 2px; background: rgba(0,0,0,0.2); }
+.tl-label { font-size: 10px; color: #445566; letter-spacing: 2px; margin-bottom: 8px; }
+.tl-bars { display: flex; align-items: flex-end; gap: 2px; height: 44px; }
+.tl-bar { flex: 1; border-radius: 1px 1px 0 0; transition: height 0.3s ease; min-width: 2px; }
 .log { border: 1px solid #1a2530; border-radius: 2px; overflow: hidden; }
-.log-header, .log-row {
-  display: grid;
-  grid-template-columns: 68px 52px 64px 78px 62px 1fr 80px;
-  padding: 6px 10px; align-items: center;
-}
-.log-header {
-  font-size: 9px; letter-spacing: 1.5px; color: #334455;
-  border-bottom: 1px solid #1a2530; background: rgba(0,0,0,0.3);
-}
-.log-body { max-height: 360px; overflow: auto; }
-.log-row {
-  font-size: 11px; border-bottom: 1px solid #1a2530; color: #8899aa;
-  animation: fadeIn 0.3s ease;
-}
-.log-row:nth-child(even) { background: rgba(255,255,255,0.01); }
+.log-hdr, .log-row { display: grid; grid-template-columns: 62px 52px 68px 80px 64px 1fr; padding: 6px 8px; align-items: center; }
+.log-hdr { font-size: 9px; letter-spacing: 1.5px; color: #334455; border-bottom: 1px solid #1a2530; background: rgba(0,0,0,0.3); }
+.log-body { max-height: 320px; overflow: auto; }
+.log-row { font-size: 11px; border-bottom: 1px solid rgba(26,37,48,0.5); color: #8899aa; animation: fadeIn 0.25s ease; }
+.log-row:nth-child(even) { background: rgba(255,255,255,0.008); }
 .log-row.timeout { color: #555; }
-
-/* Empty state */
-.empty { text-align: center; padding: 60px 20px; color: #334455; }
-.empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
-.empty-title { font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
-.empty-desc { font-size: 10px; color: #223344; max-width: 400px; margin: 0 auto; line-height: 1.8; }
-
-/* Legend */
-.legend {
-  margin-top: 20px; padding-top: 16px; border-top: 1px solid #1a2530;
-  display: flex; flex-wrap: wrap; gap: 12px; font-size: 9px; color: #334455; letter-spacing: 1px;
-}
-.legend-item { display: flex; align-items: center; gap: 4px; }
-.legend-dot { width: 6px; height: 6px; border-radius: 1px; display: inline-block; }
-.footer { margin-top: 12px; font-size: 9px; color: #223344; line-height: 1.8; }
-
-@media (max-width: 640px) {
-  .log-header, .log-row {
-    grid-template-columns: 56px 44px 56px 68px 52px 1fr;
-    font-size: 10px; padding: 5px 6px;
-  }
-  .log-col-energy { display: none; }
-  .stat-value { font-size: 18px; }
-  .header h1 { font-size: 16px; }
+.empty { text-align: center; padding: 48px 20px; color: #334455; }
+.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.3; }
+.empty-t { font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
+.empty-d { font-size: 10px; color: #223344; max-width: 380px; margin: 0 auto; line-height: 1.8; }
+.legend { margin-top: 16px; padding-top: 12px; border-top: 1px solid #1a2530; display: flex; flex-wrap: wrap; gap: 12px; font-size: 9px; color: #445566; letter-spacing: 1px; }
+.legend-i { display: flex; align-items: center; gap: 4px; }
+.legend-d { width: 6px; height: 6px; border-radius: 1px; }
+.footer { margin-top: 10px; font-size: 9px; color: #223344; line-height: 1.8; }
+@media (max-width: 600px) {
+  .log-hdr, .log-row { grid-template-columns: 52px 44px 56px 68px 52px 1fr; font-size: 10px; padding: 5px 6px; }
+  .stat-v { font-size: 17px; }
 }
 </style>
 </head>
 <body>
 <div class="scanline"></div>
-<div id="root"></div>
+<div class="container" id="root"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
-const { useState, useRef, useCallback, useEffect, createElement: h } = React;
+const e = React.createElement;
+const { useState, useRef, useCallback, useEffect } = React;
 
-const SAMPLE_RATE = 44100;
-const PING_FREQ = 2000;
-const PING_DURATION = 0.005;
-const LISTEN_DURATION = 500;
-const ENERGY_THRESHOLD = 0.008;
-const HISTORY_MAX = 64;
+const CFG = {
+  sampleRate: 44100,
+  pingFreq: 2000,
+  pulseDur: 0.015,
+  listenMs: 500,
+  bufSize: 256,
+  blanking: 30,
+  threshMult: 4.0,
+  minThresh: 0.003,
+  histMax: 64,
+};
 
-function genId() { return Math.floor(Math.random()*65535).toString(16).padStart(4,'0').toUpperCase(); }
-function fmtMs(ms) { return ms==null?'---':ms<1?'<1ms':Math.round(ms)+'ms'; }
-function fmtTime(d) { return d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function genId() { return Math.floor(Math.random()*0xFFFF).toString(16).padStart(4,'0').toUpperCase(); }
+function fMs(v) { return v==null?'---':v<1?'<1ms':Math.round(v)+'ms'; }
+function fTime(d) { return d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function clsfy(ms) {
+  if(ms==null) return {l:'TIMEOUT',c:'#ff3333'};
+  if(ms<5)  return {l:'NEAR-FIELD',c:'#00ffaa'};
+  if(ms<20) return {l:'ROOM',c:'#00ddff'};
+  if(ms<50) return {l:'HALL',c:'#ffcc00'};
+  if(ms<150)return {l:'OPEN',c:'#ff8800'};
+  return {l:'DISTANT',c:'#ff4444'};
+}
+function eDist(ms) { return ms==null?null:((ms/1000)*343)/2; }
 
-function classify(ms) {
-  if(ms==null) return {label:'TIMEOUT',color:'#ff3333'};
-  if(ms<5) return {label:'NEAR-FIELD',color:'#00ffaa'};
-  if(ms<20) return {label:'ROOM',color:'#00ddff'};
-  if(ms<50) return {label:'HALL',color:'#ffcc00'};
-  if(ms<150) return {label:'OPEN',color:'#ff8800'};
-  return {label:'DISTANT',color:'#ff4444'};
+/* ── Waveform Canvas ── */
+function WaveCanvas(props) {
+  var samples = props.samples, threshold = props.threshold, blankMs = props.blankMs, rtt = props.rtt;
+  var ref = useRef(null);
+  useEffect(function() {
+    var cv = ref.current; if(!cv || !samples || !samples.length) return;
+    var ctx = cv.getContext('2d');
+    var dpr = window.devicePixelRatio||1;
+    var W = cv.offsetWidth * dpr;
+    var H = 80 * dpr;
+    cv.width = W; cv.height = H; cv.style.height = '80px';
+    ctx.clearRect(0,0,W,H);
+    var maxVal = 0;
+    for(var i=0;i<samples.length;i++) { var a=Math.abs(samples[i]); if(a>maxVal) maxVal=a; }
+    maxVal = Math.max(maxVal, threshold*2) * 1.2;
+    var xScale = W / samples.length;
+    var yMid = H/2;
+    var yScale = (H/2) / maxVal;
+    var blankX = (blankMs / CFG.listenMs) * W;
+    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    ctx.fillRect(0, 0, blankX, H);
+    ctx.strokeStyle = '#ff880044'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(0, yMid - threshold*yScale); ctx.lineTo(W, yMid - threshold*yScale); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, yMid + threshold*yScale); ctx.lineTo(W, yMid + threshold*yScale); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = '#00ffaa66'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for(var i=0;i<samples.length;i++) {
+      var x = i*xScale, y = yMid - samples[i]*yScale;
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    if(rtt != null) {
+      var rx = (rtt / CFG.listenMs) * W;
+      ctx.strokeStyle='#00ffaacc'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(rx,0); ctx.lineTo(rx,H); ctx.stroke();
+      ctx.fillStyle='#00ffaa';
+      ctx.font = (11*dpr)+'px IBM Plex Mono, monospace';
+      ctx.fillText(Math.round(rtt)+'ms', rx+4, 14*dpr);
+    }
+  }, [samples, threshold, rtt, blankMs]);
+  return e('canvas', { ref: ref, className:'wave-canvas', style:{width:'100%',height:'80px'} });
 }
 
-function estDist(ms) { return ms==null?null:((ms/1000)*343)/2; }
-
-function MiniWave({data,w,ht,color}) {
-  if(!data||!data.length) return null;
-  const step=Math.max(1,Math.floor(data.length/w));
-  let pts=[];
-  for(let i=0;i<w;i++){const idx=i*step;const v=idx<data.length?Math.abs(data[idx]):0;
-    pts.push(i+','+(ht-Math.max(0,Math.min(ht,v*ht*8))));}
-  return h('svg',{width:w,height:ht,style:{display:'block'}},
-    h('polyline',{points:pts.join(' '),fill:'none',stroke:color,strokeWidth:'1',opacity:'0.7'}));
-}
-
+/* ── App ── */
 function App() {
-  const [status,setStatus]=useState('idle');
-  const [history,setHistory]=useState([]);
-  const [cont,setCont]=useState(false);
-  const [intv,setIntv]=useState(1000);
-  const [count,setCount]=useState(0);
-  const [err,setErr]=useState(null);
+  var _s = useState('idle'), status = _s[0], setStatus = _s[1];
+  var _h = useState([]), history = _h[0], setHistory = _h[1];
+  var _c = useState(false), cont = _c[0], setCont = _c[1];
+  var _i = useState(1500), intv = _i[0], setIntv = _i[1];
+  var _n = useState(0), count = _n[0], setCount = _n[1];
+  var _e = useState(null), err = _e[0], setErr = _e[1];
+  var _inf = useState(null), info = _inf[0], setInfo = _inf[1];
+  var _a = useState(null), ambient = _a[0], setAmbient = _a[1];
+  var _ll = useState(0), liveLevel = _ll[0], setLiveLevel = _ll[1];
+  var _lw = useState(null), lastWave = _lw[0], setLastWave = _lw[1];
+  var _lr = useState(undefined), lastRtt = _lr[0], setLastRtt = _lr[1];
+  var _lt = useState(0), lastThresh = _lt[0], setLastThresh = _lt[1];
 
-  const acRef=useRef(null), anRef=useRef(null), stRef=useRef(null);
-  const contRef=useRef(false), timerRef=useRef(null), cntRef=useRef(0);
+  var acRef = useRef(null);
+  var streamRef = useRef(null);
+  var contRef = useRef(false);
+  var timerRef = useRef(null);
+  var cntRef = useRef(0);
+  var ambientRef = useRef(null);
+  var rec = useRef({ recording: false, buffer: [], startTime: 0 });
 
-  useEffect(()=>{contRef.current=cont;},[cont]);
+  useEffect(function(){ contRef.current = cont; }, [cont]);
+  useEffect(function(){ ambientRef.current = ambient; }, [ambient]);
 
-  const initAudio=useCallback(async()=>{
-    if(acRef.current) return true;
-    try {
-      const ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:SAMPLE_RATE});
-      acRef.current=ctx;
-      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-      stRef.current=stream;
-      const src=ctx.createMediaStreamSource(stream);
-      const an=ctx.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=0;
-      src.connect(an);anRef.current=an;setErr(null);return true;
-    } catch(e){setErr('マイクへのアクセスが必要です。ブラウザの権限を確認してください。');return false;}
-  },[]);
+  /* ── Init Audio ── */
+  var initAudio = useCallback(function() {
+    return new Promise(function(resolve) {
+      if (acRef.current && acRef.current.state !== 'closed') {
+        if (acRef.current.state === 'suspended') {
+          acRef.current.resume().then(function(){ resolve(true); });
+        } else { resolve(true); }
+        return;
+      }
+      var ctx;
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: CFG.sampleRate }); }
+      catch(ex) { setErr('AudioContextを作成できません: '+ex.message); resolve(false); return; }
+      
+      var resumeAndInit = function() {
+        var p = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+        p.then(function() {
+          return navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+          });
+        }).then(function(stream) {
+          acRef.current = ctx;
+          streamRef.current = stream;
+          var src = ctx.createMediaStreamSource(stream);
+          var bp = ctx.createBiquadFilter();
+          bp.type = 'bandpass'; bp.frequency.value = CFG.pingFreq; bp.Q.value = 2.0;
+          src.connect(bp);
+          var proc = ctx.createScriptProcessor(CFG.bufSize, 1, 1);
+          proc.onaudioprocess = function(ev) {
+            var input = ev.inputBuffer.getChannelData(0);
+            var sum = 0;
+            for (var i=0; i<input.length; i++) sum += input[i]*input[i];
+            var rms = Math.sqrt(sum / input.length);
+            setLiveLevel(rms);
+            if (rec.current.recording) {
+              rec.current.buffer.push({
+                rms: rms,
+                time: performance.now() - rec.current.startTime,
+                samples: Array.prototype.slice.call(input)
+              });
+            }
+          };
+          bp.connect(proc);
+          proc.connect(ctx.destination);
+          setErr(null);
+          resolve(true);
+        }).catch(function(ex) {
+          setErr('マイクへのアクセスが必要です: ' + (ex.message||ex));
+          resolve(false);
+        });
+      };
+      resumeAndInit();
+    });
+  }, []);
 
-  const sendPulse=useCallback(()=>{
-    const ctx=acRef.current;if(!ctx)return;
-    const osc=ctx.createOscillator(),g=ctx.createGain();
-    osc.type='sine';osc.frequency.value=PING_FREQ;
-    g.gain.setValueAtTime(0.8,ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+PING_DURATION);
-    osc.connect(g);g.connect(ctx.destination);
-    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+PING_DURATION);
-  },[]);
+  /* ── Calibrate ── */
+  var calibrate = useCallback(function() {
+    return initAudio().then(function(ok) {
+      if(!ok) return;
+      setStatus('calibrating');
+      setInfo('環境ノイズを計測中... 2秒間お待ちください');
+      rec.current.recording = true;
+      rec.current.buffer = [];
+      rec.current.startTime = performance.now();
+      return new Promise(function(r){ setTimeout(r, 2000); });
+    }).then(function() {
+      rec.current.recording = false;
+      var buf = rec.current.buffer;
+      if(!buf || buf.length === 0) {
+        setErr('音声データを取得できません。マイクの権限を確認してください。');
+        setInfo(null); setStatus('idle'); return;
+      }
+      var avgRms = 0;
+      for(var i=0;i<buf.length;i++) avgRms += buf[i].rms;
+      avgRms /= buf.length;
+      var thresh = Math.max(avgRms * CFG.threshMult, CFG.minThresh);
+      setAmbient(avgRms);
+      setInfo('キャリブレーション完了: 環境ノイズ='+(avgRms*1000).toFixed(2)+' mRMS / 検出閾値='+(thresh*1000).toFixed(2)+' mRMS');
+      setStatus('idle');
+    });
+  }, [initAudio]);
 
-  const listenEcho=useCallback(()=>new Promise(resolve=>{
-    const an=anRef.current;
-    if(!an){resolve({rtt:null,waveform:null,peakEnergy:null});return;}
-    const buf=new Float32Array(an.frequencyBinCount);
-    const wf=[];const t0=performance.now();let det=false,settled=false,peak=0;
-    const chk=()=>{
-      const el=performance.now()-t0;
-      an.getFloatTimeDomainData(buf);
-      let e=0;for(let i=0;i<buf.length;i++)e+=buf[i]*buf[i];
-      e=Math.sqrt(e/buf.length);wf.push(e);if(e>peak)peak=e;
-      if(!settled&&el<10){requestAnimationFrame(chk);return;}
-      settled=true;
-      if(!det&&e>ENERGY_THRESHOLD&&el>10){det=true;resolve({rtt:el,waveform:[...wf],peakEnergy:peak});return;}
-      if(el<LISTEN_DURATION)requestAnimationFrame(chk);
-      else resolve({rtt:null,waveform:[...wf],peakEnergy:peak});
+  /* ── Send Pulse ── */
+  var sendPulse = useCallback(function() {
+    var ctx = acRef.current; if(!ctx) return;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.value = CFG.pingFreq;
+    gain.gain.setValueAtTime(1.0, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + CFG.pulseDur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + CFG.pulseDur + 0.01);
+  }, []);
+
+  /* ── Execute Ping ── */
+  var execPing = useCallback(function() {
+    return initAudio().then(function(ok) {
+      if(!ok) return null;
+      var amb = ambientRef.current;
+      var doCalib = amb == null;
+      if(doCalib) {
+        setStatus('calibrating');
+        setInfo('初回キャリブレーション中...');
+        rec.current.recording = true;
+        rec.current.buffer = [];
+        rec.current.startTime = performance.now();
+        return new Promise(function(r){ setTimeout(r, 1500); }).then(function() {
+          rec.current.recording = false;
+          var buf = rec.current.buffer;
+          var avg = 0;
+          if(buf.length > 0) { for(var i=0;i<buf.length;i++) avg+=buf[i].rms; avg/=buf.length; }
+          setAmbient(avg);
+          ambientRef.current = avg;
+          var th = Math.max(avg * CFG.threshMult, CFG.minThresh);
+          setInfo('環境ノイズ='+(avg*1000).toFixed(2)+' mRMS / 閾値='+(th*1000).toFixed(2)+' mRMS');
+          return th;
+        });
+      } else {
+        return Math.max(amb * CFG.threshMult, CFG.minThresh);
+      }
+    }).then(function(thresh) {
+      if(thresh == null) return null;
+      setStatus('pinging');
+      setLastThresh(thresh);
+      rec.current.recording = true;
+      rec.current.buffer = [];
+      rec.current.startTime = performance.now();
+      sendPulse();
+      return new Promise(function(r){ setTimeout(r, CFG.listenMs); }).then(function() {
+        rec.current.recording = false;
+        var buf = rec.current.buffer;
+        var rtt = null, peakEnergy = 0, allSamples = [];
+        for(var i=0; i<buf.length; i++) {
+          var chunk = buf[i];
+          for(var j=0; j<chunk.samples.length; j++) allSamples.push(chunk.samples[j]);
+          if(chunk.rms > peakEnergy) peakEnergy = chunk.rms;
+          if(rtt == null && chunk.time > CFG.blanking && chunk.rms > thresh) {
+            rtt = chunk.time;
+          }
+        }
+        var id = genId();
+        var entry = { id:id, time:new Date(), rtt:rtt, peakEnergy:peakEnergy, seq:cntRef.current++, threshold:thresh };
+        setCount(cntRef.current);
+        setHistory(function(p){ return [entry].concat(p).slice(0, CFG.histMax); });
+        setLastWave(allSamples);
+        setLastRtt(rtt);
+        setStatus('idle');
+        return entry;
+      });
+    });
+  }, [initAudio, sendPulse]);
+
+  /* ── Continuous ── */
+  var startCont = useCallback(function() {
+    setCont(true); contRef.current = true;
+    var run = function() {
+      if(!contRef.current) return;
+      execPing().then(function() {
+        if(contRef.current) timerRef.current = setTimeout(run, intv);
+      });
     };
-    requestAnimationFrame(chk);
-  }),[]);
-
-  const execPing=useCallback(async()=>{
-    const ok=await initAudio();if(!ok)return;
-    setStatus('pinging');
-    const id=genId();sendPulse();
-    const r=await listenEcho();
-    const entry={id,time:new Date(),...r,seq:cntRef.current++};
-    setCount(cntRef.current);
-    setHistory(p=>[entry,...p].slice(0,HISTORY_MAX));
-    setStatus('idle');return entry;
-  },[initAudio,sendPulse,listenEcho]);
-
-  const startCont=useCallback(async()=>{
-    setCont(true);contRef.current=true;
-    const run=async()=>{if(!contRef.current)return;await execPing();
-      if(contRef.current)timerRef.current=setTimeout(run,intv);};
     run();
-  },[execPing,intv]);
+  }, [execPing, intv]);
 
-  const stopCont=useCallback(()=>{setCont(false);contRef.current=false;
-    if(timerRef.current)clearTimeout(timerRef.current);},[]);
+  var stopCont = useCallback(function() {
+    setCont(false); contRef.current = false;
+    if(timerRef.current) clearTimeout(timerRef.current);
+  }, []);
 
-  const clear=useCallback(()=>{setHistory([]);setCount(0);cntRef.current=0;},[]);
+  var clear = useCallback(function() {
+    setHistory([]); setCount(0); cntRef.current = 0;
+    setLastWave(null); setLastRtt(undefined);
+  }, []);
 
-  const ok=history.filter(h=>h.rtt!=null);
-  const avg=ok.length?ok.reduce((s,h)=>s+h.rtt,0)/ok.length:null;
-  const mn=ok.length?Math.min(...ok.map(h=>h.rtt)):null;
-  const mx=ok.length?Math.max(...ok.map(h=>h.rtt)):null;
-  const loss=history.length?((history.length-ok.length)/history.length*100):0;
-  const jit=ok.length>1?ok.slice(0,-1).reduce((s,h,i)=>s+Math.abs(h.rtt-ok[i+1].rtt),0)/(ok.length-1):null;
+  var resetCalib = useCallback(function() { setAmbient(null); ambientRef.current = null; setInfo(null); }, []);
 
-  const legends=[
-    {label:'NEAR-FIELD',color:'#00ffaa',range:'<5ms'},
-    {label:'ROOM',color:'#00ddff',range:'5-20ms'},
-    {label:'HALL',color:'#ffcc00',range:'20-50ms'},
-    {label:'OPEN',color:'#ff8800',range:'50-150ms'},
-    {label:'DISTANT',color:'#ff4444',range:'>150ms'},
-  ];
+  /* ── Stats ── */
+  var ok = history.filter(function(h){return h.rtt!=null;});
+  var avg = ok.length ? ok.reduce(function(s,h){return s+h.rtt;},0)/ok.length : null;
+  var mn = ok.length ? Math.min.apply(null, ok.map(function(h){return h.rtt;})) : null;
+  var mx = ok.length ? Math.max.apply(null, ok.map(function(h){return h.rtt;})) : null;
+  var loss = history.length ? ((history.length-ok.length)/history.length*100) : 0;
+  var jit = ok.length>1 ? ok.slice(0,-1).reduce(function(s,h,i){return s+Math.abs(h.rtt-ok[i+1].rtt);},0)/(ok.length-1) : null;
+  var activeThresh = ambient != null ? Math.max(ambient * CFG.threshMult, CFG.minThresh) : CFG.minThresh;
 
-  return h('div',{className:'container'},[
-    // Header
-    h('div',{className:'header',key:'hd'},[
-      h('div',{className:'header-row',key:'hr'},[
-        h('h1',{key:'t'},'PHYSICAL PING'),
-        h('span',{className:'version',key:'v'},'pTCP v0.1 / ACOUSTIC PROBE'),
-      ]),
-      h('p',{key:'d'},'物理空間に音響パルスを送信し、環境応答から物理的レイテンシを計測。空間の音響特性・反射距離・減衰率をリアルタイムで数値化します。'),
-    ]),
+  /* ── Render ── */
+  var children = [];
 
-    // Controls
-    h('div',{className:'controls',key:'ctrl'},
-      !cont?[
-        h('button',{className:'btn btn-ping',onClick:execPing,disabled:status==='pinging',key:'pb'},
-          status==='pinging'?'● LISTENING...':'▶ PING'),
-        h('button',{className:'btn btn-cont',onClick:startCont,key:'cb'},'◉ CONTINUOUS'),
-      ]:[
-        h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'),
-      ],
-      h('div',{className:'interval-ctrl',key:'iv'},[
-        h('span',{key:'l'},'INTERVAL'),
-        h('select',{value:intv,onChange:e=>setIntv(+e.target.value),key:'s'},
-          [500,1000,2000,5000].map(v=>h('option',{value:v,key:v},v+'ms'))),
-      ]),
-      history.length>0&&h('button',{className:'btn btn-clear',onClick:clear,key:'cl'},'CLEAR'),
+  // Header
+  children.push(e('div',{className:'header',key:'hd'},
+    e('div',{className:'header-row'},
+      e('h1',null,'PHYSICAL PING'),
+      e('span',{className:'ver'},'pTCP v0.2 / ACOUSTIC PROBE')),
+    e('p',null,'物理空間に音響パルスを送信し、環境応答から物理的レイテンシを計測。ScriptProcessor + BandPass + 適応閾値。')
+  ));
+
+  // Level meter
+  children.push(e('div',{className:'level-section',key:'lv'},
+    e('div',{className:'level-row'},
+      e('span',{className:'level-label'},'MIC'),
+      e('div',{className:'level-bar-bg'},
+        e('div',{className:'level-bar',style:{
+          width: Math.min(100, liveLevel*3000)+'%',
+          background: liveLevel > activeThresh ? 'linear-gradient(90deg,#00ffaa,#ffcc00)' : 'linear-gradient(90deg,#00ffaa44,#00ffaa88)'
+        }}),
+        ambient != null ? e('div',{className:'thresh-line',style:{left:Math.min(100,activeThresh*3000)+'%'}}) : null
+      ),
+      e('span',{className:'level-val',style:{color:liveLevel>0.001?'#00ffaa':'#ff3333'}},(liveLevel*1000).toFixed(1)+' mRMS')
     ),
+    e('div',{className:'level-status',style:{color:liveLevel>0.001?'#00ffaa66':'#ff333388'}},
+      liveLevel>0.001 ? '● MIC ACTIVE' + (ambient!=null ? '  |  閾値: '+(activeThresh*1000).toFixed(1)+' mRMS' : '') : '○ NO SIGNAL — マイク権限を確認')
+  ));
 
-    // Error
-    err&&h('div',{className:'error',key:'err'},'⚠ '+err),
+  // Controls
+  var ctrls = [];
+  if(!cont) {
+    ctrls.push(e('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb'},
+      status==='calibrating'?'● CALIBRATING...':status==='pinging'?'● LISTENING...':'▶ PING'));
+    ctrls.push(e('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'◉ CONTINUOUS'));
+  } else {
+    ctrls.push(e('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'));
+  }
+  ctrls.push(e('button',{className:'btn btn-sm btn-calib',onClick:ambient==null?calibrate:resetCalib,key:'cal'},
+    ambient==null?'⚡ CALIB':'↻ RE-CALIB'));
+  ctrls.push(e('div',{className:'intv-ctrl',key:'iv'},
+    e('span',null,'INT'),
+    e('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
+      [1000,1500,2000,3000,5000].map(function(v){return e('option',{value:v,key:v},v+'ms');}))));
+  if(history.length>0) ctrls.push(e('button',{className:'btn btn-sm btn-clear',onClick:clear,key:'cl'},'CLEAR'));
+  children.push(e('div',{className:'controls',key:'ctrl'}, ctrls));
 
-    // Stats
-    history.length>0&&h('div',{className:'stats-grid',key:'stats'},
-      [{l:'PACKETS',v:count,u:'',c:'#c0d0e0'},
-       {l:'AVG RTT',v:avg!=null?Math.round(avg):'---',u:avg!=null?'ms':'',c:'#00ffaa'},
+  // Messages
+  if(err) children.push(e('div',{className:'error-box',key:'err'},'⚠ '+err));
+  if(info) children.push(e('div',{className:'info-box',key:'info'},info));
+
+  // Stats
+  if(history.length>0) {
+    children.push(e('div',{className:'stats',key:'st'},
+      [{l:'SENT',v:count,u:'',c:'#c0d0e0'},
+       {l:'AVG',v:avg!=null?Math.round(avg):'---',u:avg!=null?'ms':'',c:'#00ffaa'},
        {l:'MIN',v:mn!=null?Math.round(mn):'---',u:mn!=null?'ms':'',c:'#00ddff'},
        {l:'MAX',v:mx!=null?Math.round(mx):'---',u:mx!=null?'ms':'',c:'#ffcc00'},
        {l:'JITTER',v:jit!=null?jit.toFixed(1):'---',u:jit!=null?'ms':'',c:'#ff8800'},
        {l:'LOSS',v:loss.toFixed(0),u:'%',c:loss>30?'#ff3333':'#667788'},
-      ].map((s,i)=>h('div',{className:'stat-box',key:i},[
-        h('div',{className:'stat-label',key:'l'},s.l),
-        h('div',{className:'stat-value',style:{color:s.c},key:'v'},s.v,
-          s.u&&h('span',{className:'stat-unit'},s.u)),
-      ]))
-    ),
+      ].map(function(s,i){return e('div',{className:'stat',key:i},
+        e('div',{className:'stat-l'},s.l),
+        e('div',{className:'stat-v',style:{color:s.c}},s.v, s.u?e('span',{className:'stat-u'},s.u):null));})
+    ));
+  }
 
-    // Timeline
-    history.length>1&&h('div',{className:'timeline',key:'tl'},[
-      h('div',{className:'timeline-label',key:'l'},'RTT TIMELINE'),
-      h('div',{className:'timeline-bars',key:'b'},
-        [...history].reverse().slice(-48).map((e,i)=>{
-          const c=classify(e.rtt);const maxH=48;
-          const barH=e.rtt!=null?Math.max(3,Math.min(maxH,(e.rtt/200)*maxH)):maxH;
-          return h('div',{className:'timeline-bar',key:i,style:{
+  // Waveform
+  if(lastWave && lastWave.length > 0) {
+    children.push(e('div',{className:'wave-section',key:'wv'},
+      e('div',{className:'wave-label'},'LAST CAPTURE — '+lastWave.length+' samples / '+CFG.listenMs+'ms'),
+      e(WaveCanvas, { samples:lastWave, threshold:lastThresh, blankMs:CFG.blanking, rtt:lastRtt })
+    ));
+  }
+
+  // Timeline
+  if(history.length>1) {
+    children.push(e('div',{className:'timeline',key:'tl'},
+      e('div',{className:'tl-label'},'RTT TIMELINE'),
+      e('div',{className:'tl-bars'},
+        history.slice().reverse().slice(-48).map(function(h,i){
+          var c = clsfy(h.rtt);
+          var barH = h.rtt!=null ? Math.max(3, Math.min(44, (h.rtt/200)*44)) : 44;
+          return e('div',{className:'tl-bar',key:i,style:{
             height:barH+'px',
-            background:e.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':c.color,
-            opacity:e.rtt==null?0.5:0.6}});
-        })
-      ),
-    ]),
+            background: h.rtt==null ? 'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)' : c.c,
+            opacity: h.rtt==null ? 0.5 : 0.6 }});
+        }))
+    ));
+  }
 
-    // Log
-    history.length>0&&h('div',{className:'log',key:'log'},[
-      h('div',{className:'log-header',key:'lh'},[
-        h('span',{key:'a'},'TIME'),h('span',{key:'b'},'SEQ'),h('span',{key:'c'},'RTT'),
-        h('span',{key:'d'},'CLASS'),h('span',{key:'e'},'DIST'),h('span',{key:'f'},'WAVE'),
-        h('span',{key:'g',className:'log-col-energy',style:{textAlign:'right'}},'ENERGY'),
-      ]),
-      h('div',{className:'log-body',key:'lb'},
-        history.map((e,i)=>{
-          const c=classify(e.rtt);const d=estDist(e.rtt);
-          return h('div',{className:'log-row'+(e.rtt==null?' timeout':''),key:e.seq+'-'+e.id,
-            style:{background:i%2===0?'transparent':'rgba(255,255,255,0.01)'}},[
-            h('span',{key:'a',style:{color:'#556677'}},fmtTime(e.time)),
-            h('span',{key:'b',style:{color:'#445566'}},'0x'+e.id),
-            h('span',{key:'c',style:{color:c.color,fontWeight:600}},fmtMs(e.rtt)),
-            h('span',{key:'d',style:{color:c.color,fontSize:'9px',letterSpacing:'1px'}},c.label),
-            h('span',{key:'e'},d!=null?d.toFixed(2)+'m':'---'),
-            MiniWave({data:e.waveform,w:80,ht:18,color:c.color}),
-            h('span',{key:'g',className:'log-col-energy',style:{fontSize:'10px',color:'#445566',textAlign:'right'}},
-              'pk:'+(e.peakEnergy?e.peakEnergy.toFixed(4):'---')),
-          ]);
-        })
-      ),
-    ]),
+  // Log
+  if(history.length>0) {
+    children.push(e('div',{className:'log',key:'log'},
+      e('div',{className:'log-hdr'},
+        e('span',null,'TIME'),e('span',null,'SEQ'),e('span',null,'RTT'),
+        e('span',null,'CLASS'),e('span',null,'DIST'),e('span',null,'PEAK')),
+      e('div',{className:'log-body'},
+        history.map(function(h,i){
+          var c = clsfy(h.rtt); var d = eDist(h.rtt);
+          return e('div',{className:'log-row'+(h.rtt==null?' timeout':''),key:h.seq+'-'+h.id},
+            e('span',{style:{color:'#556677'}},fTime(h.time)),
+            e('span',{style:{color:'#445566'}},'0x'+h.id),
+            e('span',{style:{color:c.c,fontWeight:600}},fMs(h.rtt)),
+            e('span',{style:{color:c.c,fontSize:'9px',letterSpacing:'1px'}},c.l),
+            e('span',null,d!=null?d.toFixed(2)+'m':'---'),
+            e('span',{style:{fontSize:'10px',color:'#445566'}},(h.peakEnergy*1000).toFixed(1)+' mR'));
+        }))
+    ));
+  }
 
-    // Empty
-    history.length===0&&!err&&h('div',{className:'empty',key:'emp'},[
-      h('div',{className:'empty-icon',key:'i'},'◎'),
-      h('div',{className:'empty-title',key:'t'},'READY TO PROBE PHYSICAL SPACE'),
-      h('div',{className:'empty-desc',key:'d'},
-        'PING ボタンで音響パルスを発射し、環境からの反響を計測します。スピーカーとマイクの使用許可が必要です。'),
-    ]),
+  // Empty
+  if(history.length===0 && !err) {
+    children.push(e('div',{className:'empty',key:'emp'},
+      e('div',{className:'empty-icon'},'◎'),
+      e('div',{className:'empty-t'},'READY TO PROBE PHYSICAL SPACE'),
+      e('div',{className:'empty-d'},
+        'まず CALIB で環境ノイズを計測し、次に PING で音響パルスを発射します。',
+        e('br'), 'スピーカーとマイクの使用許可が必要です。')
+    ));
+  }
 
-    // Legend
-    h('div',{className:'legend',key:'leg'},
-      legends.map(l=>h('span',{className:'legend-item',key:l.label},[
-        h('span',{className:'legend-dot',style:{background:l.color},key:'d'}),
-        l.label+' '+l.range,
-      ]))
-    ),
+  // Legend
+  children.push(e('div',{className:'legend',key:'leg'},
+    [{l:'NEAR-FIELD',c:'#00ffaa',r:'<5ms'},{l:'ROOM',c:'#00ddff',r:'5-20ms'},
+     {l:'HALL',c:'#ffcc00',r:'20-50ms'},{l:'OPEN',c:'#ff8800',r:'50-150ms'},
+     {l:'DISTANT',c:'#ff4444',r:'>150ms'}].map(function(x){
+      return e('span',{className:'legend-i',key:x.l},
+        e('span',{className:'legend-d',style:{background:x.c}}), x.l+' '+x.r);})
+  ));
 
-    // Footer
-    h('div',{className:'footer',key:'ft'},
-      'PROTOCOL: '+PING_FREQ+'Hz sine pulse → '+(PING_DURATION*1000)+'ms duration → listen '+LISTEN_DURATION+'ms → threshold '+ENERGY_THRESHOLD+' RMS | DISTANCE = (RTT/2) × 343 m/s | pTCP Physical Layer v0.1'),
-  ]);
+  // Footer
+  children.push(e('div',{className:'footer',key:'ft'},
+    'PROTOCOL: '+CFG.pingFreq+'Hz sine '+CFG.pulseDur*1000+'ms \u2192 BPF Q=2.0 \u2192 ScriptProcessor '+CFG.bufSize+'smp ('+(CFG.bufSize/CFG.sampleRate*1000).toFixed(1)+'ms) \u2192 blanking '+CFG.blanking+'ms \u2192 adaptive thresh \u00d7'+CFG.threshMult+' | pTCP v0.2'));
+
+  return e('div', null, children);
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
 </script>
 </body>
 </html>
