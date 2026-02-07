@@ -1,150 +1,180 @@
-# PHYSICAL-PING# Physical Ping — pTCP v0.5
+# PHYSICAL PING — pTCP v0.6 IPC
 
-**物理空間に対するPingプロトコルの実装**
+**Information Physical Connector · Multi-Layer Sensing**
 
-ネットワークにおけるICMP Pingと同様の原理で、物理空間に音響パルスを送信し、環境からの反響（エコー）を計測することで「物理的レイテンシ」を数値化するツールです。
+スマートフォンのセンサー群を統合し、物理空間の「情報接続性」をリアルタイムで定量化する実験的Webアプリケーション。音響ソナー＋電磁波＋環境センサーによる多次元空間プローブと、その統合指標である **Mediation Coefficient μ(x,t)** を算出する。
 
-> *Foundation in silicon, wings at light speed, heart in quantum.*
-
----
+物理空間のための TCP/IP
 
 ## コンセプト
 
-インターネットでは `ping 8.8.8.8` で通信経路の遅延を計測できます。Physical Pingはこれと同じ発想を物理空間に適用します。
+pTCP（physical Transmission Control Protocol）は、情報空間と物理空間の結合度を計測・可視化するプロトコルの実験実装である。従来のネットワークにおける ping が通信経路の品質を計測するように、Physical Ping は物理空間そのものの「応答性」を計測する。
 
-| Network Ping | Physical Ping |
-|---|---|
-| ICMPエコーリクエスト送信 | 2kHz 音響パルス発射（5ms） |
-| ルーター/ホストの応答 | 壁・天井・物体からの反響 |
-| RTT（往復遅延時間） | 音響RTT → 物理的レイテンシ |
-| TTL / ホップ数 | 空間分類（NEAR-FIELD / ROOM / HALL / OPEN / DISTANT） |
-| パケットロス | エネルギー閾値未達 → タイムアウト |
-
-## 計測指標
-
-- **RTT (ms)** — パルス発射から反響検出までの往復時間
-- **距離推定 (m)** — `(RTT / 2) × 343 m/s`（空気中の音速@20℃）で反射面までの距離を逆算
-- **ピークエネルギー** — 反響の強度。空間の反射率・吸音特性の指標
-- **ジッター (ms)** — 連続計測におけるRTTの変動幅。空間の動的安定性を示す
-- **パケットロス率 (%)** — 応答なし率。開放空間と閉鎖空間の識別に利用
-
-## 空間分類
-
-| クラス | RTT | 意味 |
-|---|---|---|
-| NEAR-FIELD | < 5ms | 近接反射面（~0.86m以内） |
-| ROOM | 5–20ms | 一般的な室内 |
-| HALL | 20–50ms | 広い空間・ホール |
-| OPEN | 50–150ms | 開放的な空間 |
-| DISTANT | > 150ms | 遠距離反射 / 屋外 |
-
-## デモ
-
-```
-PHYSICAL PING 192.168.phys.0 — 2000Hz sine, 5ms pulse
-
-seq=0x3A1F  time=12ms   class=ROOM       dist=2.06m   peak=0.0234
-seq=0xB7C2  time=14ms   class=ROOM       dist=2.40m   peak=0.0198
-seq=0x5E90  time=11ms   class=ROOM       dist=1.89m   peak=0.0251
-seq=0x82D4  time=---    class=TIMEOUT    dist=---     peak=0.0012
-
---- physical ping statistics ---
-4 packets transmitted, 3 received, 25% loss
-rtt min/avg/max/jitter = 11/12.3/14/1.5 ms
-```
-
-## セットアップ
-
-### 必要なもの
-
-- スマートフォンまたはPC（スピーカー + マイク搭載）
-- HTTPSでホストされた環境（マイクアクセスに必要）
-- 対応ブラウザ: Chrome / Edge / Firefox / Safari
-
-
-
-### ローカルで試す
-
-```bash
-# HTTPS が必要なため、簡易サーバーでは動作しない場合があります
-# localhostは例外的にHTTPでもマイクアクセスが許可されます
-python -m http.server 8000
-# http://localhost:8000 でアクセス
-```
-
-## 使い方
-
-1. **PING** ボタンを押す → マイクの使用許可を求められたら許可
-2. スピーカーから短い音響パルスが発射される
-3. マイクが環境からの反響を500ms間リスニング
-4. エネルギー閾値を超える反響を検出した時点のRTTを記録
-5. **CONTINUOUS** で連続計測モード（500ms〜5000ms間隔で自動実行）
-
-### 計測のコツ
-
-- **静かな環境**で計測すると精度が向上します
-- **壁に向かって**計測すると明確な反射が得られます
-- 手で端末の前を覆うと NEAR-FIELD の反応が確認できます
-- 屋外では TIMEOUT が増加し、開放空間を識別できます
-
-## 技術仕様
-
-```
-送信パルス: 2000Hz 正弦波 / 5ms duration / gain 0.8
-受信解析:   AnalyserNode (FFT 2048) / Float32TimeDomain
-閾値:       0.008 RMS
-リスン窓:   500ms（初期10msはパルス直接音として除外）
-サンプリング: 44100Hz
-距離計算:   音速 343 m/s（空気中・20℃）
-```
-
-## プロジェクト構造
-
-```
-physical-ping/
-├── index.html          # スタンドアロンHTML（React CDN版）
-├── physical-ping.jsx   # React コンポーネント版（参考実装）
-└── README.md
-```
-
-## pTCPフレームワークにおける位置づけ
-
-Physical Pingは **pTCP（physical Transmission Control Protocol）** の最下層プリミティブ——物理空間版ICMPに相当します。
-
-```
-┌─────────────────────────────────────────────┐
-│  Application Layer                          │
-│  Void Mediator / 環境適応エンジン             │
-├─────────────────────────────────────────────┤
-│  Transport Layer                            │
-│  空間帯域幅推定 / フロー制御                  │
-├─────────────────────────────────────────────┤
-│  Network Layer                              │
-│  Physical Traceroute / 空間ルーティング       │
-├─────────────────────────────────────────────┤
-│  Physical Layer  ◀── YOU ARE HERE           │
-│  Physical Ping / 音響プローブ / センサー入力  │
-└─────────────────────────────────────────────┘
-```
-
-### ロードマップ
-
-- **Physical Traceroute** — 複数周波数パルスで反射層を分離し、空間の「ホップ数」を計測
-- **空間帯域幅推定** — パルス間隔と応答劣化の関係から空間の情報伝搬容量を推定
-- **マルチセンサー統合** — 加速度・ジャイロ・気圧センサーを組み合わせた複合プローブ
-- **Void Mediator連携** — 物理レイテンシをmediation coefficientの入力パラメータとして統合
-
-## 制限事項
-
-- 音響ベースのため、環境ノイズの影響を受けます
-- スピーカー→マイク間の直接音（クロストーク）が初期ノイズとなるため、10ms未満の計測精度には限界があります
-- ブラウザのオーディオ処理レイテンシ（数ms）が計測値に含まれます
-- iOS Safari ではユーザージェスチャー後にAudioContextの開始が必要な場合があります
-
-## ライセンス
-
-MIT
+v0.6 では単一の HTML ファイルに全機能を収めたゼロ依存設計を維持しつつ、音響ソナーに加えて電磁波・環境センサーレイヤーを統合し、**Information Physical Connector（IPC）** としての基盤を構築した。
 
 ---
 
-*pTCP Physical Layer v0.1 — 物理空間のための通信プロトコル*
+## 機能概要
+
+### L1: SONAR — 音響空間プローブ
+
+| 信号タイプ | 帯域 | 特性 |
+|---|---|---|
+| CHIRP MID | 1.5→2.5kHz / 20ms | 室内標準。バランスの良い反射検出 |
+| CHIRP LOW | 500→1.5kHz / 30ms | 壁・障害物を貫通。建物全体の探索 |
+| CHIRP HIGH | 3→6kHz / 15ms | 高指向性。小物体の検出 |
+| CHIRP WIDE | 800→4kHz / 25ms | 広帯域。最大情報量。素材判別 |
+| PULSE 2kHz | 2kHz単一 / 15ms | 基準計測用シンプルパルス |
+| CLICK BURST | 符号化 / 10ms | 最高時間分解能 |
+
+- スピーカーから信号を発射し、マイクで反射を捕捉
+- **正規化相互相関（NCC）** によるサブミリ秒精度の RTT 検出
+- 環境ノイズキャリブレーション＋適応的閾値（上限キャップ付き）
+- 連続モード（CONT）による時系列観測
+
+### L1: EM/SENSOR — 電磁波・環境センサー
+
+| センサー | API | フォールバック | 取得値 |
+|---|---|---|---|
+| 磁力計 | Generic Sensor API (Magnetometer) | DeviceOrientation (iOS/Safari) | 磁場ベクトル (μT) / 方位角 |
+| 環境光 | AmbientLightSensor | **リアカメラ輝度推定** | 照度 (lux) |
+| 加速度 | DeviceMotion | — | 3軸加速度 (m/s²) |
+| 位置情報 | Geolocation API | — | 緯度・経度・精度 |
+
+- 2秒間隔の自動スキャンで EM Scan Log に履歴蓄積
+- 各センサーの **データソース（src）** をリアルタイム表示
+- プラットフォーム判定バー（iOS Safari / Desktop / Android）
+
+### L2: SENSOR FUSION
+
+音響・電磁場・光環境・慣性の4チャネルを統合し、単一の空間プロファイルを生成。
+
+### L3: MEDIATION — Mediation Coefficient
+
+```
+μ(x,t) = Σ wᵢ · dᵢ(x,t)
+
+where dᵢ ∈ {acoustic, emField, photonic, kinetic}
+weights: acoustic=0.35, emField=0.25, photonic=0.15, kinetic=0.25
+```
+
+物理空間の「情報接続性」を 0〜1 のスカラー値で表現する指標。
+
+| 次元 | 意味 | 高値の解釈 |
+|---|---|---|
+| acoustic | 音響反射率 | 空間が閉じており反射が明確に検出される |
+| emField | 電磁場密度 | 電子機器が多い＝情報インフラが密 |
+| photonic | 光環境 | 明るい＝視覚的情報チャネルが開いている |
+| kinetic | 運動安定性 | 静止＝計測条件が安定 |
+
+- リングゲージ＋レーダーチャートによる4次元可視化
+- Phase-Law Architecture の基礎単位として定義
+
+### L4: PROFILE — 空間プロファイル
+
+全センサーレイヤーの統合分類。タグによる空間特性の自動判定。
+
+| カテゴリ | タグ例 |
+|---|---|
+| 音響空間 | ENCLOSED / INDOOR / OPEN-INDOOR / OUTDOOR |
+| EM環境 | HIGH-EM / MODERATE-EM / LOW-EM |
+| 光環境 | BRIGHT / LIT / DIM |
+| 安定性 | STABLE / MOVING / UNSTABLE |
+| 接続性 | HIGH-CONNECT / MED-CONNECT / LOW-CONNECT |
+
+---
+
+## iOS Safari 対応
+
+iOS 13 以降の Safari では `DeviceOrientation` / `DeviceMotion` にユーザーの明示的許可が必要。
+
+1. EM/SENSOR タブを開く
+2. 紫色の **「▶ GRANT SENSOR ACCESS」** ボタンをタップ
+3. iOS 標準の許可ダイアログが表示される
+4. 「許可」→ 磁力計・加速度計が自動で ACTIVE に
+
+AmbientLightSensor 非対応環境（Safari含む）では、リアカメラ映像の輝度平均から照度を推定するフォールバックが自動起動する。
+
+---
+
+## 技術仕様
+
+| 項目 | 値 |
+|---|---|
+| サンプルレート | 44,100 Hz |
+| リスニング窓 | 500 ms |
+| ブランキング | 8 ms |
+| 相関方式 | 正規化相互相関（NCC） |
+| 閾値 | max(0.04, min(ambient_corr × 2.5, 0.45)) |
+| 距離推定 | RTT × 343 m/s ÷ 2 |
+| EM スキャン間隔 | 2,000 ms |
+| カメラ照度推定解像度 | 16×16 px |
+| 履歴保持 | Sonar: 64件 / EM: 32件 |
+
+### 依存関係
+
+- React 18.2.0（CDN）
+- IBM Plex Mono（Google Fonts）
+- **その他の外部依存なし**
+
+### ブラウザ互換性
+
+| ブラウザ | Sonar | Magnetometer | Light | Motion | 備考 |
+|---|---|---|---|---|---|
+| Chrome (Android) | ✔ | ✔ (Generic Sensor) | ✔ (Sensor) | ✔ | フル機能 |
+| Safari (iOS) | ✔ | ✔ (Orientation) | ✔ (Camera) | ✔ | 許可ボタン必要 |
+| Chrome (Desktop) | ✔ | — | — | — | センサー限定的 |
+| Firefox | ✔ | ✔ (Orientation) | — (Camera) | ✔ | ALS非対応 |
+
+---
+
+## プロトコルスタック
+
+```
+L4  SPACE PROFILE      空間分類・行動推奨
+L3  MEDIATION           μ(x,t) 情報物理結合係数
+L2  SENSOR FUSION       音響+EM+光+慣性 統合
+L1  ACOUSTIC SONAR      チャープ・相互相関
+L1  EM FIELD            磁力計・環境光・加速度
+L0  DEVICE HARDWARE     マイク・スピーカー・センサー
+```
+
+---
+
+## 使い方
+
+```bash
+# ローカルサーバーで起動（HTTPS必須 — センサーAPIの要件）
+npx serve .
+
+# または Python
+python3 -m http.server 8000
+```
+
+スマートフォンの場合は `https://` 環境でアクセスする（localhost は例外的に http でも動作）。
+
+### 基本操作
+
+1. **SONAR タブ** — 信号を選択 →「▶ PING」でワンショット計測 /「◉ CONT」で連続計測
+2. **EM/SENSOR タブ** — iOS の場合は許可ボタンをタップ → センサーデータがリアルタイム更新
+3. **MEDIATION タブ** — 全センサーの統合指標をリングゲージ＋レーダーで確認
+4. **PROFILE タブ** — 空間分類タグとプロトコルスタックの確認
+
+## ファイル構成
+
+```
+index.html    ← 全機能を含む単一ファイル（~1,160行）
+README.md     ← このファイル
+```
+
+ゼロビルド・ゼロインストール設計。`index.html` をブラウザで開くだけで動作する。
+
+---
+
+## ライセンス
+
+実験的プロトタイプ。Phase-Law Architecture の概念実証として開発。
+
+---
+
+*pTCP v0.6 IPC | Information Physical Connector | Phase-Law Architecture*
