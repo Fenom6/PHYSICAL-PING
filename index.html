@@ -182,88 +182,189 @@ function flat(b){var t=0;for(var i=0;i<b.length;i++)t+=b[i].length;var f=new Flo
 function rmsV(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i]*a[i];return Math.sqrt(s/a.length);}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  EM / SENSOR LAYER                                         */
+/*  EM / SENSOR LAYER — iOS Safari Permission Aware           */
 /* ═══════════════════════════════════════════════════════════ */
 
-/* Magnetometer via DeviceOrientation / Generic Sensor API */
+/* ── iOS Detection ── */
+var IS_IOS=(function(){
+  var ua=navigator.userAgent||'';
+  return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+})();
+var NEEDS_ORIENT_PERM=IS_IOS&&typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
+var NEEDS_MOTION_PERM=IS_IOS&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function';
+
+/* ── Permission Manager (shared state for all sensor hooks) ── */
+var _sensorPermState={orient:'unknown',motion:'unknown',listeners:[]};
+function notifyPerm(){_sensorPermState.listeners.forEach(function(fn){fn({orient:_sensorPermState.orient,motion:_sensorPermState.motion});});}
+
+function useSensorPermissions(){
+  var _s=useState({orient:_sensorPermState.orient,motion:_sensorPermState.motion});
+  var perms=_s[0],setPerms=_s[1];
+  useEffect(function(){
+    var fn=function(v){setPerms({orient:v.orient,motion:v.motion});};
+    _sensorPermState.listeners.push(fn);
+    // On non-iOS, auto-grant
+    if(!NEEDS_ORIENT_PERM&&_sensorPermState.orient==='unknown'){_sensorPermState.orient='granted';notifyPerm();}
+    if(!NEEDS_MOTION_PERM&&_sensorPermState.motion==='unknown'){_sensorPermState.motion='granted';notifyPerm();}
+    return function(){_sensorPermState.listeners=_sensorPermState.listeners.filter(function(f){return f!==fn;});};
+  },[]);
+
+  // This MUST be called from a user gesture (button tap) on iOS
+  var requestAll=useCallback(function(){
+    var p1=NEEDS_ORIENT_PERM?DeviceOrientationEvent.requestPermission().then(function(r){
+      _sensorPermState.orient=r;}).catch(function(){_sensorPermState.orient='denied';}):Promise.resolve();
+    var p2=NEEDS_MOTION_PERM?DeviceMotionEvent.requestPermission().then(function(r){
+      _sensorPermState.motion=r;}).catch(function(){_sensorPermState.motion='denied';}):Promise.resolve();
+    return Promise.all([p1,p2]).then(function(){notifyPerm();});
+  },[]);
+
+  var needsRequest=perms.orient!=='granted'||perms.motion!=='granted';
+  return{perms:perms,requestAll:requestAll,needsRequest:NEEDS_ORIENT_PERM||NEEDS_MOTION_PERM?needsRequest:false,isIOS:IS_IOS};
+}
+
+/* ── Magnetometer: Generic Sensor API → deviceorientation fallback ── */
 function useMagnetometer(){
-  var _s=useState({x:0,y:0,z:0,mag:0,available:false,heading:null});
+  var _s=useState({x:0,y:0,z:0,mag:0,available:false,heading:null,source:'none'});
   var data=_s[0],setData=_s[1];
   var ref=useRef(null);
+  var perms=useSensorPermissions();
+
   useEffect(function(){
-    // Try Generic Sensor API first (Magnetometer)
+    // Cleanup previous
+    if(ref.current){ref.current();ref.current=null;}
+
+    // Try Generic Sensor API first (Chrome/Edge on Android)
     if(window.Magnetometer){
       try{
         var sensor=new Magnetometer({frequency:10});
         sensor.addEventListener('reading',function(){
           var m=Math.sqrt(sensor.x*sensor.x+sensor.y*sensor.y+sensor.z*sensor.z);
-          setData({x:sensor.x,y:sensor.y,z:sensor.z,mag:m,available:true,heading:null});
+          setData({x:sensor.x,y:sensor.y,z:sensor.z,mag:m,available:true,heading:null,source:'magnetometer'});
         });
-        sensor.addEventListener('error',function(){
-          // fallback to deviceorientation
-          fallbackOrientation();
-        });
+        sensor.addEventListener('error',function(){tryOrientation();});
         sensor.start();
-        ref.current=function(){sensor.stop();};
+        ref.current=function(){try{sensor.stop();}catch(e){}};
         return function(){if(ref.current)ref.current();};
-      }catch(e){fallbackOrientation();}
-    }else{fallbackOrientation();}
-    function fallbackOrientation(){
+      }catch(e){tryOrientation();}
+    }else{tryOrientation();}
+
+    function tryOrientation(){
+      // Check permission state — on iOS, won't fire until granted
+      if(NEEDS_ORIENT_PERM&&_sensorPermState.orient!=='granted'){
+        setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});
+        return;
+      }
       var handler=function(ev){
-        // Use compass heading from deviceorientation
         var heading=ev.alpha!=null?ev.alpha:null;
+        // webkitCompassHeading is Safari-specific absolute heading
+        var absHeading=ev.webkitCompassHeading!=null?ev.webkitCompassHeading:heading;
         var beta=ev.beta||0,gamma=ev.gamma||0;
-        // Estimate pseudo magnetic field from orientation
+        // Pseudo magnetic field magnitude from tilt (not true μT, but useful for relative changes)
         var pseudoMag=Math.sqrt(beta*beta+gamma*gamma);
-        setData({x:gamma,y:beta,z:heading||0,mag:pseudoMag,available:heading!=null,heading:heading});
+        setData({x:gamma,y:beta,z:absHeading||0,mag:pseudoMag,available:absHeading!=null||beta!==0||gamma!==0,heading:absHeading,source:'orientation'});
       };
       window.addEventListener('deviceorientation',handler);
       ref.current=function(){window.removeEventListener('deviceorientation',handler);};
     }
     return function(){if(ref.current)ref.current();};
-  },[]);
+  },[perms.perms.orient]);
   return data;
 }
 
-/* Ambient Light Sensor */
+/* ── Ambient Light: AmbientLightSensor → Camera brightness fallback ── */
 function useAmbientLight(){
-  var _s=useState({lux:null,available:false});
+  var _s=useState({lux:null,available:false,source:'none'});
   var data=_s[0],setData=_s[1];
+  var ref=useRef({stream:null,video:null,canvas:null,timer:null});
+
   useEffect(function(){
+    // Try Generic Sensor API first
     if(window.AmbientLightSensor){
       try{
         var sensor=new AmbientLightSensor({frequency:5});
-        sensor.addEventListener('reading',function(){setData({lux:sensor.illuminance,available:true});});
-        sensor.addEventListener('error',function(){});
+        sensor.addEventListener('reading',function(){setData({lux:sensor.illuminance,available:true,source:'sensor'});});
+        sensor.addEventListener('error',function(){startCameraFallback();});
         sensor.start();
-        return function(){sensor.stop();};
-      }catch(e){}
+        return function(){try{sensor.stop();}catch(e){}};
+      }catch(e){startCameraFallback();}
+    }else{startCameraFallback();}
+
+    function startCameraFallback(){
+      // Use rear camera with very low resolution to estimate ambient brightness
+      navigator.mediaDevices.getUserMedia({
+        video:{facingMode:'environment',width:{ideal:32},height:{ideal:32}},audio:false
+      }).then(function(stream){
+        ref.current.stream=stream;
+        var video=document.createElement('video');
+        video.srcObject=stream;video.setAttribute('playsinline','');video.muted=true;
+        video.play();
+        ref.current.video=video;
+        var canvas=document.createElement('canvas');
+        canvas.width=16;canvas.height=16;
+        ref.current.canvas=canvas;
+        var ctx=canvas.getContext('2d',{willReadFrequently:true});
+
+        ref.current.timer=setInterval(function(){
+          if(video.readyState>=2){
+            ctx.drawImage(video,0,0,16,16);
+            var imgData=ctx.getImageData(0,0,16,16).data;
+            var totalBright=0,count=0;
+            for(var i=0;i<imgData.length;i+=4){
+              // Perceived luminance: 0.299R + 0.587G + 0.114B
+              totalBright+=0.299*imgData[i]+0.587*imgData[i+1]+0.114*imgData[i+2];
+              count++;
+            }
+            var avgBright=totalBright/count; // 0-255
+            // Map roughly to lux: 0=dark(~0lux), 255=bright(~1000lux)
+            var estLux=Math.round((avgBright/255)*1000);
+            setData({lux:estLux,available:true,source:'camera'});
+          }
+        },500);
+      }).catch(function(){
+        // No camera access - leave unavailable
+        setData({lux:null,available:false,source:'denied'});
+      });
     }
-    // Fallback: use camera/video brightness estimation
-    return function(){};
+
+    return function(){
+      if(ref.current.timer)clearInterval(ref.current.timer);
+      if(ref.current.stream){ref.current.stream.getTracks().forEach(function(t){t.stop();});}
+    };
   },[]);
   return data;
 }
 
-/* Accelerometer for vibration/motion */
+/* ── Motion/Accelerometer: devicemotion with iOS permission ── */
 function useMotion(){
-  var _s=useState({x:0,y:0,z:0,mag:0,available:false});
+  var _s=useState({x:0,y:0,z:0,mag:0,available:false,source:'none'});
   var data=_s[0],setData=_s[1];
+  var ref=useRef(null);
+  var perms=useSensorPermissions();
+
   useEffect(function(){
+    if(ref.current){ref.current();ref.current=null;}
+
+    // Check permission state on iOS
+    if(NEEDS_MOTION_PERM&&_sensorPermState.motion!=='granted'){
+      setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});
+      return function(){};
+    }
+
     var handler=function(ev){
       var a=ev.accelerationIncludingGravity;
-      if(a){
+      if(a&&(a.x!=null||a.y!=null||a.z!=null)){
         var m=Math.sqrt((a.x||0)*(a.x||0)+(a.y||0)*(a.y||0)+(a.z||0)*(a.z||0));
-        setData({x:a.x||0,y:a.y||0,z:a.z||0,mag:m,available:true});
+        setData({x:a.x||0,y:a.y||0,z:a.z||0,mag:m,available:true,source:'devicemotion'});
       }
     };
     window.addEventListener('devicemotion',handler);
-    return function(){window.removeEventListener('devicemotion',handler);};
-  },[]);
+    ref.current=function(){window.removeEventListener('devicemotion',handler);};
+    return function(){if(ref.current)ref.current();};
+  },[perms.perms.motion]);
   return data;
 }
 
-/* Geolocation (one-shot) */
+/* ── Geolocation (one-shot) ── */
 function useGeoLocation(){
   var _s=useState({lat:null,lon:null,acc:null,available:false});
   var data=_s[0],setData=_s[1];
@@ -281,7 +382,6 @@ function useGeoLocation(){
 /*  MEDIATION COEFFICIENT CALCULATOR                          */
 /* ═══════════════════════════════════════════════════════════ */
 function calcMediation(acoustic,mag,light,motion){
-  // Dimension scores: 0-1 normalized
   var dims={};
 
   // Acoustic Responsiveness (from sonar RTT/confidence)
@@ -289,20 +389,24 @@ function calcMediation(acoustic,mag,light,motion){
     dims.acoustic=Math.min(1,acoustic.cf||0);
   }else{dims.acoustic=0;}
 
-  // EM Field Density (from magnetometer magnitude)
+  // EM Field Density (from magnetometer or orientation)
   if(mag.available){
-    // Typical indoor: 25-65 μT, outdoor: 25-65 μT
-    // High EM: >100 (near electronics)
-    dims.emField=Math.min(1,mag.mag/100);
-  }else{dims.emField=0.5;} // unknown defaults to neutral
+    if(mag.source==='magnetometer'){
+      // True magnetometer: typical indoor 25-65 μT, high EM >100
+      dims.emField=Math.min(1,mag.mag/100);
+    }else{
+      // Orientation-derived: mag is pseudo-tilt magnitude (0-180° range)
+      // Normalize: higher tilt = more spatial variation detected
+      dims.emField=Math.min(1,mag.mag/90);
+    }
+  }else{dims.emField=0.5;}
 
-  // Photonic Environment (from ambient light)
+  // Photonic Environment (from light sensor or camera estimation)
   if(light.available&&light.lux!=null){
-    // 0-1000 lux typical indoor
     dims.photonic=Math.min(1,light.lux/1000);
   }else{dims.photonic=0.5;}
 
-  // Kinetic Stability (inverse of motion magnitude, >9.8 = gravity only = stable)
+  // Kinetic Stability (inverse of motion magnitude)
   if(motion.available){
     var devFromGravity=Math.abs(motion.mag-9.81);
     dims.kinetic=Math.max(0,1-devFromGravity/5);
@@ -557,6 +661,7 @@ function App(){
   var _sig=useState('chirp_mid'),sigId=_sig[0],setSigId=_sig[1];
 
   // EM sensor hooks
+  var sensorPerm=useSensorPermissions();
   var mag=useMagnetometer();
   var light=useAmbientLight();
   var motion=useMotion();
@@ -822,30 +927,80 @@ function App(){
         'デバイスの磁力計・加速度計・環境光センサーからリアルタイムでEM/環境データを取得。',
         h('br'),'WiFi/BLE RSSIは将来のWeb APIサポートで追加予定。')));
 
+    // iOS Permission Request Banner
+    if(sensorPerm.needsRequest){
+      ch.push(h('div',{key:'perm-banner',style:{
+        padding:'14px',marginBottom:'14px',
+        background:'linear-gradient(135deg,rgba(204,102,255,.08),rgba(0,255,170,.05))',
+        border:'1px solid #cc66ff44',borderRadius:'2px',textAlign:'center'
+      }},
+        h('div',{style:{fontSize:'11px',color:'#cc66ff',marginBottom:'8px',letterSpacing:'1px'}},
+          '⚡ iOS SENSOR PERMISSION REQUIRED'),
+        h('div',{style:{fontSize:'10px',color:'#667788',marginBottom:'12px',lineHeight:'1.8'}},
+          'iOS Safari ではモーション・方位センサーに明示的な許可が必要です。',h('br'),
+          '下のボタンをタップしてアクセスを許可してください。'),
+        h('button',{
+          className:'btn',onClick:sensorPerm.requestAll,
+          style:{
+            background:'linear-gradient(180deg,#cc66ff33,#cc66ff11)',
+            border:'1px solid #cc66ff66',color:'#cc66ff',
+            padding:'12px 32px',fontSize:'13px',letterSpacing:'2px'
+          }
+        },'▶ GRANT SENSOR ACCESS'),
+        h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'8px'}},
+          'Orientation: '+(sensorPerm.perms.orient==='granted'?'✔ GRANTED':'○ '+sensorPerm.perms.orient)+
+          ' | Motion: '+(sensorPerm.perms.motion==='granted'?'✔ GRANTED':'○ '+sensorPerm.perms.motion))
+      ));
+    }
+
+    // Platform info
+    ch.push(h('div',{key:'platform-info',style:{
+      padding:'6px 10px',marginBottom:'10px',fontSize:'9px',letterSpacing:'1px',
+      color:'#445566',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'
+    }},
+      'PLATFORM: '+(IS_IOS?'iOS Safari':'Desktop/Android')+
+      ' | ORIENT: '+(sensorPerm.perms.orient==='granted'?'✔':'✘')+
+      ' | MOTION: '+(sensorPerm.perms.motion==='granted'?'✔':'✘')+
+      ' | MAG_SRC: '+(mag.source||'none')+
+      ' | LIGHT_SRC: '+(light.source||'none')+
+      ' | MOTION_SRC: '+(motion.source||'none')
+    ));
+
     // Sensor cards
     ch.push(h('div',{className:'em-grid',key:'em-cards'},
       // Magnetometer
       h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'MAGNETIC FIELD'),h('span',{style:{color:mag.available?'#00ffaa':'#ff3333',fontSize:'8px'}},mag.available?'● ACTIVE':'○ N/A')),
-        h('div',{className:'em-card-v',style:{color:'#cc66ff'}},mag.mag.toFixed(1),h('span',{className:'em-card-u'},'μT')),
+        h('div',{className:'em-card-h'},h('span',null,'MAGNETIC FIELD'),
+          h('span',{style:{color:mag.available?'#00ffaa':mag.source==='awaiting_permission'?'#cc66ff':'#ff3333',fontSize:'8px'}},
+            mag.available?'● ACTIVE':mag.source==='awaiting_permission'?'◎ PERM':'○ N/A')),
+        h('div',{className:'em-card-v',style:{color:'#cc66ff'}},mag.mag.toFixed(1),h('span',{className:'em-card-u'},mag.source==='magnetometer'?'μT':'°tilt')),
         h('div',{className:'em-card-sub'},'X:'+mag.x.toFixed(1)+' Y:'+mag.y.toFixed(1)+' Z:'+mag.z.toFixed(1)),
         mag.heading!=null?h('div',{className:'em-card-sub',style:{color:'#8899aa'}},'Heading: '+mag.heading.toFixed(0)+'°'):null,
-        h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,mag.mag)+'%',background:'linear-gradient(90deg,#cc66ff44,#cc66ff88)'}})))),
+        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+mag.source),
+        h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,mag.mag)+'%',background:'linear-gradient(90deg,#cc66ff44,#cc66ff88)'}}))),
+        mag.source==='awaiting_permission'?h('div',{style:{fontSize:'9px',color:'#cc66ff88',marginTop:'4px'}},'↑ タップして許可'):null),
 
       // Ambient Light
       h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'AMBIENT LIGHT'),h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},light.available?'● ACTIVE':'○ N/A')),
-        h('div',{className:'em-card-v',style:{color:'#ffcc00'}},light.available&&light.lux!=null?light.lux.toFixed(0):'---',h('span',{className:'em-card-u'},'lux')),
-        h('div',{className:'em-card-sub'},light.available?'Photonic env: '+(light.lux>500?'BRIGHT':light.lux>100?'LIT':'DIM'):'Sensor not available'),
-        h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,(light.lux||0)/10)+'%',background:'linear-gradient(90deg,#ffcc0044,#ffcc0088)'}})))),
+        h('div',{className:'em-card-h'},h('span',null,'AMBIENT LIGHT'),
+          h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},
+            light.available?'● '+(light.source==='camera'?'CAM':'SENSOR'):'○ N/A')),
+        h('div',{className:'em-card-v',style:{color:'#ffcc00'}},light.available&&light.lux!=null?light.lux.toFixed(0):'---',h('span',{className:'em-card-u'},'lux'+(light.source==='camera'?' (est)':''))),
+        h('div',{className:'em-card-sub'},light.available?'Photonic env: '+(light.lux>500?'BRIGHT':light.lux>100?'LIT':'DIM'):(light.source==='denied'?'Camera access denied':'Initializing...')),
+        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+light.source),
+        h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,(light.lux||0)/10)+'%',background:'linear-gradient(90deg,#ffcc0044,#ffcc0088)'}}))),
+        light.source==='camera'?h('div',{style:{fontSize:'9px',color:'#ffcc0055',marginTop:'4px'}},'リアカメラで推定中'):null),
 
       // Accelerometer / Motion
       h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'MOTION / ACCEL'),h('span',{style:{color:motion.available?'#00ffaa':'#ff3333',fontSize:'8px'}},motion.available?'● ACTIVE':'○ N/A')),
+        h('div',{className:'em-card-h'},h('span',null,'MOTION / ACCEL'),
+          h('span',{style:{color:motion.available?'#00ffaa':motion.source==='awaiting_permission'?'#cc66ff':'#ff3333',fontSize:'8px'}},
+            motion.available?'● ACTIVE':motion.source==='awaiting_permission'?'◎ PERM':'○ N/A')),
         h('div',{className:'em-card-v',style:{color:'#00ddff'}},motion.mag.toFixed(2),h('span',{className:'em-card-u'},'m/s²')),
         h('div',{className:'em-card-sub'},'X:'+motion.x.toFixed(2)+' Y:'+motion.y.toFixed(2)+' Z:'+motion.z.toFixed(2)),
-        h('div',{className:'em-card-sub',style:{color:Math.abs(motion.mag-9.81)<1?'#00ffaa66':'#ffcc0066'}},
-          Math.abs(motion.mag-9.81)<1?'STABLE (gravity only)':'MOTION DETECTED'),
+        h('div',{className:'em-card-sub',style:{color:motion.available&&Math.abs(motion.mag-9.81)<1?'#00ffaa66':'#ffcc0066'}},
+          motion.available?(Math.abs(motion.mag-9.81)<1?'STABLE (gravity only)':'MOTION DETECTED'):(motion.source==='awaiting_permission'?'許可が必要':'---')),
+        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+motion.source),
         h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,motion.mag*5)+'%',background:'linear-gradient(90deg,#00ddff44,#00ddff88)'}})))),
 
       // Geolocation
@@ -878,8 +1033,10 @@ function App(){
 
     // Future capabilities note
     ch.push(h('div',{className:'nfo',key:'em-future'},
-      '▸ ROADMAP: WiFi RSSI (Navigator.connection + experimental), BLE Proximity (Web Bluetooth API), NFC Field Detection, Barometric Pressure',
-      h('br'),'▸ 電磁波レイヤーはWeb標準APIの制約内で動作。ネイティブアプリ版ではフル帯域スキャンが可能。'));
+      '▸ SENSOR SOURCES: Magnetometer API (Chrome) → DeviceOrientation (Safari/iOS) → Fallback',h('br'),
+      '▸ LIGHT: AmbientLightSensor (Chrome) → Camera brightness estimation (Safari/iOS)',h('br'),
+      '▸ iOS Safari: DeviceOrientation/Motion requires explicit user permission (iOS 13+)',h('br'),
+      '▸ ROADMAP: WiFi RSSI, BLE Proximity (Web Bluetooth), Barometric Pressure, NFC Field'));
   }
 
   /* ═══════════════════════════════════════════ */
