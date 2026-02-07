@@ -1,115 +1,147 @@
-# PHYSICAL PING — pTCP v0.6 IPC
+# PHYSICAL PING — pTCP v0.8 IPC
 
-**Information Physical Connector · Multi-Layer Sensing**
+**Information Physical Connector · Extended Spectrum Sensing**
 
-スマートフォンのセンサー群を統合し、物理空間の「情報接続性」をリアルタイムで定量化する実験的Webアプリケーション。音響ソナー＋電磁波＋環境センサーによる多次元空間プローブと、その統合指標である **Mediation Coefficient μ(x,t)** を算出する。
+スマートフォンのセンサー群を統合し、物理空間の「情報接続性」をリアルタイムで定量化する実験的Webアプリケーション。音響ソナー＋電磁波＋**RFスペクトラム＋NFCフィールド＋熱推定**による7次元空間プローブと、その統合指標である **Mediation Coefficient μ(x,t)** を算出する。
 
 物理空間のための TCP/IP
 
-## コンセプト
+---
 
-pTCP（physical Transmission Control Protocol）は、情報空間と物理空間の結合度を計測・可視化するプロトコルの実験実装である。従来のネットワークにおける ping が通信経路の品質を計測するように、Physical Ping は物理空間そのものの「応答性」を計測する。
+## v0.8 新機能
 
-v0.6 では単一の HTML ファイルに全機能を収めたゼロ依存設計を維持しつつ、音響ソナーに加えて電磁波・環境センサーレイヤーを統合し、**Information Physical Connector（IPC）** としての基盤を構築した。
+### RF Spectrum Analyzer (WebUSB + SDR)
+
+WebUSB API経由でRTL-SDR（RTL2832U）に直接接続し、リアルタイムRFスペクトラムを取得・解析する。SDR未接続時はバンド特性に基づくリアルタイムシミュレーションモードで動作。
+
+| バンド | 周波数範囲 | 用途 |
+|---|---|---|
+| WiFi 2.4G | 2,400—2,500 MHz | 802.11 b/g/n — チャネル1/6/11のピーク検出 |
+| WiFi 5G | 5,150—5,850 MHz | 802.11 a/ac/ax — UNII帯マルチバンド |
+| BLE | 2,402—2,480 MHz | Bluetooth Low Energy — アドバタイズ＋データチャネル |
+| FM Radio | 76—108 MHz | FM放送帯（日本仕様） |
+| LTE | 700—2,700 MHz | LTE/5G — マルチバンド概要 |
+| ISM 915 | 902—928 MHz | IoT/LoRa/Zigbee — ISM帯 |
+
+機能:
+- **パワースペクトラム表示**: 256ビンFFT相当のリアルタイムスペクトラム
+- **ウォーターフォール表示**: 時間×周波数×強度の3次元ヒートマップ
+- **ピーク自動検出**: 上位5ピークの周波数・パワーを自動抽出
+- **RF密度算出**: -70dBm閾値を超えるビンの占有率
+- **WebUSB SDR接続**: RTL2832Uデバイスの自動認識・接続
+
+### NFC Field Detection (Web NFC API)
+
+Web NFC APIによるNFCタグの検出・読み取り。13.56MHz近接場の存在を可視化する。
+
+- **リアルタイムフィールド検出**: パルスアニメーションによるフィールド強度可視化
+- **タグUID読み取り**: シリアルナンバーの自動取得
+- **NDEFレコード解析**: テキスト・URL・MIMEタイプの自動パース
+- **タグ履歴**: 最大16件のタグ検出ログ
+- **シミュレーションモード**: Web NFC非対応環境での動作確認
+
+### Thermal Estimation
+
+ブラウザのサンドボックス制約下で、間接的手法により端末温度を推定する。
+
+| データソース | 取得方法 | 寄与 |
+|---|---|---|
+| CPU負荷 | タイムスタンプ差分によるビジーループ測定 | 0-15°C |
+| バッテリー状態 | Navigator.getBattery() API | 0-8°C (充電時+5°C) |
+| 環境ベースライン | 固定仮定値 | 22°C |
+
+機能:
+- **推定温度表示**: 熱モデルに基づくリアルタイム温度推定
+- **温度グラデーション**: 視覚的な温度マーカー表示
+- **CPU負荷モニター**: タイムスタンプ差分法によるCPU使用率推定
+- **バッテリー統合**: 充電状態による熱寄与の加算
+- **熱履歴チャート**: 温度+CPU負荷の時系列グラフ
+- **熱クラス分類**: COOL / NORMAL / WARM / HOT
 
 ---
 
-## 機能概要
-
-### L1: SONAR — 音響空間プローブ
-
-| 信号タイプ | 帯域 | 特性 |
-|---|---|---|
-| CHIRP MID | 1.5→2.5kHz / 20ms | 室内標準。バランスの良い反射検出 |
-| CHIRP LOW | 500→1.5kHz / 30ms | 壁・障害物を貫通。建物全体の探索 |
-| CHIRP HIGH | 3→6kHz / 15ms | 高指向性。小物体の検出 |
-| CHIRP WIDE | 800→4kHz / 25ms | 広帯域。最大情報量。素材判別 |
-| PULSE 2kHz | 2kHz単一 / 15ms | 基準計測用シンプルパルス |
-| CLICK BURST | 符号化 / 10ms | 最高時間分解能 |
-
-- スピーカーから信号を発射し、マイクで反射を捕捉
-- **正規化相互相関（NCC）** によるサブミリ秒精度の RTT 検出
-- 環境ノイズキャリブレーション＋適応的閾値（上限キャップ付き）
-- 連続モード（CONT）による時系列観測
-
-### L1: EM/SENSOR — 電磁波・環境センサー
-
-| センサー | API | フォールバック | 取得値 |
-|---|---|---|---|
-| 磁力計 | Generic Sensor API (Magnetometer) | DeviceOrientation (iOS/Safari) | 磁場ベクトル (μT) / 方位角 |
-| 環境光 | AmbientLightSensor | **リアカメラ輝度推定** | 照度 (lux) |
-| 加速度 | DeviceMotion | — | 3軸加速度 (m/s²) |
-| 位置情報 | Geolocation API | — | 緯度・経度・精度 |
-
-- 2秒間隔の自動スキャンで EM Scan Log に履歴蓄積
-- 各センサーの **データソース（src）** をリアルタイム表示
-- プラットフォーム判定バー（iOS Safari / Desktop / Android）
-
-### L2: SENSOR FUSION
-
-音響・電磁場・光環境・慣性の4チャネルを統合し、単一の空間プロファイルを生成。
-
-### L3: MEDIATION — Mediation Coefficient
+## Mediation Coefficient v0.8 — 7次元拡張
 
 ```
 μ(x,t) = Σ wᵢ · dᵢ(x,t)
 
-where dᵢ ∈ {acoustic, emField, photonic, kinetic}
-weights: acoustic=0.35, emField=0.25, photonic=0.15, kinetic=0.25
+where dᵢ ∈ {acoustic, emField, photonic, kinetic, rfDensity, nfcField, thermal}
+
+weights:
+  acoustic   = 0.25  (音響反射率)
+  emField    = 0.15  (電磁場密度)
+  photonic   = 0.10  (光環境)
+  kinetic    = 0.15  (運動安定性)
+  rfDensity  = 0.15  (RF帯域占有率)      ← NEW
+  nfcField   = 0.10  (NFC近接場強度)      ← NEW
+  thermal    = 0.10  (熱環境安定性)        ← NEW
 ```
 
-物理空間の「情報接続性」を 0〜1 のスカラー値で表現する指標。
-
-| 次元 | 意味 | 高値の解釈 |
-|---|---|---|
-| acoustic | 音響反射率 | 空間が閉じており反射が明確に検出される |
-| emField | 電磁場密度 | 電子機器が多い＝情報インフラが密 |
-| photonic | 光環境 | 明るい＝視覚的情報チャネルが開いている |
-| kinetic | 運動安定性 | 静止＝計測条件が安定 |
-
-- リングゲージ＋レーダーチャートによる4次元可視化
-- Phase-Law Architecture の基礎単位として定義
-
-### L4: PROFILE — 空間プロファイル
-
-全センサーレイヤーの統合分類。タグによる空間特性の自動判定。
-
-| カテゴリ | タグ例 |
-|---|---|
-| 音響空間 | ENCLOSED / INDOOR / OPEN-INDOOR / OUTDOOR |
-| EM環境 | HIGH-EM / MODERATE-EM / LOW-EM |
-| 光環境 | BRIGHT / LIT / DIM |
-| 安定性 | STABLE / MOVING / UNSTABLE |
-| 接続性 | HIGH-CONNECT / MED-CONNECT / LOW-CONNECT |
+7次元レーダーチャートによる統合可視化。各次元のバランスが空間の「情報物理結合度」を表現する。
 
 ---
 
-## iOS Safari 対応
+## プロトコルスタック v0.8
 
-iOS 13 以降の Safari では `DeviceOrientation` / `DeviceMotion` にユーザーの明示的許可が必要。
-
-1. EM/SENSOR タブを開く
-2. 紫色の **「▶ GRANT SENSOR ACCESS」** ボタンをタップ
-3. iOS 標準の許可ダイアログが表示される
-4. 「許可」→ 磁力計・加速度計が自動で ACTIVE に
-
-AmbientLightSensor 非対応環境（Safari含む）では、リアカメラ映像の輝度平均から照度を推定するフォールバックが自動起動する。
+```
+L5  SPACE PROFILE      空間分類・行動推奨・環境適応
+L4  MEDIATION           μ(x,t) 7次元情報物理結合係数
+L3  SENSOR FUSION       音響+EM+光+慣性+RF+NFC+熱 統合
+L2  ACOUSTIC SONAR      チャープ・相互相関
+L2  EM FIELD            磁力計・環境光・加速度
+L2  RF SPECTRUM         WebUSB SDR・周波数解析           ← NEW
+L2  NFC FIELD           近接場検出・タグ読取              ← NEW
+L2  THERMAL             CPU負荷・バッテリー・推定温度     ← NEW
+L1  DEVICE HARDWARE     マイク・スピーカー・センサー・USB・NFC
+```
 
 ---
 
-## 技術仕様
+## ブラウザ互換性 v0.8
+
+| 機能 | Chrome (Android) | Safari (iOS) | Chrome (Desktop) | Firefox | 備考 |
+|---|---|---|---|---|---|
+| Sonar | ✔ | ✔ | ✔ | ✔ | マイク/スピーカー |
+| Magnetometer | ✔ (Generic Sensor) | ✔ (Orientation) | — | ✔ (Orientation) | |
+| Ambient Light | ✔ (Sensor) | ✔ (Camera) | — | — (Camera) | |
+| Motion | ✔ | ✔ (許可必要) | — | ✔ | |
+| **RF Spectrum** | ✔ (WebUSB) | ✘ (Sim only) | ✔ (WebUSB) | ✘ (Sim only) | **SDR + HTTPS必須** |
+| **NFC** | ✔ (Web NFC) | ✘ (Sim only) | ✘ (Sim only) | ✘ (Sim only) | **Android Chrome限定** |
+| **Thermal** | ✔ | ✔ (部分的) | ✔ | ✔ | Battery API依存 |
+
+### WebUSB SDR 要件
+
+- Chrome/Edge (HTTPS環境)
+- RTL-SDR デバイス (RTL2832U チップセット)
+- OTG アダプター (モバイル使用時)
+- **注意**: 完全なRTL2832Uプロトコル実装にはベンダーコントロール転送の追加開発が必要。現在のコードはフレームワークとシミュレーションを提供。
+
+### Web NFC 要件
+
+- Chrome 89+ (Android のみ)
+- NFC対応デバイス
+- HTTPS環境
+
+---
+
+## 技術仕様 v0.8
 
 | 項目 | 値 |
 |---|---|
-| サンプルレート | 44,100 Hz |
+| サンプルレート (Sonar) | 44,100 Hz |
 | リスニング窓 | 500 ms |
 | ブランキング | 8 ms |
 | 相関方式 | 正規化相互相関（NCC） |
-| 閾値 | max(0.04, min(ambient_corr × 2.5, 0.45)) |
 | 距離推定 | RTT × 343 m/s ÷ 2 |
 | EM スキャン間隔 | 2,000 ms |
-| カメラ照度推定解像度 | 16×16 px |
-| 履歴保持 | Sonar: 64件 / EM: 32件 |
+| **RF スペクトラム bins** | **256** |
+| **RF スキャン間隔** | **500 ms** |
+| **NFC スキャンモード** | **連続（Web NFC）/ 2s間隔（Sim）** |
+| **熱推定間隔** | **3,000 ms** |
+| **CPU負荷測定** | **1M iterations busy-loop** |
+| **Mediation次元数** | **7** |
+| 履歴保持 | Sonar:64 / EM:32 / RF:32 / NFC:16 / Thermal:64 |
+| ウォーターフォール深度 | 64 sweeps |
 
 ### 依存関係
 
@@ -117,57 +149,37 @@ AmbientLightSensor 非対応環境（Safari含む）では、リアカメラ映�
 - IBM Plex Mono（Google Fonts）
 - **その他の外部依存なし**
 
-### ブラウザ互換性
-
-| ブラウザ | Sonar | Magnetometer | Light | Motion | 備考 |
-|---|---|---|---|---|---|
-| Chrome (Android) | ✔ | ✔ (Generic Sensor) | ✔ (Sensor) | ✔ | フル機能 |
-| Safari (iOS) | ✔ | ✔ (Orientation) | ✔ (Camera) | ✔ | 許可ボタン必要 |
-| Chrome (Desktop) | ✔ | — | — | — | センサー限定的 |
-| Firefox | ✔ | ✔ (Orientation) | — (Camera) | ✔ | ALS非対応 |
-
----
-
-## プロトコルスタック
-
-```
-L4  SPACE PROFILE      空間分類・行動推奨
-L3  MEDIATION           μ(x,t) 情報物理結合係数
-L2  SENSOR FUSION       音響+EM+光+慣性 統合
-L1  ACOUSTIC SONAR      チャープ・相互相関
-L1  EM FIELD            磁力計・環境光・加速度
-L0  DEVICE HARDWARE     マイク・スピーカー・センサー
-```
-
 ---
 
 ## 使い方
 
 ```bash
-# ローカルサーバーで起動（HTTPS必須 — センサーAPIの要件）
-npx serve .
+# HTTPS必須（WebUSB / Web NFC / センサーAPI）
+npx serve . --ssl
 
-# または Python
+# localhost は例外的に http でも動作
 python3 -m http.server 8000
 ```
 
-スマートフォンの場合は `https://` 環境でアクセスする（localhost は例外的に http でも動作）。
+### 各レイヤーの操作
 
-### 基本操作
+1. **SONAR** — 信号選択 → PING / CONT で音響プローブ
+2. **EM/SENSOR** — iOS許可ボタン → 磁力計・光・加速度のリアルタイム監視
+3. **RF SPEC** — バンド選択 → START SCAN（SDR接続時はリアルデータ）
+4. **NFC/THERM** — NFC SCAN開始 → タグ検出 / Thermal monitoring開始 → 温度推定
+5. **MEDIATION** — 7次元リングゲージ + レーダーチャートで統合指標確認
+6. **PROFILE** — 空間分類タグ + プロトコルスタック確認
 
-1. **SONAR タブ** — 信号を選択 →「▶ PING」でワンショット計測 /「◉ CONT」で連続計測
-2. **EM/SENSOR タブ** — iOS の場合は許可ボタンをタップ → センサーデータがリアルタイム更新
-3. **MEDIATION タブ** — 全センサーの統合指標をリングゲージ＋レーダーで確認
-4. **PROFILE タブ** — 空間分類タグとプロトコルスタックの確認
+---
 
 ## ファイル構成
 
 ```
-index.html    ← 全機能を含む単一ファイル（~1,160行）
+index.html    ← 全機能を含む単一ファイル（~1,800行）
 README.md     ← このファイル
 ```
 
-ゼロビルド・ゼロインストール設計。`index.html` をブラウザで開くだけで動作する。
+ゼロビルド・ゼロインストール設計。
 
 ---
 
@@ -177,4 +189,4 @@ README.md     ← このファイル
 
 ---
 
-*pTCP v0.6 IPC | Information Physical Connector | Phase-Law Architecture*
+*pTCP v0.8 IPC | Information Physical Connector | Extended Spectrum Sensing | Phase-Law Architecture*
