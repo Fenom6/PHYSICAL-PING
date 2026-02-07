@@ -118,9 +118,9 @@ var SIGNALS={
     type:'tone', freq:2000, dur:0.015, color:'#cc66ff'
   },
   click:{
-    id:'click', name:'CLICK',
-    desc:'\u5E83\u5E2F\u57DF\u30A4\u30F3\u30D1\u30EB\u30B9 / 2ms \u2014 \u30BD\u30CA\u30FC\u539F\u7406\u306E\u30AF\u30EA\u30C3\u30AF\u97F3\u3002\u8DDD\u96E2\u5206\u89E3\u80FD\u6700\u5927\u3002',
-    type:'click', dur:0.002, color:'#ff4466'
+    id:'click', name:'CLICK BURST',
+    desc:'\u7B26\u53F7\u5316\u30D0\u30FC\u30B9\u30C8 / 10ms \u2014 \u77ED\u3044\u304C\u7279\u5FB4\u7684\u306A\u30D1\u30BF\u30FC\u30F3\u3002\u9AD8\u6642\u9593\u5206\u89E3\u80FD\u3002',
+    type:'click', dur:0.010, color:'#ff4466'
   },
 };
 var SIG_ORDER=['chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
@@ -136,11 +136,12 @@ function genSignal(sig,sr){
     for(var i=0;i<N;i++){var t=i/sr;
       b[i]=Math.sin(2*Math.PI*sig.freq*t)*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}
   }else if(sig.type==='click'){
-    // Gaussian-windowed broadband impulse
-    var mid=N/2;
-    for(var i=0;i<N;i++){
-      var x=(i-mid)/(N/6);
-      b[i]=Math.exp(-x*x)*((i%2===0)?1:-1);}
+    // Coded burst: 3-cycle tone burst at 2.5kHz with Gaussian envelope
+    // More structure than impulse = better xcorr on smartphone speakers
+    var fc=2500;
+    for(var i=0;i<N;i++){var t=i/sr;
+      var env=Math.exp(-Math.pow((i-N/2)/(N/5),2));
+      b[i]=Math.sin(2*Math.PI*fc*t*(1+0.5*t/sig.dur))*env;}
   }
   return b;
 }
