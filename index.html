@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v0.7 IPC</title>
+<title>Physical Ping — pTCP v0.8 IPC</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -13,7 +13,7 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes scanLine{0%{top:-2px}100%{top:100%}}
 @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,170,.1)}50%{box-shadow:0 0 20px rgba(0,255,170,.25)}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes rfSweep{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0f14}::-webkit-scrollbar-thumb{background:#1a2a3a;border-radius:2px}
 .scan{position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,170,.005) 2px,rgba(0,255,170,.005) 4px);pointer-events:none;z-index:100}
 .ctn{max-width:960px;margin:0 auto;padding:20px 16px}
@@ -32,7 +32,6 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .layer-tab.active{background:rgba(0,0,0,.5);color:#c0d0e0}
 .layer-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
 .layer-tab .tab-icon{font-size:14px;display:block;margin-bottom:3px}
-.layer-tab .tab-badge{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;animation:blink 1.5s infinite}
 .lv-row{display:flex;align-items:center;gap:10px}
 .lv-lbl{font-size:10px;color:#445566;letter-spacing:1.5px;min-width:44px}
 .lv-bg{flex:1;height:8px;background:#0a0f14;border-radius:1px;overflow:hidden}
@@ -119,25 +118,25 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 /* Space Profile */
 .sp-tag{display:inline-block;padding:3px 8px;font-size:9px;letter-spacing:1.5px;border-radius:1px;margin:2px}
 
-/* ── v0.7: BLE / WiFi / Baro / Sync ── */
-.ble-device{padding:8px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:6px;animation:fadeIn .3s ease}
-.ble-device-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.ble-name{font-size:11px;color:#00ddff;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
-.ble-rssi{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
-.ble-meta{font-size:9px;color:#445566;margin-top:3px}
-.rssi-bar{height:3px;background:#0a0f14;border-radius:1px;margin-top:4px;overflow:hidden}
-.rssi-fill{height:100%;border-radius:1px;transition:width .5s}
+/* ── v0.8: RF Spectrum ── */
+.rf-spectrum-wrap{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:rgba(0,0,0,.25);margin-bottom:14px;position:relative}
+.rf-spectrum-wrap canvas{display:block;width:100%}
+.rf-waterfall-wrap{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:#000;margin-bottom:14px}
+.rf-waterfall-wrap canvas{display:block;width:100%}
+.rf-band-tag{display:inline-block;padding:2px 6px;font-size:8px;letter-spacing:1px;border-radius:1px;margin:1px;cursor:pointer;transition:all .15s}
+.rf-band-tag:hover{opacity:.8}
+.rf-band-tag.active{box-shadow:0 0 8px currentColor}
 
-.wifi-map{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:rgba(0,0,0,.25);margin-bottom:14px}
-.wifi-map canvas{display:block;width:100%}
+/* ── v0.8: NFC ── */
+.nfc-pulse{width:80px;height:80px;border-radius:50%;margin:16px auto;position:relative;display:flex;align-items:center;justify-content:center}
+.nfc-pulse::before,.nfc-pulse::after{content:'';position:absolute;border-radius:50%;border:1px solid currentColor;animation:nfcRipple 2s ease-out infinite}
+.nfc-pulse::before{width:120%;height:120%;opacity:.4}
+.nfc-pulse::after{width:160%;height:160%;opacity:.2;animation-delay:.5s}
+@keyframes nfcRipple{0%{transform:scale(.8);opacity:.6}100%{transform:scale(1.4);opacity:0}}
 
-.sync-peer{padding:8px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
-.sync-code{font-family:'IBM Plex Mono',monospace;font-size:14px;letter-spacing:4px;padding:8px 16px;background:#0a0f14;border:1px solid #1a2530;border-radius:2px;text-align:center;color:#00ffaa;user-select:all;margin:8px 0}
-.sync-input{background:#0a0f14;border:1px solid #1a2530;color:#8899aa;padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;border-radius:2px;width:100%;letter-spacing:2px;text-align:center}
-.sync-input:focus{outline:none;border-color:#00ffaa44}
-
-.baro-trend{display:flex;align-items:flex-end;gap:1px;height:60px;margin-top:8px}
-.baro-bar{flex:1;border-radius:1px 1px 0 0;transition:height .3s;min-width:3px}
+/* ── v0.8: Thermal ── */
+.thermal-gradient{height:12px;border-radius:1px;background:linear-gradient(90deg,#0044ff,#00ccff,#00ff88,#ffcc00,#ff4400,#ff0000);position:relative}
+.thermal-marker{position:absolute;top:-4px;width:2px;height:20px;background:#fff;transition:left .5s}
 
 @media(max-width:600px){
   .log-h,.log-r{grid-template-columns:50px 40px 52px 54px 48px 50px 1fr;font-size:10px;padding:4px 6px}
@@ -168,7 +167,6 @@ var SIGNALS={
 };
 var SIG_ORDER=['chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
 
-/* ═══ SIGNAL GENERATION ═══ */
 function genSignal(sig,sr){
   var N=Math.floor(sr*sig.dur),b=new Float32Array(N);
   if(sig.type==='chirp'){for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*0.5*(1-Math.cos(2*Math.PI*i/(N-1)));}}
@@ -177,7 +175,6 @@ function genSignal(sig,sr){
   return b;
 }
 
-/* ═══ CONFIG ═══ */
 var CFG={sr:44100,listenMs:500,bufSize:256,blanking:8,maxThresh:0.45,minConf:0.04,histMax:64};
 
 function xcorr(sig,ref,sr,blankMs){
@@ -204,12 +201,9 @@ function flat(b){var t=0;for(var i=0;i<b.length;i++)t+=b[i].length;var f=new Flo
 function rmsV(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i]*a[i];return Math.sqrt(s/a.length);}
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  EM / SENSOR LAYER — iOS Safari Permission Aware           */
+/*  iOS Detection & Sensor Permissions (same as v0.6)         */
 /* ═══════════════════════════════════════════════════════════ */
-var IS_IOS=(function(){
-  var ua=navigator.userAgent||'';
-  return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-})();
+var IS_IOS=(function(){var ua=navigator.userAgent||'';return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);})();
 var NEEDS_ORIENT_PERM=IS_IOS&&typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
 var NEEDS_MOTION_PERM=IS_IOS&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function';
 
@@ -227,520 +221,611 @@ function useSensorPermissions(){
     return function(){_sensorPermState.listeners=_sensorPermState.listeners.filter(function(f){return f!==fn;});};
   },[]);
   var requestAll=useCallback(function(){
-    var p1=NEEDS_ORIENT_PERM?DeviceOrientationEvent.requestPermission().then(function(r){
-      _sensorPermState.orient=r;}).catch(function(){_sensorPermState.orient='denied';}):Promise.resolve();
-    var p2=NEEDS_MOTION_PERM?DeviceMotionEvent.requestPermission().then(function(r){
-      _sensorPermState.motion=r;}).catch(function(){_sensorPermState.motion='denied';}):Promise.resolve();
+    var p1=NEEDS_ORIENT_PERM?DeviceOrientationEvent.requestPermission().then(function(r){_sensorPermState.orient=r;}).catch(function(){_sensorPermState.orient='denied';}):Promise.resolve();
+    var p2=NEEDS_MOTION_PERM?DeviceMotionEvent.requestPermission().then(function(r){_sensorPermState.motion=r;}).catch(function(){_sensorPermState.motion='denied';}):Promise.resolve();
     return Promise.all([p1,p2]).then(function(){notifyPerm();});
   },[]);
   var needsRequest=perms.orient!=='granted'||perms.motion!=='granted';
   return{perms:perms,requestAll:requestAll,needsRequest:NEEDS_ORIENT_PERM||NEEDS_MOTION_PERM?needsRequest:false,isIOS:IS_IOS};
 }
 
-/* ── Magnetometer ── */
+/* ═══════════════════════════════════════════════════════════ */
+/*  SENSOR HOOKS (Magnetometer, Light, Motion, Geo)           */
+/* ═══════════════════════════════════════════════════════════ */
 function useMagnetometer(){
   var _s=useState({x:0,y:0,z:0,mag:0,available:false,heading:null,source:'none'});
-  var data=_s[0],setData=_s[1];
-  var ref=useRef(null);
-  var perms=useSensorPermissions();
+  var data=_s[0],setData=_s[1];var ref=useRef(null);var perms=useSensorPermissions();
   useEffect(function(){
     if(ref.current){ref.current();ref.current=null;}
     if(window.Magnetometer){
-      try{
-        var sensor=new Magnetometer({frequency:10});
-        sensor.addEventListener('reading',function(){
-          var m=Math.sqrt(sensor.x*sensor.x+sensor.y*sensor.y+sensor.z*sensor.z);
-          setData({x:sensor.x,y:sensor.y,z:sensor.z,mag:m,available:true,heading:null,source:'magnetometer'});
-        });
-        sensor.addEventListener('error',function(){tryOrientation();});
-        sensor.start();
-        ref.current=function(){try{sensor.stop();}catch(e){}};
-        return function(){if(ref.current)ref.current();};
-      }catch(e){tryOrientation();}
-    }else{tryOrientation();}
-    function tryOrientation(){
-      if(NEEDS_ORIENT_PERM&&_sensorPermState.orient!=='granted'){
-        setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});return;}
-      var handler=function(ev){
-        var heading=ev.alpha!=null?ev.alpha:null;
-        var absHeading=ev.webkitCompassHeading!=null?ev.webkitCompassHeading:heading;
-        var beta=ev.beta||0,gamma=ev.gamma||0;
-        var pseudoMag=Math.sqrt(beta*beta+gamma*gamma);
-        setData({x:gamma,y:beta,z:absHeading||0,mag:pseudoMag,available:absHeading!=null||beta!==0||gamma!==0,heading:absHeading,source:'orientation'});
-      };
-      window.addEventListener('deviceorientation',handler);
-      ref.current=function(){window.removeEventListener('deviceorientation',handler);};
-    }
+      try{var sensor=new Magnetometer({frequency:10});
+        sensor.addEventListener('reading',function(){var m=Math.sqrt(sensor.x*sensor.x+sensor.y*sensor.y+sensor.z*sensor.z);
+          setData({x:sensor.x,y:sensor.y,z:sensor.z,mag:m,available:true,heading:null,source:'magnetometer'});});
+        sensor.addEventListener('error',function(){tryOr();});sensor.start();
+        ref.current=function(){try{sensor.stop();}catch(e){}};return function(){if(ref.current)ref.current();};
+      }catch(e){tryOr();}}else{tryOr();}
+    function tryOr(){
+      if(NEEDS_ORIENT_PERM&&_sensorPermState.orient!=='granted'){setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});return;}
+      var handler=function(ev){var heading=ev.alpha!=null?ev.alpha:null;var absH=ev.webkitCompassHeading!=null?ev.webkitCompassHeading:heading;
+        var beta=ev.beta||0,gamma=ev.gamma||0;var pseudoMag=Math.sqrt(beta*beta+gamma*gamma);
+        setData({x:gamma,y:beta,z:absH||0,mag:pseudoMag,available:absH!=null||beta!==0||gamma!==0,heading:absH,source:'orientation'});};
+      window.addEventListener('deviceorientation',handler);ref.current=function(){window.removeEventListener('deviceorientation',handler);};}
     return function(){if(ref.current)ref.current();};
-  },[perms.perms.orient]);
-  return data;
+  },[perms.perms.orient]);return data;
 }
 
-/* ── Ambient Light ── */
 function useAmbientLight(){
-  var _s=useState({lux:null,available:false,source:'none'});
-  var data=_s[0],setData=_s[1];
+  var _s=useState({lux:null,available:false,source:'none'});var data=_s[0],setData=_s[1];
   var ref=useRef({stream:null,video:null,canvas:null,timer:null});
   useEffect(function(){
-    if(window.AmbientLightSensor){
-      try{
-        var sensor=new AmbientLightSensor({frequency:5});
-        sensor.addEventListener('reading',function(){setData({lux:sensor.illuminance,available:true,source:'sensor'});});
-        sensor.addEventListener('error',function(){startCameraFallback();});
-        sensor.start();
-        return function(){try{sensor.stop();}catch(e){}};
-      }catch(e){startCameraFallback();}
-    }else{startCameraFallback();}
-    function startCameraFallback(){
-      navigator.mediaDevices.getUserMedia({
-        video:{facingMode:'environment',width:{ideal:32},height:{ideal:32}},audio:false
-      }).then(function(stream){
-        ref.current.stream=stream;
-        var video=document.createElement('video');
-        video.srcObject=stream;video.setAttribute('playsinline','');video.muted=true;video.play();
-        ref.current.video=video;
-        var canvas=document.createElement('canvas');canvas.width=16;canvas.height=16;
-        ref.current.canvas=canvas;
-        var ctx=canvas.getContext('2d',{willReadFrequently:true});
-        ref.current.timer=setInterval(function(){
-          if(video.readyState>=2){
-            ctx.drawImage(video,0,0,16,16);
-            var imgData=ctx.getImageData(0,0,16,16).data;
-            var totalBright=0,count=0;
-            for(var i=0;i<imgData.length;i+=4){totalBright+=0.299*imgData[i]+0.587*imgData[i+1]+0.114*imgData[i+2];count++;}
-            var estLux=Math.round((totalBright/count/255)*1000);
-            setData({lux:estLux,available:true,source:'camera'});
-          }
-        },500);
-      }).catch(function(){setData({lux:null,available:false,source:'denied'});});
-    }
-    return function(){
-      if(ref.current.timer)clearInterval(ref.current.timer);
-      if(ref.current.stream){ref.current.stream.getTracks().forEach(function(t){t.stop();});}
-    };
-  },[]);
-  return data;
+    if(window.AmbientLightSensor){try{var sensor=new AmbientLightSensor({frequency:5});
+      sensor.addEventListener('reading',function(){setData({lux:sensor.illuminance,available:true,source:'sensor'});});
+      sensor.addEventListener('error',function(){camFB();});sensor.start();
+      return function(){try{sensor.stop();}catch(e){}};
+    }catch(e){camFB();}}else{camFB();}
+    function camFB(){navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:32},height:{ideal:32}},audio:false}).then(function(stream){
+      ref.current.stream=stream;var video=document.createElement('video');video.srcObject=stream;video.setAttribute('playsinline','');video.muted=true;video.play();
+      ref.current.video=video;var canvas=document.createElement('canvas');canvas.width=16;canvas.height=16;ref.current.canvas=canvas;
+      var ctx=canvas.getContext('2d',{willReadFrequently:true});
+      ref.current.timer=setInterval(function(){if(video.readyState>=2){ctx.drawImage(video,0,0,16,16);var imgData=ctx.getImageData(0,0,16,16).data;
+        var tb=0,cnt=0;for(var i=0;i<imgData.length;i+=4){tb+=0.299*imgData[i]+0.587*imgData[i+1]+0.114*imgData[i+2];cnt++;}
+        var avg=tb/cnt;setData({lux:Math.round((avg/255)*1000),available:true,source:'camera'});}},500);
+    }).catch(function(){setData({lux:null,available:false,source:'denied'});});}
+    return function(){if(ref.current.timer)clearInterval(ref.current.timer);if(ref.current.stream){ref.current.stream.getTracks().forEach(function(t){t.stop();});}};
+  },[]);return data;
 }
 
-/* ── Motion/Accelerometer ── */
 function useMotion(){
-  var _s=useState({x:0,y:0,z:0,mag:0,available:false,source:'none'});
-  var data=_s[0],setData=_s[1];
-  var ref=useRef(null);
-  var perms=useSensorPermissions();
+  var _s=useState({x:0,y:0,z:0,mag:0,available:false,source:'none'});var data=_s[0],setData=_s[1];
+  var ref=useRef(null);var perms=useSensorPermissions();
   useEffect(function(){
     if(ref.current){ref.current();ref.current=null;}
-    if(NEEDS_MOTION_PERM&&_sensorPermState.motion!=='granted'){
-      setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});return function(){};}
-    var handler=function(ev){
-      var a=ev.accelerationIncludingGravity;
-      if(a&&(a.x!=null||a.y!=null||a.z!=null)){
-        var m=Math.sqrt((a.x||0)*(a.x||0)+(a.y||0)*(a.y||0)+(a.z||0)*(a.z||0));
+    if(NEEDS_MOTION_PERM&&_sensorPermState.motion!=='granted'){setData(function(d){return Object.assign({},d,{available:false,source:'awaiting_permission'});});return function(){};}
+    var handler=function(ev){var a=ev.accelerationIncludingGravity;
+      if(a&&(a.x!=null||a.y!=null||a.z!=null)){var m=Math.sqrt((a.x||0)*(a.x||0)+(a.y||0)*(a.y||0)+(a.z||0)*(a.z||0));
         setData({x:a.x||0,y:a.y||0,z:a.z||0,mag:m,available:true,source:'devicemotion'});}};
-    window.addEventListener('devicemotion',handler);
-    ref.current=function(){window.removeEventListener('devicemotion',handler);};
+    window.addEventListener('devicemotion',handler);ref.current=function(){window.removeEventListener('devicemotion',handler);};
     return function(){if(ref.current)ref.current();};
-  },[perms.perms.motion]);
-  return data;
+  },[perms.perms.motion]);return data;
 }
 
-/* ── Geolocation ── */
 function useGeoLocation(){
-  var _s=useState({lat:null,lon:null,acc:null,available:false});
-  var data=_s[0],setData=_s[1];
-  var fetch=useCallback(function(){
-    if(navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(function(pos){
-        setData({lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy,available:true});
-      },function(){},{enableHighAccuracy:true,timeout:5000});}
-  },[]);
-  return [data,fetch];
+  var _s=useState({lat:null,lon:null,acc:null,available:false});var data=_s[0],setData=_s[1];
+  var fetch=useCallback(function(){if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(function(pos){setData({lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy,available:true});},function(){},{enableHighAccuracy:true,timeout:5000});}
+  },[]);return[data,fetch];
 }
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  v0.7 NEW: BAROMETER (Generic Sensor API)                  */
+/*  v0.8: RF SPECTRUM — WebUSB SDR + Simulation               */
 /* ═══════════════════════════════════════════════════════════ */
-function useBarometer(){
-  var _s=useState({pressure:null,available:false,source:'none',trend:[],altitude:null});
-  var data=_s[0],setData=_s[1];
-  var trendRef=useRef([]);
 
-  useEffect(function(){
-    // Try Generic Sensor API: Barometer (requires Chrome flag or HTTPS)
-    if(window.Barometer){
-      try{
-        var sensor=new Barometer({frequency:1});
-        sensor.addEventListener('reading',function(){
-          var p=sensor.pressure; // hPa
-          trendRef.current=trendRef.current.concat([{t:Date.now(),p:p}]).slice(-60);
-          // Hypsometric formula: altitude ≈ 44330 * (1 - (P/P0)^(1/5.255))
-          var alt=44330*(1-Math.pow(p/1013.25,1/5.255));
-          setData({pressure:p,available:true,source:'barometer',trend:trendRef.current.slice(),altitude:alt});
-        });
-        sensor.addEventListener('error',function(e){
-          tryAbsoluteOrientation();
-        });
-        sensor.start();
-        return function(){try{sensor.stop();}catch(e){}};
-      }catch(e){tryAbsoluteOrientation();}
-    }else{tryAbsoluteOrientation();}
+/* Known RTL-SDR USB vendor/product IDs */
+var RTL_SDR_DEVICES=[
+  {vendorId:0x0bda,productId:0x2832},  /* Realtek RTL2832U */
+  {vendorId:0x0bda,productId:0x2838},  /* RTL2832U variant */
+];
 
-    function tryAbsoluteOrientation(){
-      // Try AbsoluteOrientationSensor or PressureSensor as fallback names
-      if(window.PressureSensor){
-        try{
-          var sensor2=new PressureSensor({frequency:1});
-          sensor2.addEventListener('reading',function(){
-            var p=sensor2.pressure;
-            trendRef.current=trendRef.current.concat([{t:Date.now(),p:p}]).slice(-60);
-            var alt=44330*(1-Math.pow(p/1013.25,1/5.255));
-            setData({pressure:p,available:true,source:'pressure_sensor',trend:trendRef.current.slice(),altitude:alt});
-          });
-          sensor2.start();
-          return;
-        }catch(e){}
+/* RF Band definitions */
+var RF_BANDS={
+  wifi24:{id:'wifi24',name:'WiFi 2.4G',fStart:2400,fEnd:2500,unit:'MHz',color:'#00ffaa',desc:'802.11 b/g/n — 2.4GHz ISM帯'},
+  wifi5:{id:'wifi5',name:'WiFi 5G',fStart:5150,fEnd:5850,unit:'MHz',color:'#00ddff',desc:'802.11 a/ac/ax — 5GHz帯'},
+  ble:{id:'ble',name:'BLE',fStart:2402,fEnd:2480,unit:'MHz',color:'#cc66ff',desc:'Bluetooth Low Energy — アドバタイズチャネル'},
+  fm:{id:'fm',name:'FM Radio',fStart:76,fEnd:108,unit:'MHz',color:'#ff8800',desc:'FM放送帯 — 76-108MHz (JP)'},
+  lte:{id:'lte',name:'LTE',fStart:700,fEnd:2700,unit:'MHz',color:'#ff4466',desc:'LTE/5G — マルチバンド概要'},
+  ism:{id:'ism',name:'ISM 915',fStart:902,fEnd:928,unit:'MHz',color:'#ffcc00',desc:'ISM帯 — IoT/LoRa/Zigbee'},
+};
+var RF_BAND_ORDER=['wifi24','wifi5','ble','fm','lte','ism'];
+
+/* Simulated spectrum generator — produces realistic-looking noise floor + peaks */
+function genSimSpectrum(band,bins){
+  var data=new Float32Array(bins);
+  var noiseFloor=-90; /* dBm */
+  /* Base noise */
+  for(var i=0;i<bins;i++){data[i]=noiseFloor+Math.random()*6-3;}
+  /* Add characteristic peaks based on band */
+  if(band.id==='wifi24'){
+    /* Channels 1,6,11 peaks */
+    var chPos=[0.08,0.375,0.67];
+    for(var c=0;c<chPos.length;c++){
+      var center=Math.floor(chPos[c]*bins);
+      var width=Math.floor(bins*0.08);
+      var strength=-40-Math.random()*20;
+      for(var j=-width;j<=width;j++){
+        var idx=center+j;if(idx>=0&&idx<bins){
+          var env=Math.exp(-(j*j)/(2*(width/3)*(width/3)));
+          data[idx]=Math.max(data[idx],strength*env+noiseFloor*(1-env));
+        }
       }
-      // No barometer available — leave as unavailable
-      setData(function(d){return Object.assign({},d,{available:false,source:'unavailable'});});
     }
-  },[]);
+  }else if(band.id==='wifi5'){
+    /* Multiple UNII band peaks */
+    var peaks=[0.1,0.25,0.45,0.65,0.85];
+    for(var c=0;c<peaks.length;c++){
+      if(Math.random()>0.3){
+        var center=Math.floor(peaks[c]*bins);var width=Math.floor(bins*0.04);
+        var strength=-35-Math.random()*25;
+        for(var j=-width;j<=width;j++){var idx=center+j;if(idx>=0&&idx<bins){
+          var env=Math.exp(-(j*j)/(2*(width/3)*(width/3)));
+          data[idx]=Math.max(data[idx],strength*env+noiseFloor*(1-env));}}
+      }
+    }
+  }else if(band.id==='ble'){
+    /* BLE advertising channels 37,38,39 + data channels */
+    for(var c=0;c<12;c++){
+      if(Math.random()>0.5){
+        var center=Math.floor((c/12)*bins+bins*0.04);var width=Math.floor(bins*0.02);
+        var strength=-50-Math.random()*20;
+        for(var j=-width;j<=width;j++){var idx=center+j;if(idx>=0&&idx<bins){
+          var env=Math.exp(-(j*j)/(2*(width/4)*(width/4)));
+          data[idx]=Math.max(data[idx],strength*env+noiseFloor*(1-env));}}
+      }
+    }
+  }else if(band.id==='fm'){
+    /* FM stations — narrowband peaks */
+    var stations=[0.12,0.28,0.42,0.55,0.68,0.82,0.91];
+    for(var c=0;c<stations.length;c++){
+      if(Math.random()>0.2){
+        var center=Math.floor(stations[c]*bins);var width=Math.floor(bins*0.015);
+        var strength=-25-Math.random()*30;
+        for(var j=-width;j<=width;j++){var idx=center+j;if(idx>=0&&idx<bins){
+          var env=Math.exp(-(j*j)/(2*(width/3)*(width/3)));
+          data[idx]=Math.max(data[idx],strength*env+noiseFloor*(1-env));}}
+      }
+    }
+  }else if(band.id==='lte'){
+    /* LTE wide blocks */
+    var blocks=[{p:0.05,w:0.06},{p:0.2,w:0.08},{p:0.45,w:0.1},{p:0.7,w:0.07},{p:0.9,w:0.05}];
+    for(var c=0;c<blocks.length;c++){
+      var center=Math.floor(blocks[c].p*bins);var width=Math.floor(blocks[c].w*bins);
+      var strength=-45-Math.random()*15;
+      for(var j=-width;j<=width;j++){var idx=center+j;if(idx>=0&&idx<bins){
+        var env=1-Math.pow(Math.abs(j)/width,2);
+        data[idx]=Math.max(data[idx],strength*env+noiseFloor*(1-env));}}
+    }
+  }else if(band.id==='ism'){
+    /* ISM narrow channels */
+    for(var c=0;c<6;c++){
+      if(Math.random()>0.4){
+        var center=Math.floor((c/6)*bins+bins*0.08);var width=Math.floor(bins*0.03);
+        var strength=-55-Math.random()*20;
+        for(var j=-width;j<=width;j++){var idx=center+j;if(idx>=0&&idx<bins){
+          var env=Math.exp(-(j*j)/(2*(width/3)*(width/3)));
+          data[idx]=Math.max(data[idx],strength*env+noiseFloor*(1-env));}}
+      }
+    }
+  }
   return data;
 }
 
-/* ═══════════════════════════════════════════════════════════ */
-/*  v0.7 NEW: WiFi / NETWORK INFORMATION API                  */
-/* ═══════════════════════════════════════════════════════════ */
-function useNetworkInfo(){
-  var _s=useState({available:false,type:'unknown',effectiveType:'unknown',downlink:null,rtt:null,saveData:false,history:[]});
-  var data=_s[0],setData=_s[1];
-  var histRef=useRef([]);
-
-  useEffect(function(){
-    var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
-    if(!conn){
-      setData(function(d){return Object.assign({},d,{available:false,source:'unsupported'});});
-      return;
-    }
-    function update(){
-      var snap={
-        type:conn.type||'unknown',
-        effectiveType:conn.effectiveType||'unknown',
-        downlink:conn.downlink!=null?conn.downlink:null,
-        rtt:conn.rtt!=null?conn.rtt:null,
-        saveData:!!conn.saveData,
-        t:Date.now()
-      };
-      histRef.current=histRef.current.concat([snap]).slice(-60);
-      setData({
-        available:true,type:snap.type,effectiveType:snap.effectiveType,
-        downlink:snap.downlink,rtt:snap.rtt,saveData:snap.saveData,
-        history:histRef.current.slice(),source:'network_info'
-      });
-    }
-    update();
-    conn.addEventListener('change',update);
-    // Also poll periodically since change events may be infrequent
-    var iv=setInterval(update,3000);
-    return function(){conn.removeEventListener('change',update);clearInterval(iv);};
-  },[]);
-  return data;
+/* RF spectrum density metric: ratio of bins above threshold */
+function rfDensity(spectrum,threshDbm){
+  if(!spectrum||!spectrum.length)return 0;
+  var above=0;var th=threshDbm||-70;
+  for(var i=0;i<spectrum.length;i++){if(spectrum[i]>th)above++;}
+  return above/spectrum.length;
 }
 
-/* ═══════════════════════════════════════════════════════════ */
-/*  v0.7 NEW: BLE PROXIMITY (Web Bluetooth)                    */
-/* ═══════════════════════════════════════════════════════════ */
-function useBLE(){
-  var _s=useState({available:false,scanning:false,devices:[],error:null,source:'none'});
-  var data=_s[0],setData=_s[1];
-  var devMapRef=useRef({});
-  var abortRef=useRef(null);
-
-  var isSupported=!!navigator.bluetooth;
-
-  // Request a BLE scan (requires user gesture)
-  var scanOnce=useCallback(function(){
-    if(!navigator.bluetooth){
-      setData(function(d){return Object.assign({},d,{error:'Web Bluetooth not supported',source:'unsupported'});});
-      return Promise.resolve();
+/* Peak detection in spectrum */
+function rfPeaks(spectrum,band,topN){
+  if(!spectrum||!spectrum.length)return[];
+  var peaks=[];var n=topN||5;
+  var copy=Array.from(spectrum);
+  for(var p=0;p<n;p++){
+    var maxVal=-999,maxIdx=0;
+    for(var i=2;i<copy.length-2;i++){
+      if(copy[i]>maxVal&&copy[i]>copy[i-1]&&copy[i]>copy[i+1]){maxVal=copy[i];maxIdx=i;}
     }
-
-    // Use requestDevice to discover a device — this opens the browser's device picker
-    // This is the most widely supported approach
-    setData(function(d){return Object.assign({},d,{scanning:true,error:null});});
-
-    return navigator.bluetooth.requestDevice({
-      acceptAllDevices:true,
-      optionalServices:['battery_service','device_information','generic_access']
-    }).then(function(device){
-      var id=device.id||device.name||genId();
-      var entry={
-        id:id,
-        name:device.name||'Unknown Device',
-        rssi:null,
-        txPower:null,
-        lastSeen:new Date(),
-        connected:false,
-        services:[],
-        batteryLevel:null
-      };
-
-      // Try to connect to GATT to get more info
-      if(device.gatt){
-        return device.gatt.connect().then(function(server){
-          entry.connected=true;
-          // Try battery service
-          return server.getPrimaryService('battery_service').then(function(service){
-            return service.getCharacteristic('battery_level');
-          }).then(function(char){
-            return char.readValue();
-          }).then(function(val){
-            entry.batteryLevel=val.getUint8(0);
-          }).catch(function(){}).then(function(){
-            // Try device info
-            return server.getPrimaryService('device_information').catch(function(){return null;});
-          }).then(function(diService){
-            if(diService){
-              return diService.getCharacteristic('manufacturer_name_string').then(function(c){return c.readValue();}).then(function(v){
-                entry.manufacturer=new TextDecoder().decode(v);
-              }).catch(function(){});
-            }
-          }).then(function(){
-            devMapRef.current[id]=entry;
-            var devList=Object.values(devMapRef.current).sort(function(a,b){return b.lastSeen-a.lastSeen;});
-            setData(function(d){return Object.assign({},d,{available:true,scanning:false,devices:devList,source:'web_bluetooth'});});
-            // Disconnect to save power
-            try{server.disconnect();}catch(e){}
-          });
-        }).catch(function(){
-          devMapRef.current[id]=entry;
-          var devList=Object.values(devMapRef.current).sort(function(a,b){return b.lastSeen-a.lastSeen;});
-          setData(function(d){return Object.assign({},d,{available:true,scanning:false,devices:devList,source:'web_bluetooth'});});
-        });
-      }
-
-      devMapRef.current[id]=entry;
-      var devList=Object.values(devMapRef.current).sort(function(a,b){return b.lastSeen-a.lastSeen;});
-      setData(function(d){return Object.assign({},d,{available:true,scanning:false,devices:devList,source:'web_bluetooth'});});
-    }).catch(function(err){
-      setData(function(d){return Object.assign({},d,{scanning:false,
-        error:err.message==='User cancelled the requestDevice() chooser.'?null:err.message});});
-    });
-  },[]);
-
-  // Experimental: BLE scanning API (Chrome with flag)
-  var startAdvScan=useCallback(function(){
-    if(!navigator.bluetooth||!navigator.bluetooth.requestLEScan){
-      setData(function(d){return Object.assign({},d,{error:'requestLEScan not available. Use device picker instead.',source:'partial'});});
-      return Promise.resolve();
+    if(maxVal>-85){
+      var freq=band.fStart+(maxIdx/spectrum.length)*(band.fEnd-band.fStart);
+      peaks.push({freq:freq,power:maxVal,bin:maxIdx});
+      /* blank neighbors */
+      for(var j=maxIdx-5;j<=maxIdx+5;j++){if(j>=0&&j<copy.length)copy[j]=-999;}
     }
-    setData(function(d){return Object.assign({},d,{scanning:true,error:null});});
-    return navigator.bluetooth.requestLEScan({acceptAllAdvertisements:true}).then(function(scan){
-      abortRef.current=scan;
-      navigator.bluetooth.addEventListener('advertisementreceived',function(ev){
-        var id=ev.device.id||ev.device.name||'unknown';
-        var entry=devMapRef.current[id]||{id:id,name:ev.device.name||'Unknown',services:[]};
-        entry.rssi=ev.rssi;
-        entry.txPower=ev.txPower;
-        entry.lastSeen=new Date();
-        entry.name=ev.device.name||entry.name;
-        if(ev.uuids)entry.services=ev.uuids;
-        devMapRef.current[id]=entry;
-        var devList=Object.values(devMapRef.current).sort(function(a,b){return(b.rssi||(-999))-(a.rssi||(-999));});
-        setData(function(d){return Object.assign({},d,{available:true,scanning:true,devices:devList,source:'ble_scan'});});
-      });
-    }).catch(function(err){
-      setData(function(d){return Object.assign({},d,{scanning:false,error:err.message});});
-    });
-  },[]);
-
-  var stopAdvScan=useCallback(function(){
-    if(abortRef.current&&abortRef.current.stop){
-      abortRef.current.stop();abortRef.current=null;
-    }
-    setData(function(d){return Object.assign({},d,{scanning:false});});
-  },[]);
-
-  var clearDevices=useCallback(function(){
-    devMapRef.current={};
-    setData(function(d){return Object.assign({},d,{devices:[]});});
-  },[]);
-
-  return{data:data,isSupported:isSupported,scanOnce:scanOnce,startAdvScan:startAdvScan,stopAdvScan:stopAdvScan,clearDevices:clearDevices,
-    hasLEScan:!!(navigator.bluetooth&&navigator.bluetooth.requestLEScan)};
+  }
+  return peaks;
 }
 
-/* ═══════════════════════════════════════════════════════════ */
-/*  v0.7 NEW: MULTI-DEVICE SYNC (BroadcastChannel + Beacon)   */
-/* ═══════════════════════════════════════════════════════════ */
-var SYNC_CHANNEL_NAME='ptcp-sync-v07';
-
-function useMultiSync(){
-  var _s=useState({
-    nodeId:genId()+'-'+genId(),
-    peers:{},
-    peerCount:0,
-    lastSync:null,
-    bcAvailable:typeof BroadcastChannel!=='undefined',
-    syncMode:'local', // 'local' (BroadcastChannel) or 'acoustic'
-    beaconActive:false,
-    beaconListening:false,
-    messages:[]
-  });
+function useRFSpectrum(){
+  var _s=useState({connected:false,device:null,source:'simulation',scanning:false,error:null});
   var state=_s[0],setState=_s[1];
-  var bcRef=useRef(null);
-  var peersRef=useRef({});
-  var nodeIdRef=useRef(state.nodeId);
+  var _sp=useState(null);var spectrum=_sp[0],setSpectrum=_sp[1];
+  var _wf=useState([]);var waterfall=_wf[0],setWaterfall=_wf[1];
+  var _band=useState('wifi24');var bandId=_band[0],setBandId=_band[1];
+  var _hist=useState([]);var rfHist=_hist[0],setRfHist=_hist[1];
+  var scanRef=useRef(null);
+  var deviceRef=useRef(null);
 
-  // BroadcastChannel for same-origin tab sync
-  useEffect(function(){
-    if(typeof BroadcastChannel==='undefined')return;
-    var bc=new BroadcastChannel(SYNC_CHANNEL_NAME);
-    bcRef.current=bc;
+  var band=RF_BANDS[bandId];
 
-    bc.onmessage=function(ev){
-      var msg=ev.data;
-      if(!msg||!msg.nodeId||msg.nodeId===nodeIdRef.current)return;
+  /* Attempt WebUSB SDR connection */
+  var connectSDR=useCallback(function(){
+    if(!navigator.usb){setState(function(s){return Object.assign({},s,{error:'WebUSB not supported in this browser'});});return Promise.resolve();}
+    return navigator.usb.requestDevice({filters:RTL_SDR_DEVICES}).then(function(device){
+      deviceRef.current=device;
+      return device.open();
+    }).then(function(){
+      var device=deviceRef.current;
+      return device.selectConfiguration(1);
+    }).then(function(){
+      var device=deviceRef.current;
+      return device.claimInterface(0);
+    }).then(function(){
+      setState(function(s){return Object.assign({},s,{connected:true,device:deviceRef.current,source:'webusb_sdr',error:null});});
+    }).catch(function(err){
+      setState(function(s){return Object.assign({},s,{connected:false,error:'SDR: '+err.message,source:'simulation'});});
+    });
+  },[]);
 
-      // Update peer info
-      peersRef.current[msg.nodeId]={
-        nodeId:msg.nodeId,
-        lastSeen:new Date(),
-        data:msg.payload||{},
-        type:msg.type
-      };
+  var disconnectSDR=useCallback(function(){
+    if(deviceRef.current){
+      try{deviceRef.current.close();}catch(e){}
+      deviceRef.current=null;
+    }
+    setState(function(s){return Object.assign({},s,{connected:false,device:null,source:'simulation'});});
+  },[]);
 
-      // Clean stale peers (>10s)
-      var now=Date.now();
-      var peers=peersRef.current;
-      for(var k in peers){if(now-peers[k].lastSeen.getTime()>10000)delete peers[k];}
+  /* Read from SDR (simplified — real implementation needs full RTL2832U protocol) */
+  var readSDR=useCallback(function(device,band){
+    /* Real SDR read requires:
+       1. Set center frequency via vendor control transfer
+       2. Set sample rate
+       3. Read bulk IQ data
+       4. FFT to get spectrum
+       This is a simplified framework — full implementation needs RTL2832U register programming */
+    var BINS=256;
+    /* Control transfer: set center frequency */
+    var centerFreq=Math.floor((band.fStart+band.fEnd)/2*1e6);
+    var freqBytes=new Uint8Array(4);
+    freqBytes[0]=(centerFreq>>24)&0xff;freqBytes[1]=(centerFreq>>16)&0xff;
+    freqBytes[2]=(centerFreq>>8)&0xff;freqBytes[3]=centerFreq&0xff;
 
-      var peerList=Object.assign({},peersRef.current);
-      var msgEntry={time:new Date(),from:msg.nodeId,type:msg.type,data:msg.payload};
+    return device.controlTransferOut({
+      requestType:'vendor',recipient:'device',request:0x09,/* SET_FREQ */
+      value:0,index:0
+    },freqBytes).then(function(){
+      /* Read bulk IQ data */
+      return device.transferIn(1,BINS*2);
+    }).then(function(result){
+      if(result.data&&result.data.byteLength>=BINS*2){
+        /* Convert IQ pairs to magnitude spectrum (simplified) */
+        var iq=new Uint8Array(result.data.buffer);
+        var spectrum=new Float32Array(BINS);
+        for(var i=0;i<BINS;i++){
+          var I=(iq[i*2]-128)/128;
+          var Q=(iq[i*2+1]-128)/128;
+          var mag=Math.sqrt(I*I+Q*Q);
+          spectrum[i]=20*Math.log10(Math.max(mag,1e-10))-30;/* approximate dBm */
+        }
+        return spectrum;
+      }
+      return null;
+    }).catch(function(){return null;});
+  },[]);
 
-      setState(function(s){
-        var msgs=s.messages.concat([msgEntry]).slice(-50);
-        return Object.assign({},s,{peers:peerList,peerCount:Object.keys(peerList).length,lastSync:new Date(),messages:msgs});
-      });
+  /* Scan loop */
+  var startScan=useCallback(function(){
+    setState(function(s){return Object.assign({},s,{scanning:true});});
+    var BINS=256;
+
+    var doScan=function(){
+      var currentBand=RF_BANDS[bandId];
+      if(state.connected&&deviceRef.current){
+        /* Real SDR read */
+        readSDR(deviceRef.current,currentBand).then(function(data){
+          if(data){
+            setSpectrum(data);
+            setWaterfall(function(p){return[data].concat(p).slice(0,64);});
+            var peaks=rfPeaks(data,currentBand,5);
+            var density=rfDensity(data,-70);
+            setRfHist(function(p){return[{time:new Date(),band:currentBand.id,peaks:peaks,density:density,peakPower:peaks.length?peaks[0].power:-90}].concat(p).slice(0,32);});
+          }
+        });
+      }else{
+        /* Simulation mode */
+        var sim=genSimSpectrum(currentBand,BINS);
+        /* Add temporal variation */
+        var prev=spectrum;
+        if(prev&&prev.length===BINS){
+          for(var i=0;i<BINS;i++){sim[i]=sim[i]*0.3+prev[i]*0.7+Math.random()*2-1;}
+        }
+        setSpectrum(sim);
+        setWaterfall(function(p){return[sim].concat(p).slice(0,64);});
+        var peaks=rfPeaks(sim,currentBand,5);
+        var density=rfDensity(sim,-70);
+        setRfHist(function(p){return[{time:new Date(),band:currentBand.id,peaks:peaks,density:density,peakPower:peaks.length?peaks[0].power:-90}].concat(p).slice(0,32);});
+      }
     };
 
-    // Announce presence
-    function announce(){
-      bc.postMessage({type:'heartbeat',nodeId:nodeIdRef.current,payload:{ts:Date.now()}});
-    }
-    announce();
-    var hbTimer=setInterval(announce,3000);
+    doScan();
+    scanRef.current=setInterval(doScan,500);
+  },[bandId,state.connected,spectrum,readSDR]);
 
-    return function(){
-      bc.postMessage({type:'disconnect',nodeId:nodeIdRef.current,payload:{}});
-      clearInterval(hbTimer);
-      bc.close();
-    };
+  var stopScan=useCallback(function(){
+    setState(function(s){return Object.assign({},s,{scanning:false});});
+    if(scanRef.current){clearInterval(scanRef.current);scanRef.current=null;}
   },[]);
 
-  // Broadcast sensor data
-  var broadcastData=useCallback(function(payload){
-    if(bcRef.current){
-      bcRef.current.postMessage({type:'sensor_data',nodeId:nodeIdRef.current,payload:payload});
-    }
-  },[]);
+  useEffect(function(){return function(){if(scanRef.current)clearInterval(scanRef.current);};},[]); /* cleanup */
 
-  // Broadcast ping result
-  var broadcastPing=useCallback(function(pingResult){
-    if(bcRef.current){
-      bcRef.current.postMessage({type:'ping_result',nodeId:nodeIdRef.current,payload:pingResult});
-    }
-  },[]);
-
-  // Send arbitrary message
-  var sendMessage=useCallback(function(type,payload){
-    if(bcRef.current){
-      bcRef.current.postMessage({type:type,nodeId:nodeIdRef.current,payload:payload||{}});
-    }
-  },[]);
-
-  return{state:state,broadcastData:broadcastData,broadcastPing:broadcastPing,sendMessage:sendMessage};
+  return{state:state,spectrum:spectrum,waterfall:waterfall,bandId:bandId,setBandId:setBandId,band:band,
+    rfHist:rfHist,connectSDR:connectSDR,disconnectSDR:disconnectSDR,startScan:startScan,stopScan:stopScan};
 }
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  MEDIATION COEFFICIENT CALCULATOR (v0.7 expanded)          */
+/*  v0.8: NFC FIELD DETECTION — Web NFC API + Simulation      */
 /* ═══════════════════════════════════════════════════════════ */
-function calcMediation(acoustic,mag,light,motion,baro,netInfo,bleDevices){
+
+var NFC_SUPPORTED=typeof window!=='undefined'&&'NDEFReader' in window;
+
+function useNFC(){
+  var _s=useState({available:NFC_SUPPORTED,scanning:false,lastTag:null,tagHistory:[],error:null,fieldStrength:0,source:NFC_SUPPORTED?'webnfc':'simulation'});
+  var state=_s[0],setState=_s[1];
+  var readerRef=useRef(null);
+  var abortRef=useRef(null);
+  var simTimerRef=useRef(null);
+
+  var startScan=useCallback(function(){
+    if(NFC_SUPPORTED){
+      /* Real Web NFC */
+      try{
+        var reader=new NDEFReader();
+        readerRef.current=reader;
+        var ctrl=new AbortController();
+        abortRef.current=ctrl;
+
+        reader.scan({signal:ctrl.signal}).then(function(){
+          setState(function(s){return Object.assign({},s,{scanning:true,error:null});});
+        }).catch(function(err){
+          setState(function(s){return Object.assign({},s,{error:'NFC: '+err.message,scanning:false});});
+        });
+
+        reader.addEventListener('reading',function(ev){
+          var tag={
+            serialNumber:ev.serialNumber||'unknown',
+            time:new Date(),
+            records:[]
+          };
+          if(ev.message&&ev.message.records){
+            for(var i=0;i<ev.message.records.length;i++){
+              var rec=ev.message.records[i];
+              var payload='';
+              if(rec.data){
+                try{
+                  var decoder=new TextDecoder(rec.encoding||'utf-8');
+                  payload=decoder.decode(rec.data);
+                }catch(e){payload='[binary '+rec.data.byteLength+'B]';}
+              }
+              tag.records.push({type:rec.recordType,mediaType:rec.mediaType||'',payload:payload});
+            }
+          }
+          setState(function(s){return Object.assign({},s,{lastTag:tag,fieldStrength:1.0,
+            tagHistory:[tag].concat(s.tagHistory).slice(0,16)});});
+          /* Decay field strength */
+          setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:Math.max(0,s.fieldStrength-0.3)});});},500);
+          setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:Math.max(0,s.fieldStrength-0.3)});});},1000);
+          setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:0});});},2000);
+        });
+
+        reader.addEventListener('readingerror',function(){
+          /* Partial field detection — tag present but unreadable */
+          setState(function(s){return Object.assign({},s,{fieldStrength:0.3});});
+          setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:0});});},1000);
+        });
+      }catch(err){
+        setState(function(s){return Object.assign({},s,{error:'NFC init: '+err.message});});
+      }
+    }else{
+      /* Simulation mode */
+      setState(function(s){return Object.assign({},s,{scanning:true,source:'simulation'});});
+      simTimerRef.current=setInterval(function(){
+        /* Simulate ambient NFC field fluctuations */
+        var r=Math.random();
+        if(r>0.92){
+          /* Simulate tag detection */
+          var fakeTag={
+            serialNumber:Array.from({length:7},function(){return Math.floor(Math.random()*256).toString(16).padStart(2,'0');}).join(':'),
+            time:new Date(),
+            records:[{type:'text',mediaType:'text/plain',payload:'SIM:NFC_TAG_'+genId()}]
+          };
+          setState(function(s){return Object.assign({},s,{lastTag:fakeTag,fieldStrength:0.8+Math.random()*0.2,
+            tagHistory:[fakeTag].concat(s.tagHistory).slice(0,16)});});
+          setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:0});});},2000);
+        }else if(r>0.85){
+          /* Faint field */
+          setState(function(s){return Object.assign({},s,{fieldStrength:0.1+Math.random()*0.2});});
+          setTimeout(function(){setState(function(s){return Object.assign({},s,{fieldStrength:0});});},800);
+        }
+      },2000);
+    }
+  },[]);
+
+  var stopScan=useCallback(function(){
+    if(abortRef.current){try{abortRef.current.abort();}catch(e){}}
+    if(simTimerRef.current){clearInterval(simTimerRef.current);}
+    setState(function(s){return Object.assign({},s,{scanning:false,fieldStrength:0});});
+  },[]);
+
+  useEffect(function(){return function(){
+    if(abortRef.current){try{abortRef.current.abort();}catch(e){}}
+    if(simTimerRef.current){clearInterval(simTimerRef.current);}
+  };},[]); /* cleanup */
+
+  return{state:state,startScan:startScan,stopScan:stopScan};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v0.8: THERMAL ESTIMATION                                  */
+/* ═══════════════════════════════════════════════════════════ */
+
+function useThermal(){
+  var _s=useState({
+    cpuTemp:null,batteryTemp:null,estimatedTemp:null,
+    batteryLevel:null,batteryCharging:false,
+    cpuLoad:0,cpuCores:navigator.hardwareConcurrency||4,
+    available:false,source:'none',
+    history:[]
+  });
+  var data=_s[0],setData=_s[1];
+  var timerRef=useRef(null);
+  var cpuSamplesRef=useRef([]);
+
+  /* CPU load estimation via timestamp deltas */
+  var measureCPULoad=useCallback(function(){
+    return new Promise(function(resolve){
+      var iterations=1000000;
+      var start=performance.now();
+      /* Busy loop to measure available CPU cycles */
+      var sum=0;for(var i=0;i<iterations;i++){sum+=Math.sin(i*0.001);}
+      var elapsed=performance.now()-start;
+      /* Baseline ~15ms for 1M iterations on idle; higher = more CPU contention */
+      var baseline=15;
+      var load=Math.min(1,Math.max(0,(elapsed-baseline)/baseline));
+      cpuSamplesRef.current.push(load);
+      if(cpuSamplesRef.current.length>10)cpuSamplesRef.current.shift();
+      var avgLoad=cpuSamplesRef.current.reduce(function(s,v){return s+v;},0)/cpuSamplesRef.current.length;
+      resolve(avgLoad);
+    });
+  },[]);
+
+  /* Battery API for temperature proxy */
+  var getBatteryInfo=useCallback(function(){
+    if(navigator.getBattery){
+      return navigator.getBattery().then(function(battery){
+        return{level:battery.level,charging:battery.charging,
+          dischargingTime:battery.dischargingTime,chargingTime:battery.chargingTime};
+      }).catch(function(){return null;});
+    }
+    return Promise.resolve(null);
+  },[]);
+
+  /* Thermal estimation model:
+     - CPU load → heat generation proxy
+     - Battery state → charging generates heat
+     - Time-based accumulation model
+     - Ambient baseline assumption: 22°C */
+  var estimateTemp=useCallback(function(cpuLoad,battery){
+    var ambient=22; /* °C baseline */
+    var cpuHeat=cpuLoad*15; /* 0-15°C contribution */
+    var batteryHeat=0;
+    if(battery){
+      if(battery.charging)batteryHeat=5; /* charging adds ~5°C */
+      /* Low battery tends to get warmer under load */
+      if(battery.level<0.2)batteryHeat+=3;
+    }
+    /* Simple thermal model */
+    var estimated=ambient+cpuHeat+batteryHeat;
+    /* Add some noise for realism */
+    estimated+=Math.random()*2-1;
+    return Math.round(estimated*10)/10;
+  },[]);
+
+  var startMonitoring=useCallback(function(){
+    var doMeasure=function(){
+      Promise.all([measureCPULoad(),getBatteryInfo()]).then(function(results){
+        var cpuLoad=results[0];
+        var battery=results[1];
+        var estTemp=estimateTemp(cpuLoad,battery);
+
+        setData(function(prev){
+          var snap={
+            time:new Date(),
+            cpuLoad:cpuLoad,
+            estTemp:estTemp,
+            batteryLevel:battery?battery.level:null,
+            charging:battery?battery.charging:false
+          };
+          return{
+            cpuTemp:null,/* No direct CPU temp API in browsers */
+            batteryTemp:null,/* No direct battery temp API */
+            estimatedTemp:estTemp,
+            batteryLevel:battery?battery.level:null,
+            batteryCharging:battery?battery.charging:false,
+            cpuLoad:cpuLoad,
+            cpuCores:navigator.hardwareConcurrency||4,
+            available:true,
+            source:'estimation',
+            history:[snap].concat(prev.history).slice(0,64)
+          };
+        });
+      });
+    };
+    doMeasure();
+    timerRef.current=setInterval(doMeasure,3000);
+  },[measureCPULoad,getBatteryInfo,estimateTemp]);
+
+  var stopMonitoring=useCallback(function(){
+    if(timerRef.current){clearInterval(timerRef.current);timerRef.current=null;}
+    setData(function(s){return Object.assign({},s,{available:false});});
+  },[]);
+
+  useEffect(function(){return function(){if(timerRef.current)clearInterval(timerRef.current);};},[]); /* cleanup */
+
+  return{data:data,startMonitoring:startMonitoring,stopMonitoring:stopMonitoring};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  MEDIATION COEFFICIENT — v0.8 expanded with 7 dimensions   */
+/* ═══════════════════════════════════════════════════════════ */
+function calcMediation(acoustic,mag,light,motion,rfData,nfcData,thermalData){
   var dims={};
 
-  // Acoustic Responsiveness
-  if(acoustic&&acoustic.rtt!=null){dims.acoustic=Math.min(1,acoustic.cf||0);}
-  else{dims.acoustic=0;}
+  /* Acoustic Responsiveness */
+  if(acoustic&&acoustic.rtt!=null){dims.acoustic=Math.min(1,acoustic.cf||0);}else{dims.acoustic=0;}
 
-  // EM Field Density
+  /* EM Field Density (magnetometer) */
   if(mag.available){
-    if(mag.source==='magnetometer'){dims.emField=Math.min(1,mag.mag/100);}
-    else{dims.emField=Math.min(1,mag.mag/90);}
+    dims.emField=mag.source==='magnetometer'?Math.min(1,mag.mag/100):Math.min(1,mag.mag/90);
   }else{dims.emField=0.5;}
 
-  // Photonic Environment
-  if(light.available&&light.lux!=null){dims.photonic=Math.min(1,light.lux/1000);}
-  else{dims.photonic=0.5;}
+  /* Photonic Environment */
+  if(light.available&&light.lux!=null){dims.photonic=Math.min(1,light.lux/1000);}else{dims.photonic=0.5;}
 
-  // Kinetic Stability
+  /* Kinetic Stability */
   if(motion.available){
-    var devFromGravity=Math.abs(motion.mag-9.81);
-    dims.kinetic=Math.max(0,1-devFromGravity/5);
+    var devFromGravity=Math.abs(motion.mag-9.81);dims.kinetic=Math.max(0,1-devFromGravity/5);
   }else{dims.kinetic=0.5;}
 
-  // v0.7: Barometric (atmospheric stability)
-  if(baro&&baro.available){
-    // Normal sea-level: ~1013.25 hPa. Deviation indicates weather/altitude
-    var pDev=Math.abs(baro.pressure-1013.25);
-    dims.barometric=Math.max(0,1-pDev/50); // within 50 hPa of normal = high
-  }else{dims.barometric=0.5;}
+  /* v0.8: RF Density */
+  if(rfData&&rfData.spectrum){
+    dims.rfDensity=rfDensity(rfData.spectrum,-70);
+  }else{dims.rfDensity=0;}
 
-  // v0.7: Network Connectivity
-  if(netInfo&&netInfo.available){
-    var netScore=0;
-    if(netInfo.effectiveType==='4g')netScore=0.9;
-    else if(netInfo.effectiveType==='3g')netScore=0.6;
-    else if(netInfo.effectiveType==='2g')netScore=0.3;
-    else if(netInfo.effectiveType==='slow-2g')netScore=0.1;
-    else netScore=0.5;
-    // Adjust by RTT
-    if(netInfo.rtt!=null){netScore=netScore*Math.max(0,1-netInfo.rtt/2000);}
-    dims.network=Math.min(1,netScore);
-  }else{dims.network=0.5;}
+  /* v0.8: NFC Proximity */
+  if(nfcData){
+    dims.nfcField=nfcData.state.fieldStrength||0;
+  }else{dims.nfcField=0;}
 
-  // v0.7: BLE Proximity density
-  if(bleDevices&&bleDevices.length>0){
-    // More devices nearby = higher connectivity
-    dims.bleProximity=Math.min(1,bleDevices.length/10);
-  }else{dims.bleProximity=0;}
+  /* v0.8: Thermal State (inverted — cooler is better for sensing) */
+  if(thermalData&&thermalData.data.available){
+    var temp=thermalData.data.estimatedTemp||22;
+    dims.thermal=Math.max(0,Math.min(1,1-(temp-20)/40));
+  }else{dims.thermal=0.5;}
 
-  // Composite: expanded weights for v0.7
-  var weights={acoustic:0.25,emField:0.15,photonic:0.10,kinetic:0.15,barometric:0.10,network:0.15,bleProximity:0.10};
+  /* Composite: expanded weights */
+  var weights={acoustic:0.25,emField:0.15,photonic:0.10,kinetic:0.15,rfDensity:0.15,nfcField:0.10,thermal:0.10};
   var total=0,wSum=0;
-  for(var k in dims){if(weights[k]){total+=dims[k]*weights[k];wSum+=weights[k];}}
+  for(var k in dims){if(weights[k]!=null){total+=dims[k]*weights[k];wSum+=weights[k];}}
   var composite=wSum>0?total/wSum:0;
 
   return{composite:composite,dims:dims};
 }
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  SPACE PROFILE CLASSIFIER (v0.7 expanded)                   */
+/*  SPACE PROFILE v0.8                                        */
 /* ═══════════════════════════════════════════════════════════ */
 function classifySpace(med,acousticHist){
-  var tags=[];
-  var d=med.dims;
+  var tags=[];var d=med.dims;
 
   if(acousticHist&&acousticHist.length>2){
     var avgRtt=0,cnt=0;
     for(var i=0;i<acousticHist.length;i++){if(acousticHist[i].rtt!=null){avgRtt+=acousticHist[i].rtt;cnt++;}}
-    if(cnt>0){
-      avgRtt/=cnt;
+    if(cnt>0){avgRtt/=cnt;
       if(avgRtt<5)tags.push({l:'ENCLOSED',c:'#00ffaa'});
       else if(avgRtt<20)tags.push({l:'INDOOR',c:'#00ddff'});
       else if(avgRtt<50)tags.push({l:'OPEN-INDOOR',c:'#ffcc00'});
-      else tags.push({l:'OUTDOOR',c:'#ff8800'});
-    }
+      else tags.push({l:'OUTDOOR',c:'#ff8800'});}
   }
-
   if(d.emField>0.7)tags.push({l:'HIGH-EM',c:'#ff4466'});
   else if(d.emField>0.3)tags.push({l:'MODERATE-EM',c:'#cc66ff'});
   else tags.push({l:'LOW-EM',c:'#00ffaa'});
@@ -753,17 +838,18 @@ function classifySpace(med,acousticHist){
   else if(d.kinetic>0.4)tags.push({l:'MOVING',c:'#ffcc00'});
   else tags.push({l:'UNSTABLE',c:'#ff3333'});
 
-  // v0.7 new tags
-  if(d.barometric>0.8)tags.push({l:'BARO-STABLE',c:'#88aacc'});
-  else if(d.barometric>0.4)tags.push({l:'BARO-VARY',c:'#cc8844'});
-  else tags.push({l:'ALTITUDE',c:'#ff8800'});
+  /* v0.8 RF */
+  if(d.rfDensity>0.4)tags.push({l:'RF-DENSE',c:'#ff4466'});
+  else if(d.rfDensity>0.1)tags.push({l:'RF-PRESENT',c:'#ff8800'});
+  else tags.push({l:'RF-QUIET',c:'#556677'});
 
-  if(d.network>0.7)tags.push({l:'CONNECTED',c:'#00ffaa'});
-  else if(d.network>0.3)tags.push({l:'PARTIAL-NET',c:'#ffcc00'});
-  else tags.push({l:'OFFLINE',c:'#ff4444'});
+  /* v0.8 NFC */
+  if(d.nfcField>0.5)tags.push({l:'NFC-ACTIVE',c:'#cc66ff'});
+  else if(d.nfcField>0.1)tags.push({l:'NFC-FAINT',c:'#667788'});
 
-  if(d.bleProximity>0.5)tags.push({l:'BLE-DENSE',c:'#00ddff'});
-  else if(d.bleProximity>0.1)tags.push({l:'BLE-SPARSE',c:'#556677'});
+  /* v0.8 Thermal */
+  if(d.thermal>0.7)tags.push({l:'COOL-ENV',c:'#00ddff'});
+  else if(d.thermal<0.3)tags.push({l:'WARM-ENV',c:'#ff8800'});
 
   if(med.composite>0.7)tags.push({l:'HIGH-CONNECT',c:'#00ffaa'});
   else if(med.composite>0.4)tags.push({l:'MED-CONNECT',c:'#ffcc00'});
@@ -775,34 +861,23 @@ function classifySpace(med,acousticHist){
 /* ═══════════════════════════════════════════════════════════ */
 /*  CANVAS COMPONENTS                                          */
 /* ═══════════════════════════════════════════════════════════ */
+
 function CorrCanvas(p){
-  var corr=p.corr,pL=p.pL,bS=p.bS,cf=p.cf,th=p.th,sigColor=p.sigColor||'#00ddff';
-  var ref=useRef(null);
-  useEffect(function(){
-    var cv=ref.current;if(!cv||!corr||!corr.length)return;
-    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var W=cv.offsetWidth*dpr,H=100*dpr;cv.width=W;cv.height=H;cv.style.height='100px';
-    ctx.clearRect(0,0,W,H);
-    var mC=0;for(var i=0;i<corr.length;i++){var a=Math.abs(corr[i]);if(a>mC)mC=a;}
-    mC=Math.max(mC,.1)*1.15;
+  var corr=p.corr,pL=p.pL,bS=p.bS,cf=p.cf,th=p.th,sigColor=p.sigColor||'#00ddff';var ref=useRef(null);
+  useEffect(function(){var cv=ref.current;if(!cv||!corr||!corr.length)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=100*dpr;cv.width=W;cv.height=H;cv.style.height='100px';
+    ctx.clearRect(0,0,W,H);var mC=0;for(var i=0;i<corr.length;i++){var a=Math.abs(corr[i]);if(a>mC)mC=a;}mC=Math.max(mC,.1)*1.15;
     var xS=W/corr.length,yM=H/2,yS=(H/2)/mC;
     ctx.strokeStyle='#1a2530';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,yM);ctx.lineTo(W,yM);ctx.stroke();
-    if(th>0&&th<=1){
-      var ty=yM-th*yS;ctx.strokeStyle='#ff880044';ctx.lineWidth=1;ctx.setLineDash([4,4]);
-      ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);
-      ctx.fillStyle='#ff880055';ctx.font=(9*dpr)+'px IBM Plex Mono,monospace';
-      ctx.fillText('th='+th.toFixed(3),4*dpr,ty-3*dpr);}
+    if(th>0&&th<=1){var ty=yM-th*yS;ctx.strokeStyle='#ff880044';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#ff880055';ctx.font=(9*dpr)+'px IBM Plex Mono,monospace';ctx.fillText('th='+th.toFixed(3),4*dpr,ty-3*dpr);}
     ctx.strokeStyle=sigColor+'66';ctx.lineWidth=1.5;ctx.beginPath();
     for(var i=0;i<corr.length;i++){var x=i*xS,y=yM-corr[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
-    if(pL>=0){var ai=pL-(bS||0);
-      if(ai>=0&&ai<corr.length){var px=ai*xS,py=yM-corr[ai]*yS;
-        var det=cf>=th;ctx.strokeStyle=(det?cC(cf):'#ff3333')+'cc';ctx.lineWidth=2;
-        ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
-        ctx.fillStyle=det?cC(cf):'#ff3333';ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();
-        ctx.font=(11*dpr)+'px IBM Plex Mono,monospace';
-        ctx.fillText(lagMs(pL).toFixed(1)+'ms ('+cf.toFixed(3)+')',px+6*dpr,14*dpr);}}
-    ctx.fillStyle='#33445544';ctx.font=(9*dpr)+'px IBM Plex Mono,monospace';
-    var tMs=(corr.length/CFG.sr)*1000;
+    if(pL>=0){var ai=pL-(bS||0);if(ai>=0&&ai<corr.length){var px=ai*xS,py=yM-corr[ai]*yS;var det=cf>=th;
+      ctx.strokeStyle=(det?cC(cf):'#ff3333')+'cc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
+      ctx.fillStyle=det?cC(cf):'#ff3333';ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();
+      ctx.font=(11*dpr)+'px IBM Plex Mono,monospace';ctx.fillText(lagMs(pL).toFixed(1)+'ms ('+cf.toFixed(3)+')',px+6*dpr,14*dpr);}}
+    ctx.fillStyle='#33445544';ctx.font=(9*dpr)+'px IBM Plex Mono,monospace';var tMs=(corr.length/CFG.sr)*1000;
     for(var t=25;t<tMs;t+=50){ctx.fillText(t+'ms',(t/tMs)*W,H-4*dpr);}
   },[corr,pL,bS,cf,th,sigColor]);
   return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'100px'}});
@@ -810,14 +885,10 @@ function CorrCanvas(p){
 
 function WaveCanvas(p){
   var smp=p.smp,blMs=p.blMs,sigColor=p.sigColor||'#00ffaa';var ref=useRef(null);
-  useEffect(function(){
-    var cv=ref.current;if(!cv||!smp||!smp.length)return;
-    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var W=cv.offsetWidth*dpr,H=46*dpr;cv.width=W;cv.height=H;cv.style.height='46px';
-    ctx.clearRect(0,0,W,H);
-    var step=Math.max(1,Math.floor(smp.length/(W/dpr)));
-    var mV=0;for(var i=0;i<smp.length;i+=step){var a=Math.abs(smp[i]);if(a>mV)mV=a;}
-    mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;
+  useEffect(function(){var cv=ref.current;if(!cv||!smp||!smp.length)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=46*dpr;cv.width=W;cv.height=H;cv.style.height='46px';
+    ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(smp.length/(W/dpr)));
+    var mV=0;for(var i=0;i<smp.length;i+=step){var a=Math.abs(smp[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;
     var bx=(blMs/CFG.listenMs)*W;ctx.fillStyle='rgba(255,255,255,.015)';ctx.fillRect(0,0,bx,H);
     ctx.strokeStyle=sigColor+'33';ctx.lineWidth=1;ctx.beginPath();
     for(var i=0;i<smp.length;i+=step){var x=(i/smp.length)*W,y=yM-smp[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
@@ -827,133 +898,160 @@ function WaveCanvas(p){
 
 function SigPreview(p){
   var sig=p.sig;var ref=useRef(null);
-  useEffect(function(){
-    var cv=ref.current;if(!cv||!sig)return;
+  useEffect(function(){var cv=ref.current;if(!cv||!sig)return;
     var buf=genSignal(sig,CFG.sr);
-    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var W=cv.offsetWidth*dpr,H=32*dpr;cv.width=W;cv.height=H;cv.style.height='32px';
-    ctx.clearRect(0,0,W,H);
-    var step=Math.max(1,Math.floor(buf.length/(W/dpr)));
-    var mV=0;for(var i=0;i<buf.length;i+=step){var a=Math.abs(buf[i]);if(a>mV)mV=a;}
-    mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var W=cv.offsetWidth*dpr,H=32*dpr;cv.width=W;cv.height=H;cv.style.height='32px';
+    ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(buf.length/(W/dpr)));
+    var mV=0;for(var i=0;i<buf.length;i+=step){var a=Math.abs(buf[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;
     ctx.strokeStyle=sig.color+'88';ctx.lineWidth=1.5;ctx.beginPath();
     for(var i=0;i<buf.length;i+=step){var x=(i/buf.length)*W,y=yM-buf[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
   },[sig]);
   return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'32px'}});
 }
 
-/* ═══ Mediation Ring Canvas (v0.7 — 7 dimensions) ═══ */
 function MedRing(p){
-  var val=p.value||0,dims=p.dims||{};
-  var ref=useRef(null);
-  useEffect(function(){
-    var cv=ref.current;if(!cv)return;
-    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var S=120*dpr;cv.width=S;cv.height=S;cv.style.width='120px';cv.style.height='120px';
-    ctx.clearRect(0,0,S,S);
-    var cx=S/2,cy=S/2,r=S/2-8*dpr;
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.strokeStyle='#1a2530';ctx.lineWidth=6*dpr;ctx.stroke();
-    var startAngle=-Math.PI/2;
-    var endAngle=startAngle+Math.PI*2*val;
+  var val=p.value||0,dims=p.dims||{};var ref=useRef(null);
+  useEffect(function(){var cv=ref.current;if(!cv)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var S=120*dpr;cv.width=S;cv.height=S;cv.style.width='120px';cv.style.height='120px';
+    ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,r=S/2-8*dpr;
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#1a2530';ctx.lineWidth=6*dpr;ctx.stroke();
+    var startAngle=-Math.PI/2,endAngle=startAngle+Math.PI*2*val;
     var grad=ctx.createLinearGradient(0,0,S,S);
     if(val>0.6){grad.addColorStop(0,'#00ffaa');grad.addColorStop(1,'#00ddff');}
     else if(val>0.3){grad.addColorStop(0,'#ffcc00');grad.addColorStop(1,'#ff8800');}
     else{grad.addColorStop(0,'#ff4444');grad.addColorStop(1,'#ff3333');}
-    ctx.beginPath();ctx.arc(cx,cy,r,startAngle,endAngle);
-    ctx.strokeStyle=grad;ctx.lineWidth=6*dpr;ctx.lineCap='round';ctx.stroke();
-    var dimKeys=['acoustic','emField','photonic','kinetic','barometric','network','bleProximity'];
-    var dimColors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#88aacc','#ff8800','#00ddff'];
+    ctx.beginPath();ctx.arc(cx,cy,r,startAngle,endAngle);ctx.strokeStyle=grad;ctx.lineWidth=6*dpr;ctx.lineCap='round';ctx.stroke();
+    var dimKeys=['acoustic','emField','photonic','kinetic','rfDensity','nfcField','thermal'];
+    var dimColors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#ff4466','#cc66ff','#ff8800'];
     for(var i=0;i<dimKeys.length;i++){
-      var angle=startAngle+(Math.PI*2/dimKeys.length)*i;
-      var dv=dims[dimKeys[i]]||0;
-      var ir=r-12*dpr,or=r-4*dpr;
-      var tickR=ir+dv*(or-ir);
-      ctx.beginPath();
-      ctx.arc(cx+Math.cos(angle)*tickR,cy+Math.sin(angle)*tickR,2.5*dpr,0,Math.PI*2);
-      ctx.fillStyle=dimColors[i];ctx.fill();
-    }
+      var angle=startAngle+(Math.PI*2/dimKeys.length)*i;var dv=dims[dimKeys[i]]||0;
+      var ir=r-12*dpr,or=r-4*dpr;var tickR=ir+dv*(or-ir);
+      ctx.beginPath();ctx.arc(cx+Math.cos(angle)*tickR,cy+Math.sin(angle)*tickR,2.5*dpr,0,Math.PI*2);
+      ctx.fillStyle=dimColors[i];ctx.fill();}
   },[val,dims]);
   return h('canvas',{ref:ref,style:{width:'120px',height:'120px'}});
 }
 
-/* ═══ Radar Chart (v0.7 — 7 axes) ═══ */
 function RadarCanvas(p){
-  var dims=p.dims||{};
-  var ref=useRef(null);
-  useEffect(function(){
-    var cv=ref.current;if(!cv)return;
-    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var S=240*dpr;cv.width=S;cv.height=S;cv.style.width='240px';cv.style.height='240px';
-    ctx.clearRect(0,0,S,S);
-    var cx=S/2,cy=S/2,maxR=S/2-24*dpr;
-    var keys=['acoustic','emField','photonic','kinetic','barometric','network','bleProximity'];
-    var labels=['ACOUSTIC','EM FIELD','PHOTONIC','KINETIC','BARO','NETWORK','BLE'];
-    var colors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#88aacc','#ff8800','#00ddff'];
+  var dims=p.dims||{};var ref=useRef(null);
+  useEffect(function(){var cv=ref.current;if(!cv)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;var S=240*dpr;cv.width=S;cv.height=S;cv.style.width='240px';cv.style.height='240px';
+    ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,maxR=S/2-24*dpr;
+    var keys=['acoustic','emField','photonic','kinetic','rfDensity','nfcField','thermal'];
+    var labels=['ACOUSTIC','EM FIELD','PHOTONIC','KINETIC','RF SPEC','NFC','THERMAL'];
+    var colors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#ff4466','#9966ff','#ff8800'];
     var n=keys.length;
-    for(var ring=1;ring<=4;ring++){
-      var rr=maxR*(ring/4);
-      ctx.beginPath();ctx.arc(cx,cy,rr,0,Math.PI*2);
-      ctx.strokeStyle='#1a253055';ctx.lineWidth=1;ctx.stroke();
-    }
-    for(var i=0;i<n;i++){
-      var angle=-Math.PI/2+(Math.PI*2/n)*i;
-      var ex=cx+Math.cos(angle)*maxR,ey=cy+Math.sin(angle)*maxR;
-      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);
-      ctx.strokeStyle='#1a253088';ctx.lineWidth=1;ctx.stroke();
-      var lx=cx+Math.cos(angle)*(maxR+14*dpr);
-      var ly=cy+Math.sin(angle)*(maxR+14*dpr);
-      ctx.fillStyle=colors[i];ctx.font='bold '+(7*dpr)+'px IBM Plex Mono,monospace';
-      ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(labels[i],lx,ly);
-    }
+    for(var ring=1;ring<=4;ring++){var rr=maxR*(ring/4);ctx.beginPath();ctx.arc(cx,cy,rr,0,Math.PI*2);ctx.strokeStyle='#1a253055';ctx.lineWidth=1;ctx.stroke();}
+    for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var ex=cx+Math.cos(angle)*maxR,ey=cy+Math.sin(angle)*maxR;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.strokeStyle='#1a253088';ctx.lineWidth=1;ctx.stroke();
+      var lx=cx+Math.cos(angle)*(maxR+14*dpr);var ly=cy+Math.sin(angle)*(maxR+14*dpr);
+      ctx.fillStyle=colors[i];ctx.font='bold '+(7*dpr)+'px IBM Plex Mono,monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(labels[i],lx,ly);}
     ctx.beginPath();
-    for(var i=0;i<n;i++){
-      var angle=-Math.PI/2+(Math.PI*2/n)*i;
-      var v=Math.min(1,dims[keys[i]]||0);
-      var px=cx+Math.cos(angle)*maxR*v;
-      var py=cy+Math.sin(angle)*maxR*v;
-      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
-    }
-    ctx.closePath();
-    ctx.fillStyle='rgba(0,255,170,.08)';ctx.fill();
-    ctx.strokeStyle='#00ffaa88';ctx.lineWidth=2;ctx.stroke();
-    for(var i=0;i<n;i++){
-      var angle=-Math.PI/2+(Math.PI*2/n)*i;
-      var v=Math.min(1,dims[keys[i]]||0);
-      var px=cx+Math.cos(angle)*maxR*v;
-      var py=cy+Math.sin(angle)*maxR*v;
-      ctx.beginPath();ctx.arc(px,py,3*dpr,0,Math.PI*2);
-      ctx.fillStyle=colors[i];ctx.fill();
-    }
+    for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);
+      var px=cx+Math.cos(angle)*maxR*v;var py=cy+Math.sin(angle)*maxR*v;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+    ctx.closePath();ctx.fillStyle='rgba(0,255,170,.08)';ctx.fill();ctx.strokeStyle='#00ffaa88';ctx.lineWidth=2;ctx.stroke();
+    for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);
+      var px=cx+Math.cos(angle)*maxR*v;var py=cy+Math.sin(angle)*maxR*v;
+      ctx.beginPath();ctx.arc(px,py,3*dpr,0,Math.PI*2);ctx.fillStyle=colors[i];ctx.fill();}
   },[dims]);
   return h('canvas',{ref:ref,style:{width:'240px',height:'240px'}});
 }
 
-/* ═══ Network RTT Sparkline ═══ */
-function NetSparkline(p){
-  var history=p.history||[];
-  var ref=useRef(null);
-  useEffect(function(){
-    var cv=ref.current;if(!cv||!history.length)return;
+/* ═══ RF Spectrum Canvas ═══ */
+function SpectrumCanvas(p){
+  var spectrum=p.spectrum,band=p.band;var ref=useRef(null);
+  useEffect(function(){var cv=ref.current;if(!cv||!spectrum||!spectrum.length)return;
     var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
-    var W=cv.offsetWidth*dpr,H=40*dpr;cv.width=W;cv.height=H;cv.style.height='40px';
+    var W=cv.offsetWidth*dpr,H=140*dpr;cv.width=W;cv.height=H;cv.style.height='140px';
     ctx.clearRect(0,0,W,H);
-    var vals=history.map(function(h){return h.rtt||0;});
-    var mx=Math.max.apply(null,vals)||100;
-    ctx.strokeStyle='#ff880066';ctx.lineWidth=1.5;ctx.beginPath();
-    for(var i=0;i<vals.length;i++){
-      var x=(i/(vals.length-1||1))*W;
-      var y=H-(vals[i]/mx)*H*0.9;
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    var minDb=-100,maxDb=-20;var range=maxDb-minDb;
+    /* Grid */
+    ctx.strokeStyle='#1a253044';ctx.lineWidth=1;
+    for(var db=minDb;db<=maxDb;db+=10){
+      var y=H-(db-minDb)/range*H;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+      ctx.fillStyle='#33445544';ctx.font=(8*dpr)+'px IBM Plex Mono';ctx.fillText(db+'dBm',2*dpr,y-2*dpr);
     }
-    ctx.stroke();
-    // Fill under
-    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();
-    ctx.fillStyle='rgba(255,136,0,.05)';ctx.fill();
-  },[history]);
-  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'40px'}});
+    /* Freq labels */
+    for(var f=0;f<=4;f++){
+      var freq=band.fStart+(band.fEnd-band.fStart)*(f/4);
+      var x=(f/4)*W;ctx.fillStyle='#33445544';ctx.font=(8*dpr)+'px IBM Plex Mono';
+      ctx.fillText(Math.round(freq)+'MHz',x+2*dpr,H-2*dpr);
+    }
+    /* Spectrum fill */
+    var grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,band.color+'cc');grad.addColorStop(0.5,band.color+'44');grad.addColorStop(1,band.color+'08');
+    ctx.beginPath();ctx.moveTo(0,H);
+    var xStep=W/spectrum.length;
+    for(var i=0;i<spectrum.length;i++){
+      var y=H-((spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));
+      ctx.lineTo(i*xStep,y);}
+    ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    /* Spectrum line */
+    ctx.beginPath();
+    for(var i=0;i<spectrum.length;i++){
+      var y=H-((spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));
+      i===0?ctx.moveTo(i*xStep,y):ctx.lineTo(i*xStep,y);}
+    ctx.strokeStyle=band.color;ctx.lineWidth=1.5;ctx.stroke();
+  },[spectrum,band]);
+  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'140px'}});
 }
+
+/* ═══ Waterfall Canvas ═══ */
+function WaterfallCanvas(p){
+  var waterfall=p.waterfall,band=p.band;var ref=useRef(null);
+  useEffect(function(){var cv=ref.current;if(!cv||!waterfall||!waterfall.length)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    var W=cv.offsetWidth*dpr,H=80*dpr;cv.width=W;cv.height=H;cv.style.height='80px';
+    ctx.clearRect(0,0,W,H);
+    var rows=waterfall.length;var rowH=H/Math.min(rows,64);
+    var minDb=-100,maxDb=-20;var range=maxDb-minDb;
+    for(var r=0;r<Math.min(rows,64);r++){
+      var sp=waterfall[r];if(!sp)continue;
+      var xStep=W/sp.length;
+      for(var i=0;i<sp.length;i++){
+        var norm=(sp[i]-minDb)/range;norm=Math.max(0,Math.min(1,norm));
+        /* Color map: dark blue → cyan → green → yellow → red */
+        var rr,gg,bb;
+        if(norm<0.25){rr=0;gg=Math.floor(norm*4*100);bb=Math.floor(80+norm*4*175);}
+        else if(norm<0.5){rr=0;gg=Math.floor(100+(norm-0.25)*4*155);bb=Math.floor(255-(norm-0.25)*4*255);}
+        else if(norm<0.75){rr=Math.floor((norm-0.5)*4*255);gg=255;bb=0;}
+        else{rr=255;gg=Math.floor(255-(norm-0.75)*4*255);bb=0;}
+        ctx.fillStyle='rgb('+rr+','+gg+','+bb+')';
+        ctx.fillRect(i*xStep,r*rowH,Math.ceil(xStep)+1,Math.ceil(rowH)+1);
+      }
+    }
+  },[waterfall,band]);
+  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'80px'}});
+}
+
+/* ═══ Thermal History Canvas ═══ */
+function ThermalHistCanvas(p){
+  var history=p.history||[];var ref=useRef(null);
+  useEffect(function(){var cv=ref.current;if(!cv||!history.length)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    var W=cv.offsetWidth*dpr,H=60*dpr;cv.width=W;cv.height=H;cv.style.height='60px';
+    ctx.clearRect(0,0,W,H);
+    var minT=15,maxT=55;var range=maxT-minT;
+    /* Grid */
+    ctx.strokeStyle='#1a253044';ctx.lineWidth=1;
+    for(var t=20;t<=50;t+=10){var y=H-(t-minT)/range*H;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+      ctx.fillStyle='#33445544';ctx.font=(8*dpr)+'px IBM Plex Mono';ctx.fillText(t+'°C',2*dpr,y-2*dpr);}
+    /* Line */
+    var n=Math.min(history.length,32);var xStep=W/Math.max(n-1,1);
+    ctx.beginPath();
+    for(var i=0;i<n;i++){
+      var snap=history[n-1-i];var y=H-((snap.estTemp-minT)/range)*H;
+      y=Math.max(0,Math.min(H,y));i===0?ctx.moveTo(i*xStep,y):ctx.lineTo(i*xStep,y);}
+    ctx.strokeStyle='#ff8800';ctx.lineWidth=2;ctx.stroke();
+    /* CPU load overlay */
+    ctx.beginPath();
+    for(var i=0;i<n;i++){
+      var snap=history[n-1-i];var y=H-(snap.cpuLoad*H);i===0?ctx.moveTo(i*xStep,y):ctx.lineTo(i*xStep,y);}
+    ctx.strokeStyle='#00ddff44';ctx.lineWidth=1;ctx.stroke();
+  },[history]);
+  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'60px'}});
+}
+
 
 /* ═══════════════════════════════════════════════════════════ */
 /*  APP                                                       */
@@ -961,7 +1059,7 @@ function NetSparkline(p){
 function App(){
   var _ly=useState('sonar'),layer=_ly[0],setLayer=_ly[1];
 
-  // Sonar state
+  /* Sonar state */
   var _s=useState('idle'),status=_s[0],setStatus=_s[1];
   var _h=useState([]),hist=_h[0],setHist=_h[1];
   var _c=useState(false),cont=_c[0],setCont=_c[1];
@@ -976,20 +1074,18 @@ function App(){
   var _lr=useState(null),lRes=_lr[0],setLRes=_lr[1];
   var _sig=useState('chirp_mid'),sigId=_sig[0],setSigId=_sig[1];
 
-  // Sensor hooks
+  /* EM sensor hooks */
   var sensorPerm=useSensorPermissions();
   var mag=useMagnetometer();
   var light=useAmbientLight();
   var motion=useMotion();
   var _geo=useGeoLocation(),geo=_geo[0],fetchGeo=_geo[1];
-
-  // v0.7 new hooks
-  var baro=useBarometer();
-  var netInfo=useNetworkInfo();
-  var ble=useBLE();
-  var sync=useMultiSync();
-
   var _emHist=useState([]),emHist=_emHist[0],setEmHist=_emHist[1];
+
+  /* v0.8 hooks */
+  var rf=useRFSpectrum();
+  var nfc=useNFC();
+  var thermal=useThermal();
 
   var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),ambRef=useRef(null),sigBufRef=useRef(null);
   var rec=useRef({on:false,buf:[]});
@@ -997,118 +1093,44 @@ function App(){
   useEffect(function(){ambRef.current=amb;},[amb]);
 
   var curSig=SIGNALS[sigId];
-  useEffect(function(){
-    sigBufRef.current=genSignal(curSig,CFG.sr);
-    setAmb(null);ambRef.current=null;setInfo(null);
-  },[sigId]);
+  useEffect(function(){sigBufRef.current=genSignal(curSig,CFG.sr);setAmb(null);ambRef.current=null;setInfo(null);},[sigId]);
 
-  // Mediation (v0.7 expanded)
-  var mediation=calcMediation(lRes,mag,light,motion,baro,netInfo,ble.data.devices);
+  /* Mediation — expanded */
+  var mediation=calcMediation(lRes,mag,light,motion,{spectrum:rf.spectrum},{state:nfc.state},thermal);
   var spaceTags=classifySpace(mediation,hist);
 
-  // EM scan snapshot
+  /* EM auto-scan */
   var scanEM=useCallback(function(){
-    var snap={
-      time:new Date(),
-      mag:{x:mag.x,y:mag.y,z:mag.z,mag:mag.mag},
-      light:{lux:light.lux},
-      motion:{x:motion.x,y:motion.y,z:motion.z,mag:motion.mag},
-      heading:mag.heading,
-      baro:{pressure:baro.pressure,altitude:baro.altitude},
-      net:{type:netInfo.type,effectiveType:netInfo.effectiveType,rtt:netInfo.rtt,downlink:netInfo.downlink},
-      bleCount:ble.data.devices.length,
-      mediation:mediation.composite,
-      dims:Object.assign({},mediation.dims)
-    };
+    var snap={time:new Date(),mag:{x:mag.x,y:mag.y,z:mag.z,mag:mag.mag},light:{lux:light.lux},motion:{x:motion.x,y:motion.y,z:motion.z,mag:motion.mag},heading:mag.heading,mediation:mediation.composite,dims:Object.assign({},mediation.dims)};
     setEmHist(function(p){return[snap].concat(p).slice(0,32);});
+  },[mag,light,motion,mediation]);
+  useEffect(function(){var iv=setInterval(scanEM,2000);return function(){clearInterval(iv);};},[scanEM]);
 
-    // Broadcast to sync peers
-    sync.broadcastData({mediation:mediation.composite,dims:mediation.dims,baro:snap.baro,net:snap.net,bleCount:snap.bleCount});
-  },[mag,light,motion,mediation,baro,netInfo,ble.data.devices,sync.broadcastData]);
-
-  useEffect(function(){
-    var iv=setInterval(scanEM,2000);
-    return function(){clearInterval(iv);};
-  },[scanEM]);
-
-  // Audio
+  /* Audio init */
   var initAudio=useCallback(function(){
     return new Promise(function(ok){
-      if(acRef.current&&acRef.current.state!=='closed'){
-        if(acRef.current.state==='suspended')acRef.current.resume().then(function(){ok(true);});
-        else ok(true);return;}
-      var ctx;try{ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});}
-      catch(ex){setErr('AudioContext: '+ex.message);ok(false);return;}
+      if(acRef.current&&acRef.current.state!=='closed'){if(acRef.current.state==='suspended')acRef.current.resume().then(function(){ok(true);});else ok(true);return;}
+      var ctx;try{ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});}catch(ex){setErr('AudioContext: '+ex.message);ok(false);return;}
       (ctx.state==='suspended'?ctx.resume():Promise.resolve()).then(function(){
         return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
       }).then(function(stream){
         acRef.current=ctx;var src=ctx.createMediaStreamSource(stream);
         var proc=ctx.createScriptProcessor(CFG.bufSize,1,1);
-        proc.onaudioprocess=function(ev){
-          var inp=ev.inputBuffer.getChannelData(0);var sum=0;
-          for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];
-          setLvl(Math.sqrt(sum/inp.length));
-          if(rec.current.on){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.buf.push(cp);}};
+        proc.onaudioprocess=function(ev){var inp=ev.inputBuffer.getChannelData(0);var sum=0;for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];
+          setLvl(Math.sqrt(sum/inp.length));if(rec.current.on){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.buf.push(cp);}};
         src.connect(proc);proc.connect(ctx.destination);setErr(null);ok(true);
       }).catch(function(ex){setErr('マイクアクセスが必要: '+(ex.message||ex));ok(false);});
     });
   },[]);
 
-  var playSignal=useCallback(function(){
-    var ctx=acRef.current,buf=sigBufRef.current;if(!ctx||!buf)return;
-    var ab=ctx.createBuffer(1,buf.length,CFG.sr);ab.getChannelData(0).set(buf);
-    var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1.0;
-    s.connect(g);g.connect(ctx.destination);s.start();
-  },[]);
+  var playSignal=useCallback(function(){var ctx=acRef.current,buf=sigBufRef.current;if(!ctx||!buf)return;
+    var ab=ctx.createBuffer(1,buf.length,CFG.sr);ab.getChannelData(0).set(buf);var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1.0;s.connect(g);g.connect(ctx.destination);s.start();},[]);
 
-  var calibrate=useCallback(function(){
-    return initAudio().then(function(ok){if(!ok)return;
-      setStatus('calibrating');setInfo('環境ノイズ計測中... 2秒');
-      rec.current.on=true;rec.current.buf=[];
-      return new Promise(function(r){setTimeout(r,2000);});
-    }).then(function(){
-      rec.current.on=false;var bufs=rec.current.buf;
-      if(!bufs||!bufs.length){setErr('音声データなし');setInfo(null);setStatus('idle');return;}
-      var f=flat(bufs),r=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);
-      var a={rms:r,cn:ac.peakVal};setAmb(a);ambRef.current=a;
-      var th=calcTh(ac.peakVal);
-      setInfo('完了: noise='+(r*1000).toFixed(2)+'mRMS / amb_corr='+ac.peakVal.toFixed(4)+' / th='+th.toFixed(4)+(ac.peakVal*2.5>CFG.maxThresh?' (CAPPED)':''));
-      setStatus('idle');
-    });
-  },[initAudio]);
+  var calibrate=useCallback(function(){return initAudio().then(function(ok){if(!ok)return;setStatus('calibrating');setInfo('環境ノイズ計測中... 2秒');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,2000);});}).then(function(){rec.current.on=false;var bufs=rec.current.buf;if(!bufs||!bufs.length){setErr('音声データなし');setInfo(null);setStatus('idle');return;}var f=flat(bufs),r=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);var a={rms:r,cn:ac.peakVal};setAmb(a);ambRef.current=a;var th=calcTh(ac.peakVal);setInfo('完了: noise='+(r*1000).toFixed(2)+'mRMS / amb_corr='+ac.peakVal.toFixed(4)+' / th='+th.toFixed(4)+(ac.peakVal*2.5>CFG.maxThresh?' (CAPPED)':''));setStatus('idle');});},[initAudio]);
 
-  var execPing=useCallback(function(){
-    return initAudio().then(function(ok){if(!ok)return null;
-      var a=ambRef.current;
-      if(!a){setStatus('calibrating');setInfo('初回キャリブ...');
-        rec.current.on=true;rec.current.buf=[];
-        return new Promise(function(r){setTimeout(r,1500);}).then(function(){
-          rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);
-          a={rms:r2,cn:ac.peakVal};setAmb(a);ambRef.current=a;
-          setInfo('noise='+(r2*1000).toFixed(2)+'mRMS / th='+calcTh(a.cn).toFixed(4)+(a.cn*2.5>CFG.maxThresh?' (CAP)':''));return a;});}
-      return a;
-    }).then(function(a){if(!a)return null;
-      var th=calcTh(a.cn);setStatus('pinging');
-      rec.current.on=true;rec.current.buf=[];
-      playSignal();
-      return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
-        rec.current.on=false;var signal=flat(rec.current.buf);
-        var ref=sigBufRef.current,res=xcorr(signal,ref,CFG.sr,CFG.blanking);
-        var rtt=null,cf=res.peakVal;if(cf>=th)rtt=lagMs(res.peakLag);
-        var id=genId();
-        var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId};
-        setCount(cntRef.current);setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});
-        setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th});
-        setLWave(signal);setLRes(entry);setStatus('idle');
-        // Broadcast ping result to peers
-        sync.broadcastPing({rtt:rtt,cf:cf,sig:sigId,seq:entry.seq});
-        return entry;});
-    });
-  },[initAudio,playSignal,sigId,sync.broadcastPing]);
+  var execPing=useCallback(function(){return initAudio().then(function(ok){if(!ok)return null;var a=ambRef.current;if(!a){setStatus('calibrating');setInfo('初回キャリブ...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,1500);}).then(function(){rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),ref=sigBufRef.current,ac=xcorr(f,ref,CFG.sr,0);a={rms:r2,cn:ac.peakVal};setAmb(a);ambRef.current=a;setInfo('noise='+(r2*1000).toFixed(2)+'mRMS / th='+calcTh(a.cn).toFixed(4)+(a.cn*2.5>CFG.maxThresh?' (CAP)':''));return a;});}return a;}).then(function(a){if(!a)return null;var th=calcTh(a.cn);setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){rec.current.on=false;var signal=flat(rec.current.buf);var ref=sigBufRef.current,res=xcorr(signal,ref,CFG.sr,CFG.blanking);var rtt=null,cf=res.peakVal;if(cf>=th)rtt=lagMs(res.peakLag);var id=genId();var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId};setCount(cntRef.current);setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th});setLWave(signal);setLRes(entry);setStatus('idle');return entry;});});},[initAudio,playSignal,sigId]);
 
-  var startCont=useCallback(function(){setCont(true);contRef.current=true;
-    var run=function(){if(!contRef.current)return;execPing().then(function(){if(contRef.current)timerRef.current=setTimeout(run,intv);});};run();
-  },[execPing,intv]);
+  var startCont=useCallback(function(){setCont(true);contRef.current=true;var run=function(){if(!contRef.current)return;execPing().then(function(){if(contRef.current)timerRef.current=setTimeout(run,intv);});};run();},[execPing,intv]);
   var stopCont=useCallback(function(){setCont(false);contRef.current=false;if(timerRef.current)clearTimeout(timerRef.current);},[]);
   var clear=useCallback(function(){setHist([]);setCount(0);cntRef.current=0;setLCorr(null);setLWave(null);setLRes(null);},[]);
   var resetCal=useCallback(function(){setAmb(null);ambRef.current=null;setInfo(null);},[]);
@@ -1126,30 +1148,24 @@ function App(){
 
   /* ── HEADER ── */
   ch.push(h('div',{className:'hdr',key:'hd'},
-    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v0.7 IPC')),
-    h('div',{className:'sub'},'INFORMATION PHYSICAL CONNECTOR · MULTI-LAYER SENSING'),
-    h('p',null,'音響ソナー＋電磁波＋環境センサー＋BLE＋WiFi＋気圧計＋マルチデバイス同期で物理空間を7次元プローブ。')));
+    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v0.8 IPC')),
+    h('div',{className:'sub'},'INFORMATION PHYSICAL CONNECTOR · EXTENDED SPECTRUM SENSING'),
+    h('p',null,'音響ソナー＋電磁波＋RF Spectrum＋NFC＋熱推定で物理空間を7次元プローブ。拡張Mediation Coefficientによる空間プロファイリング。')));
 
   /* ── LAYER TABS ── */
   var tabs=[
     {id:'sonar',icon:'◎',label:'SONAR',color:'#00ffaa'},
     {id:'em',icon:'⚡',label:'EM/SENSOR',color:'#cc66ff'},
-    {id:'rf',icon:'◇',label:'RF/BLE',color:'#00ddff'},
+    {id:'rf',icon:'〜',label:'RF SPEC',color:'#ff4466'},
+    {id:'nfc_thermal',icon:'◇',label:'NFC/THERM',color:'#ff8800'},
     {id:'mediation',icon:'◈',label:'MEDIATION',color:'#ffcc00'},
-    {id:'sync',icon:'⟐',label:'SYNC',color:'#ff8800'},
     {id:'profile',icon:'◉',label:'PROFILE',color:'#00ddff'}
   ];
   ch.push(h('div',{className:'layer-tabs',key:'tabs'},
-    tabs.map(function(t){
-      var badge=null;
-      if(t.id==='sync'&&sync.state.peerCount>0)badge=h('span',{className:'tab-badge',style:{background:'#00ffaa'}});
-      if(t.id==='rf'&&ble.data.devices.length>0)badge=h('span',{className:'tab-badge',style:{background:'#00ddff'}});
-      return h('button',{
-        key:t.id,className:'layer-tab'+(layer===t.id?' active':''),
-        onClick:function(){setLayer(t.id);},
-        style:layer===t.id?{borderBottom:'2px solid '+t.color}:{}
-      },badge,h('span',{className:'tab-icon'},t.icon),t.label);
-    })));
+    tabs.map(function(t){return h('button',{key:t.id,className:'layer-tab'+(layer===t.id?' active':''),
+      onClick:function(){setLayer(t.id);},style:layer===t.id?{borderBottom:'2px solid '+t.color}:{}
+    },h('span',{className:'tab-icon'},t.icon),t.label);})));
+
 
   /* ═══════════════════════════════════════════ */
   /*  SONAR LAYER                               */
@@ -1158,10 +1174,7 @@ function App(){
     ch.push(h('div',{className:'sec',key:'sig'},
       h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:curSig.color}}),'SIGNAL'),
       h('div',{className:'sel-row'},
-        h('div',{className:'sel-grp'},
-          h('select',{value:sigId,onChange:function(ev){setSigId(ev.target.value);},
-            style:{borderColor:curSig.color+'66',color:curSig.color}},
-            SIG_ORDER.map(function(id){var s=SIGNALS[id];return h('option',{value:id,key:id},s.name);}))),
+        h('div',{className:'sel-grp'},h('select',{value:sigId,onChange:function(ev){setSigId(ev.target.value);},style:{borderColor:curSig.color+'66',color:curSig.color}},SIG_ORDER.map(function(id){var s=SIGNALS[id];return h('option',{value:id,key:id},s.name);}))),
         h('div',{className:'sig-info'},h('span',{style:{color:curSig.color}},'● '),curSig.desc)),
       h(SigPreview,{sig:curSig})));
 
@@ -1169,20 +1182,16 @@ function App(){
       h('div',{className:'lv-row'},h('span',{className:'lv-lbl'},'MIC'),
         h('div',{className:'lv-bg'},h('div',{className:'lv-bar',style:{width:Math.min(100,lvl*3000)+'%',background:lvl>.001?'linear-gradient(90deg,'+curSig.color+'44,'+curSig.color+'88)':'#ff333322'}})),
         h('span',{className:'lv-val',style:{color:lvl>.001?curSig.color:'#ff3333'}},(lvl*1000).toFixed(1)+' mRMS')),
-      h('div',{className:'lv-stat',style:{color:lvl>.001?curSig.color+'55':'#ff333366'}},
-        lvl>.001?'● MIC ACTIVE'+(amb?' | th='+aTh.toFixed(3)+(amb.cn*2.5>CFG.maxThresh?' (CAP)':''):''):'○ NO SIGNAL')));
+      h('div',{className:'lv-stat',style:{color:lvl>.001?curSig.color+'55':'#ff333366'}},lvl>.001?'● MIC ACTIVE'+(amb?' | th='+aTh.toFixed(3)+(amb.cn*2.5>CFG.maxThresh?' (CAP)':''):''):'○ NO SIGNAL')));
 
     var ctrls=[];
     if(!cont){
-      ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',
-        style:{borderColor:curSig.color+'44',color:curSig.color}},
-        status==='calibrating'?'● CALIB...':status==='pinging'?'● XCORR...':'▶ PING'));
+      ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',style:{borderColor:curSig.color+'44',color:curSig.color}},status==='calibrating'?'● CALIB...':status==='pinging'?'● XCORR...':'▶ PING'));
       ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'◉ CONT'));
     }else{ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'));}
     ctrls.push(h('button',{className:'btn btn-sm btn-calib',onClick:amb?resetCal:calibrate,key:'cal'},amb?'↻ RECAL':'⚡ CALIB'));
-    ctrls.push(h('div',{className:'sel-grp',key:'iv'},h('span',null,'INT'),
-      h('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
-        [1000,1500,2000,3000,5000].map(function(v){return h('option',{value:v,key:v},v+'ms');}))));
+    ctrls.push(h('div',{className:'sel-grp',key:'iv'},h('span',null,'INT'),h('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
+      [1000,1500,2000,3000,5000].map(function(v){return h('option',{value:v,key:v},v+'ms');}))));
     if(hist.length>0)ctrls.push(h('button',{className:'btn btn-sm btn-clear',onClick:clear,key:'cl'},'CLEAR'));
     ch.push(h('div',{className:'ctrl',key:'ctrl'},ctrls));
 
@@ -1197,465 +1206,400 @@ function App(){
       ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v,s.u?h('span',{className:'st-u'},s.u):null));})));}
 
     if(lRes){var cc=lRes.cf;
-      ch.push(h('div',{className:'sec',key:'cb'},
-        h('div',{className:'sec-label'},'DETECTION CONFIDENCE'),
-        h('div',{className:'conf-row'},h('div',{className:'conf-bg'},h('div',{className:'conf-bar',style:{width:Math.min(100,cc*100)+'%',background:cC(cc)}})),
-          h('span',{className:'conf-lbl',style:{color:cC(cc)}},cc.toFixed(3))),
-        h('div',{style:{fontSize:'9px',color:'#33445577',marginTop:'4px'}},
-          'th='+lRes.th.toFixed(4)+' | '+(cc>=lRes.th?'✔ MATCHED (RTT='+fMs(lRes.rtt)+')':'✘ BELOW'))));}
+      ch.push(h('div',{className:'sec',key:'cb'},h('div',{className:'sec-label'},'DETECTION CONFIDENCE'),
+        h('div',{className:'conf-row'},h('div',{className:'conf-bg'},h('div',{className:'conf-bar',style:{width:Math.min(100,cc*100)+'%',background:cC(cc)}})),h('span',{className:'conf-lbl',style:{color:cC(cc)}},cc.toFixed(3))),
+        h('div',{style:{fontSize:'9px',color:'#33445577',marginTop:'4px'}},'th='+lRes.th.toFixed(4)+' | '+(cc>=lRes.th?'✔ MATCHED (RTT='+fMs(lRes.rtt)+')':'✘ BELOW'))));}
 
     if(lCorr&&lCorr.corr&&lCorr.corr.length>0){
-      ch.push(h('div',{className:'cv-wrap',key:'xc'},
-        h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),
-          h('span',null,'blanking '+CFG.blanking+'ms | peak @ '+(lCorr.pL>=0?lagMs(lCorr.pL).toFixed(1)+'ms':'---'))),
-        h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color})));}
+      ch.push(h('div',{className:'cv-wrap',key:'xc'},h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),h('span',null,'blanking '+CFG.blanking+'ms | peak @ '+(lCorr.pL>=0?lagMs(lCorr.pL).toFixed(1)+'ms':'---'))),h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color})));}
 
     if(lWave&&lWave.length>0){
-      ch.push(h('div',{className:'cv-wrap',key:'rw'},
-        h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE'),h('span',null,lWave.length+' smp / '+CFG.listenMs+'ms')),
-        h(WaveCanvas,{smp:lWave,blMs:CFG.blanking,sigColor:curSig.color})));}
+      ch.push(h('div',{className:'cv-wrap',key:'rw'},h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE'),h('span',null,lWave.length+' smp / '+CFG.listenMs+'ms')),h(WaveCanvas,{smp:lWave,blMs:CFG.blanking,sigColor:curSig.color})));}
 
-    if(hist.length>1){ch.push(h('div',{className:'sec',key:'tl'},
-      h('div',{className:'sec-label'},'RTT TIMELINE'),
+    if(hist.length>1){ch.push(h('div',{className:'sec',key:'tl'},h('div',{className:'sec-label'},'RTT TIMELINE'),
       h('div',{className:'tl-bars'},hist.slice().reverse().slice(-48).map(function(x,i){
-        var c=cls(x.rtt),bH=x.rtt!=null?Math.max(3,Math.min(40,(x.rtt/200)*40)):40;
-        var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:c.c;
-        return h('div',{className:'tl-b',key:i,style:{height:bH+'px',
-          background:x.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':sc,
-          opacity:x.rtt==null?.5:.6}});}))));}
+        var c=cls(x.rtt),bH=x.rtt!=null?Math.max(3,Math.min(40,(x.rtt/200)*40)):40;var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:c.c;
+        return h('div',{className:'tl-b',key:i,style:{height:bH+'px',background:x.rtt==null?'repeating-linear-gradient(45deg,#ff333333,#ff333333 2px,transparent 2px,transparent 4px)':sc,opacity:x.rtt==null?.5:.6}});}))));}
 
     if(hist.length>0){ch.push(h('div',{className:'log',key:'log'},
       h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'SIG')),
-      h('div',{className:'log-b'},hist.map(function(x){var c=cls(x.rtt),d=eD(x.rtt);
-        var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788';
-        var sn=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?';
+      h('div',{className:'log-b'},hist.map(function(x){var c=cls(x.rtt),d=eD(x.rtt);var sc=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788';var sn=x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?';
         return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id},
-          h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),
-          h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),
-          h('span',{style:{color:c.c,fontSize:'9px',letterSpacing:'1px'}},c.l),
-          h('span',null,d!=null?d.toFixed(1)+'m':'---'),
-          h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),
-          h('span',{style:{fontSize:'9px',color:sc,letterSpacing:'1px'}},sn));}))));}
+          h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),
+          h('span',{style:{color:c.c,fontSize:'9px',letterSpacing:'1px'}},c.l),h('span',null,d!=null?d.toFixed(1)+'m':'---'),
+          h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),h('span',{style:{fontSize:'9px',color:sc,letterSpacing:'1px'}},sn));}))));}
 
-    if(hist.length===0&&!err){ch.push(h('div',{className:'empty',key:'emp'},
-      h('div',{className:'empty-i'},'◎'),h('div',{className:'empty-t'},'ACOUSTIC SONAR LAYER'),
-      h('div',{className:'empty-d'},'信号を選択してPING。周波数帯による空間反応の違いを比較できます。')));}
+    if(hist.length===0&&!err){ch.push(h('div',{className:'empty',key:'emp'},h('div',{className:'empty-i'},'◎'),h('div',{className:'empty-t'},'ACOUSTIC SONAR LAYER'),
+      h('div',{className:'empty-d'},'信号を選択してPING。周波数帯による空間反応の違いを比較できます。',h('br'),'低周波=透過、高周波=指向性、クリック=最高解像度。')));}
   }
+
 
   /* ═══════════════════════════════════════════ */
   /*  EM / SENSOR LAYER                         */
   /* ═══════════════════════════════════════════ */
   if(layer==='em'){
-    ch.push(h('div',{className:'sec',key:'em-hdr'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#cc66ff'}}),'ELECTROMAGNETIC / ENVIRONMENTAL SENSORS'),
-      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
-        'デバイスの磁力計・加速度計・環境光センサー・気圧計からリアルタイムでEM/環境データを取得。')));
+    ch.push(h('div',{className:'sec',key:'em-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#cc66ff'}}),'ELECTROMAGNETIC / ENVIRONMENTAL SENSORS'),
+      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},'デバイスの磁力計・加速度計・環境光センサーからリアルタイムでEM/環境データを取得。')));
 
     if(sensorPerm.needsRequest){
-      ch.push(h('div',{key:'perm-banner',style:{
-        padding:'14px',marginBottom:'14px',
-        background:'linear-gradient(135deg,rgba(204,102,255,.08),rgba(0,255,170,.05))',
-        border:'1px solid #cc66ff44',borderRadius:'2px',textAlign:'center'
-      }},
+      ch.push(h('div',{key:'perm-banner',style:{padding:'14px',marginBottom:'14px',background:'linear-gradient(135deg,rgba(204,102,255,.08),rgba(0,255,170,.05))',border:'1px solid #cc66ff44',borderRadius:'2px',textAlign:'center'}},
         h('div',{style:{fontSize:'11px',color:'#cc66ff',marginBottom:'8px',letterSpacing:'1px'}},'⚡ iOS SENSOR PERMISSION REQUIRED'),
-        h('div',{style:{fontSize:'10px',color:'#667788',marginBottom:'12px',lineHeight:'1.8'}},
-          'iOS Safari ではモーション・方位センサーに明示的な許可が必要です。'),
-        h('button',{className:'btn',onClick:sensorPerm.requestAll,
-          style:{background:'linear-gradient(180deg,#cc66ff33,#cc66ff11)',border:'1px solid #cc66ff66',color:'#cc66ff',padding:'12px 32px',fontSize:'13px',letterSpacing:'2px'}
-        },'▶ GRANT SENSOR ACCESS'),
-        h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'8px'}},
-          'Orientation: '+(sensorPerm.perms.orient==='granted'?'✔':'○ '+sensorPerm.perms.orient)+
-          ' | Motion: '+(sensorPerm.perms.motion==='granted'?'✔':'○ '+sensorPerm.perms.motion))));
-    }
+        h('div',{style:{fontSize:'10px',color:'#667788',marginBottom:'12px',lineHeight:'1.8'}},'iOS Safari ではモーション・方位センサーに明示的な許可が必要です。'),
+        h('button',{className:'btn',onClick:sensorPerm.requestAll,style:{background:'linear-gradient(180deg,#cc66ff33,#cc66ff11)',border:'1px solid #cc66ff66',color:'#cc66ff',padding:'12px 32px',fontSize:'13px',letterSpacing:'2px'}},'▶ GRANT SENSOR ACCESS')));}
 
-    ch.push(h('div',{key:'platform-info',style:{
-      padding:'6px 10px',marginBottom:'10px',fontSize:'9px',letterSpacing:'1px',
-      color:'#445566',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'
-    }},
-      'PLATFORM: '+(IS_IOS?'iOS Safari':'Desktop/Android')+
-      ' | MAG: '+(mag.source||'none')+' | LIGHT: '+(light.source||'none')+
-      ' | MOTION: '+(motion.source||'none')+' | BARO: '+(baro.source||'none')
-    ));
+    ch.push(h('div',{key:'platform-info',style:{padding:'6px 10px',marginBottom:'10px',fontSize:'9px',letterSpacing:'1px',color:'#445566',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
+      'PLATFORM: '+(IS_IOS?'iOS Safari':'Desktop/Android')+' | MAG: '+(mag.source||'none')+' | LIGHT: '+(light.source||'none')+' | MOTION: '+(motion.source||'none')));
 
     ch.push(h('div',{className:'em-grid',key:'em-cards'},
-      // Magnetometer
-      h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'MAGNETIC FIELD'),
-          h('span',{style:{color:mag.available?'#00ffaa':mag.source==='awaiting_permission'?'#cc66ff':'#ff3333',fontSize:'8px'}},
-            mag.available?'● ACTIVE':mag.source==='awaiting_permission'?'◎ PERM':'○ N/A')),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MAGNETIC FIELD'),h('span',{style:{color:mag.available?'#00ffaa':'#ff3333',fontSize:'8px'}},mag.available?'● ACTIVE':'○ N/A')),
         h('div',{className:'em-card-v',style:{color:'#cc66ff'}},mag.mag.toFixed(1),h('span',{className:'em-card-u'},mag.source==='magnetometer'?'μT':'°tilt')),
         h('div',{className:'em-card-sub'},'X:'+mag.x.toFixed(1)+' Y:'+mag.y.toFixed(1)+' Z:'+mag.z.toFixed(1)),
         mag.heading!=null?h('div',{className:'em-card-sub',style:{color:'#8899aa'}},'Heading: '+mag.heading.toFixed(0)+'°'):null,
-        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+mag.source),
         h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,mag.mag)+'%',background:'linear-gradient(90deg,#cc66ff44,#cc66ff88)'}})))),
 
-      // Ambient Light
-      h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'AMBIENT LIGHT'),
-          h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},
-            light.available?'● '+(light.source==='camera'?'CAM':'SENSOR'):'○ N/A')),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'AMBIENT LIGHT'),h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},light.available?'● '+(light.source==='camera'?'CAM':'SENSOR'):'○ N/A')),
         h('div',{className:'em-card-v',style:{color:'#ffcc00'}},light.available&&light.lux!=null?light.lux.toFixed(0):'---',h('span',{className:'em-card-u'},'lux')),
-        h('div',{className:'em-card-sub'},light.available?'Photonic: '+(light.lux>500?'BRIGHT':light.lux>100?'LIT':'DIM'):'---'),
-        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+light.source),
         h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,(light.lux||0)/10)+'%',background:'linear-gradient(90deg,#ffcc0044,#ffcc0088)'}}))),
         light.source==='camera'?h('div',{style:{fontSize:'9px',color:'#ffcc0055',marginTop:'4px'}},'リアカメラで推定中'):null),
 
-      // Motion
-      h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'MOTION / ACCEL'),
-          h('span',{style:{color:motion.available?'#00ffaa':motion.source==='awaiting_permission'?'#cc66ff':'#ff3333',fontSize:'8px'}},
-            motion.available?'● ACTIVE':motion.source==='awaiting_permission'?'◎ PERM':'○ N/A')),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MOTION / ACCEL'),h('span',{style:{color:motion.available?'#00ffaa':'#ff3333',fontSize:'8px'}},motion.available?'● ACTIVE':'○ N/A')),
         h('div',{className:'em-card-v',style:{color:'#00ddff'}},motion.mag.toFixed(2),h('span',{className:'em-card-u'},'m/s²')),
         h('div',{className:'em-card-sub'},'X:'+motion.x.toFixed(2)+' Y:'+motion.y.toFixed(2)+' Z:'+motion.z.toFixed(2)),
-        h('div',{className:'em-card-sub',style:{color:motion.available&&Math.abs(motion.mag-9.81)<1?'#00ffaa66':'#ffcc0066'}},
-          motion.available?(Math.abs(motion.mag-9.81)<1?'STABLE':'MOTION DETECTED'):'---'),
-        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+motion.source),
-        h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,motion.mag*5)+'%',background:'linear-gradient(90deg,#00ddff44,#00ddff88)'}})))),
+        h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:Math.min(100,motion.mag*5)+'%',background:'linear-gradient(90deg,#00ddff44,#00ddff88)'}}))),
+        h('div',{className:'em-card-sub',style:{color:motion.available&&Math.abs(motion.mag-9.81)<1?'#00ffaa66':'#ffcc0066'}},motion.available?(Math.abs(motion.mag-9.81)<1?'STABLE':'MOTION DETECTED'):'---')),
 
-      // v0.7: Barometer
-      h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'BAROMETER'),
-          h('span',{style:{color:baro.available?'#00ffaa':'#556677',fontSize:'8px'}},baro.available?'● ACTIVE':'○ N/A')),
-        h('div',{className:'em-card-v',style:{color:'#88aacc'}},baro.available?baro.pressure.toFixed(1):'---',h('span',{className:'em-card-u'},'hPa')),
-        h('div',{className:'em-card-sub'},baro.available?'Altitude: '+(baro.altitude!=null?baro.altitude.toFixed(1)+'m':'---'):'Generic Sensor API required'),
-        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+baro.source),
-        baro.trend.length>2?h('div',{className:'baro-trend'},
-          baro.trend.slice(-30).map(function(pt,i,arr){
-            var mn=1e9,mx2=0;arr.forEach(function(p2){if(p2.p<mn)mn=p2.p;if(p2.p>mx2)mx2=p2.p;});
-            var range=mx2-mn||1;
-            var ht=Math.max(3,((pt.p-mn)/range)*55);
-            return h('div',{key:i,className:'baro-bar',style:{height:ht+'px',background:'#88aacc'+(i===arr.length-1?'cc':'44')}});
-          })
-        ):h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:'0%',background:'#88aacc88'}})))),
-
-      // Geolocation
-      h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'GEOLOCATION'),h('span',{style:{color:geo.available?'#00ffaa':'#556677',fontSize:'8px'}},geo.available?'● FIXED':'○ UNFIXED')),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'GEOLOCATION'),h('span',{style:{color:geo.available?'#00ffaa':'#556677',fontSize:'8px'}},geo.available?'● FIXED':'○ UNFIXED')),
         h('div',{className:'em-card-v',style:{color:'#ff8800',fontSize:'14px'}},geo.available?geo.lat.toFixed(5)+', '+geo.lon.toFixed(5):'---'),
         h('div',{className:'em-card-sub'},geo.available?'Accuracy: ±'+geo.acc.toFixed(0)+'m':''),
-        h('button',{className:'btn btn-sm',onClick:fetchGeo,style:{marginTop:'6px',background:'transparent',border:'1px solid #ff880044',color:'#ff8800'}},'↻ FIX')),
-
-      // v0.7: Network Info
-      h('div',{className:'em-card'},
-        h('div',{className:'em-card-h'},h('span',null,'NETWORK'),
-          h('span',{style:{color:netInfo.available?'#00ffaa':'#556677',fontSize:'8px'}},netInfo.available?'● ACTIVE':'○ N/A')),
-        h('div',{className:'em-card-v',style:{color:'#ff8800',fontSize:'16px'}},netInfo.available?netInfo.effectiveType.toUpperCase():'---'),
-        h('div',{className:'em-card-sub'},'Type: '+(netInfo.type||'---')+' | RTT: '+(netInfo.rtt!=null?netInfo.rtt+'ms':'---')),
-        h('div',{className:'em-card-sub'},'Downlink: '+(netInfo.downlink!=null?netInfo.downlink+'Mbps':'---')+(netInfo.saveData?' | DATA SAVER':'')),
-        h('div',{className:'em-card-sub',style:{color:'#33445577'}},'src: '+(netInfo.source||'network_info')),
-        netInfo.history.length>2?h(NetSparkline,{history:netInfo.history}):null)
+        h('button',{className:'btn btn-sm',onClick:fetchGeo,style:{marginTop:'6px',background:'transparent',border:'1px solid #ff880044',color:'#ff8800'}},'↻ FIX'))
     ));
 
-    // EM History log
-    if(emHist.length>0){
-      ch.push(h('div',{className:'sec',key:'em-hist'},
-        h('div',{className:'sec-label'},'EM SCAN LOG (AUTO 2s)'),
-        h('div',{style:{maxHeight:'200px',overflow:'auto'}},
-          emHist.slice(0,16).map(function(snap,i){
-            return h('div',{key:i,style:{
-              padding:'4px 8px',fontSize:'10px',borderBottom:'1px solid #1a253044',
-              color:'#667788',display:'flex',gap:'8px',flexWrap:'wrap',animation:'fadeIn .25s ease'
-            }},
-              h('span',{style:{color:'#556677',minWidth:'52px'}},fT(snap.time)),
-              h('span',{style:{color:'#cc66ff'}},snap.mag.mag.toFixed(1)+'μT'),
-              h('span',{style:{color:'#ffcc00'}},snap.light.lux!=null?snap.light.lux.toFixed(0)+'lx':'---'),
-              h('span',{style:{color:'#00ddff'}},snap.motion.mag.toFixed(1)+'m/s²'),
-              h('span',{style:{color:'#88aacc'}},snap.baro.pressure!=null?snap.baro.pressure.toFixed(0)+'hPa':'---'),
-              h('span',{style:{color:'#ff8800'}},snap.net.effectiveType||'---'),
-              h('span',{style:{color:snap.mediation>0.6?'#00ffaa':snap.mediation>0.3?'#ffcc00':'#ff4444'}},'μ:'+snap.mediation.toFixed(3))
-            );
-          }))));
+    if(emHist.length>0){ch.push(h('div',{className:'sec',key:'em-hist'},h('div',{className:'sec-label'},'EM SCAN LOG (AUTO 2s)'),
+      h('div',{style:{maxHeight:'200px',overflow:'auto'}},emHist.slice(0,16).map(function(snap,i){
+        return h('div',{key:i,style:{padding:'4px 8px',fontSize:'10px',borderBottom:'1px solid #1a253044',color:'#667788',display:'flex',gap:'10px',animation:'fadeIn .25s ease'}},
+          h('span',{style:{color:'#556677',minWidth:'56px'}},fT(snap.time)),
+          h('span',{style:{color:'#cc66ff'}},snap.mag.mag.toFixed(1)+'μT'),
+          h('span',{style:{color:'#ffcc00'}},snap.light.lux!=null?snap.light.lux.toFixed(0)+'lx':'---'),
+          h('span',{style:{color:'#00ddff'}},snap.motion.mag.toFixed(1)+'m/s²'),
+          h('span',{style:{color:snap.mediation>0.6?'#00ffaa':snap.mediation>0.3?'#ffcc00':'#ff4444'}},'M:'+snap.mediation.toFixed(3)));
+      }))));}
+  }
+
+
+  /* ═══════════════════════════════════════════ */
+  /*  v0.8: RF SPECTRUM LAYER                   */
+  /* ═══════════════════════════════════════════ */
+  if(layer==='rf'){
+    var band=rf.band;
+
+    ch.push(h('div',{className:'sec',key:'rf-hdr'},
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff4466'}}),'RF SPECTRUM ANALYZER'),
+      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
+        'WebUSB SDR接続でリアルRFスペクトラム解析。SDR未接続時はシミュレーションモードで動作。',h('br'),
+        '対応デバイス: RTL-SDR (RTL2832U), HackRF (将来)')));
+
+    /* SDR Connection */
+    ch.push(h('div',{className:'sec',key:'rf-conn'},
+      h('div',{className:'sec-label'},'SDR CONNECTION'),
+      h('div',{style:{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}},
+        h('div',{style:{padding:'6px 10px',border:'1px solid '+(rf.state.connected?'#00ffaa44':'#1a2530'),borderRadius:'2px',fontSize:'10px',letterSpacing:'1px',color:rf.state.connected?'#00ffaa':'#556677'}},
+          rf.state.connected?'● SDR CONNECTED (WebUSB)':'○ SDR DISCONNECTED'),
+        h('div',{style:{fontSize:'10px',letterSpacing:'1px',color:rf.state.source==='simulation'?'#ff880088':'#00ffaa88'}},
+          'SRC: '+(rf.state.source==='simulation'?'SIMULATION':'WEBUSB SDR')),
+        !rf.state.connected?
+          h('button',{className:'btn btn-sm',onClick:rf.connectSDR,style:{background:'transparent',border:'1px solid #ff446644',color:'#ff4466'}},'⚡ CONNECT SDR'):
+          h('button',{className:'btn btn-sm',onClick:rf.disconnectSDR,style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333'}},'✕ DISCONNECT')
+      ),
+      rf.state.error?h('div',{style:{fontSize:'9px',color:'#ff666688',marginTop:'6px'}},rf.state.error):null,
+      !navigator.usb?h('div',{style:{fontSize:'9px',color:'#ff666644',marginTop:'6px'}},'⚠ WebUSB not available — simulation mode only (requires Chrome/Edge + HTTPS)'):null
+    ));
+
+    /* Band selector */
+    ch.push(h('div',{className:'sec',key:'rf-band'},
+      h('div',{className:'sec-label'},'RF BAND'),
+      h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'8px'}},
+        RF_BAND_ORDER.map(function(id){var b=RF_BANDS[id];
+          return h('span',{key:id,className:'rf-band-tag'+(rf.bandId===id?' active':''),
+            onClick:function(){rf.setBandId(id);},
+            style:{background:b.color+'15',border:'1px solid '+(rf.bandId===id?b.color+'88':b.color+'33'),color:b.color}},b.name);
+        })),
+      h('div',{style:{fontSize:'10px',color:'#556677'}},band.desc),
+      h('div',{style:{fontSize:'9px',color:'#334455',marginTop:'4px'}},band.fStart+' → '+band.fEnd+' '+band.unit)
+    ));
+
+    /* Scan controls */
+    ch.push(h('div',{className:'ctrl',key:'rf-ctrl'},
+      !rf.state.scanning?
+        h('button',{className:'btn',onClick:rf.startScan,style:{background:'linear-gradient(180deg,#ff446622,#ff446611)',border:'1px solid #ff446644',color:'#ff4466'}},'▶ START SCAN'):
+        h('button',{className:'btn btn-stop',onClick:rf.stopScan},'■ STOP SCAN'),
+      h('div',{style:{fontSize:'10px',color:'#445566',letterSpacing:'1px'}},'500ms sweep | 256 bins')
+    ));
+
+    /* Spectrum display */
+    if(rf.spectrum){
+      var peaks=rfPeaks(rf.spectrum,band,5);
+      var density=rfDensity(rf.spectrum,-70);
+
+      ch.push(h('div',{className:'rf-spectrum-wrap',key:'rf-sp'},
+        h('div',{className:'cv-lbl'},h('span',null,'POWER SPECTRUM'),h('span',null,band.fStart+'—'+band.fEnd+' '+band.unit)),
+        h(SpectrumCanvas,{spectrum:rf.spectrum,band:band})));
+
+      /* Waterfall */
+      if(rf.waterfall.length>1){
+        ch.push(h('div',{className:'rf-waterfall-wrap',key:'rf-wf'},
+          h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},h('span',null,'WATERFALL'),h('span',null,rf.waterfall.length+' sweeps')),
+          h(WaterfallCanvas,{waterfall:rf.waterfall,band:band})));}
+
+      /* Stats */
+      ch.push(h('div',{className:'sts',key:'rf-sts'},
+        [{l:'PEAKS',v:peaks.length,u:'',c:'#ff4466'},
+         {l:'DENSITY',v:(density*100).toFixed(1),u:'%',c:density>0.3?'#ff4466':'#667788'},
+         {l:'PEAK PWR',v:peaks.length?peaks[0].power.toFixed(1):'---',u:peaks.length?'dBm':'',c:'#ffcc00'},
+         {l:'PEAK FREQ',v:peaks.length?peaks[0].freq.toFixed(0):'---',u:peaks.length?'MHz':'',c:'#00ddff'},
+         {l:'FLOOR',v:'-90',u:'dBm',c:'#556677'},
+         {l:'BAND',v:band.name,u:'',c:band.color}
+        ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c,fontSize:typeof s.v==='string'&&s.v.length>4?'14px':'18px'}},s.v,s.u?h('span',{className:'st-u'},s.u):null));})));
+
+      /* Peak list */
+      if(peaks.length>0){
+        ch.push(h('div',{className:'sec',key:'rf-peaks'},
+          h('div',{className:'sec-label'},'DETECTED PEAKS'),
+          peaks.map(function(pk,i){
+            return h('div',{key:i,style:{display:'flex',gap:'12px',padding:'3px 0',fontSize:'11px',borderBottom:'1px solid #1a253033'}},
+              h('span',{style:{color:band.color,minWidth:'30px'}},'#'+(i+1)),
+              h('span',{style:{color:'#c0d0e0',minWidth:'80px'}},pk.freq.toFixed(1)+' MHz'),
+              h('span',{style:{color:pk.power>-50?'#ff4466':'#667788'}},pk.power.toFixed(1)+' dBm'),
+              h('span',{style:{color:'#334455',fontSize:'9px'}},'bin:'+pk.bin));
+          })));
+      }
+    }
+
+    /* RF History */
+    if(rf.rfHist.length>0){
+      ch.push(h('div',{className:'sec',key:'rf-hist'},
+        h('div',{className:'sec-label'},'RF SCAN LOG'),
+        h('div',{style:{maxHeight:'160px',overflow:'auto'}},rf.rfHist.slice(0,12).map(function(snap,i){
+          return h('div',{key:i,style:{padding:'3px 8px',fontSize:'10px',borderBottom:'1px solid #1a253044',color:'#667788',display:'flex',gap:'10px'}},
+            h('span',{style:{color:'#556677',minWidth:'56px'}},fT(snap.time)),
+            h('span',{style:{color:RF_BANDS[snap.band].color}},RF_BANDS[snap.band].name),
+            h('span',{style:{color:'#ff4466'}},snap.peaks+' peaks'),
+            h('span',{style:{color:'#ffcc00'}},snap.peakPower.toFixed(1)+'dBm'),
+            h('span',{style:{color:snap.density>0.3?'#ff4466':'#556677'}},(snap.density*100).toFixed(0)+'% dense'));
+        }))));
+    }
+
+    if(!rf.spectrum&&!rf.state.scanning){
+      ch.push(h('div',{className:'empty',key:'rf-emp'},h('div',{className:'empty-i'},'〜'),h('div',{className:'empty-t'},'RF SPECTRUM ANALYZER'),
+        h('div',{className:'empty-d'},'START SCANでスペクトラムスキャンを開始。WebUSB対応のRTL-SDRを接続するとリアルRFデータを取得できます。',h('br'),
+          'SDR未接続時はバンド特性に基づくリアルタイムシミュレーションで動作します。')));
     }
   }
 
-  /* ═══════════════════════════════════════════ */
-  /*  v0.7: RF / BLE LAYER                      */
-  /* ═══════════════════════════════════════════ */
-  if(layer==='rf'){
-    ch.push(h('div',{className:'sec',key:'rf-hdr'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'RF / BLE PROXIMITY'),
-      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
-        'Web Bluetooth APIによるBLEデバイスの探索・RSSI計測。',h('br'),
-        'Network Information APIによるWiFi/セルラー接続品質のマッピング。')));
 
-    // WiFi / Network section
-    ch.push(h('div',{className:'sec',key:'wifi'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff8800'}}),'WIFI / NETWORK MAPPING'),
-      netInfo.available?h('div',null,
-        h('div',{className:'sts'},
-          [{l:'TYPE',v:netInfo.type||'---',u:'',c:'#ff8800'},
-           {l:'EFFECTIVE',v:(netInfo.effectiveType||'---').toUpperCase(),u:'',c:netInfo.effectiveType==='4g'?'#00ffaa':netInfo.effectiveType==='3g'?'#ffcc00':'#ff4444'},
-           {l:'DOWNLINK',v:netInfo.downlink!=null?netInfo.downlink.toFixed(1):'---',u:netInfo.downlink!=null?'Mbps':'',c:'#00ddff'},
-           {l:'RTT',v:netInfo.rtt!=null?netInfo.rtt:'---',u:netInfo.rtt!=null?'ms':'',c:netInfo.rtt!=null&&netInfo.rtt<100?'#00ffaa':netInfo.rtt!=null&&netInfo.rtt<300?'#ffcc00':'#ff4444'},
-           {l:'SAVE',v:netInfo.saveData?'ON':'OFF',u:'',c:netInfo.saveData?'#ff3333':'#667788'}
-          ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v,s.u?h('span',{className:'st-u'},s.u):null));})),
-        netInfo.history.length>3?h('div',{className:'cv-wrap'},
-          h('div',{className:'cv-lbl'},h('span',null,'NETWORK RTT HISTORY'),h('span',null,netInfo.history.length+' samples')),
-          h(NetSparkline,{history:netInfo.history})):null,
-        h('div',{style:{fontSize:'9px',color:'#44556688',marginTop:'6px'}},
-          '⚠ Web APIではWiFi RSSI（信号強度dBm）の直接取得は不可。Network Information APIの接続品質メトリクスで代替。',h('br'),
-          '将来的にはWebUSB経由のWiFiアダプタ / Native bridgeでRSSIマッピングを実装予定。')
-      ):h('div',{style:{color:'#556677',fontSize:'11px',padding:'10px'}},'Network Information API not available in this browser.')
+  /* ═══════════════════════════════════════════ */
+  /*  v0.8: NFC + THERMAL LAYER                 */
+  /* ═══════════════════════════════════════════ */
+  if(layer==='nfc_thermal'){
+
+    /* ── NFC Section ── */
+    ch.push(h('div',{className:'sec',key:'nfc-sec'},
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#9966ff'}}),'NFC FIELD DETECTION'),
+      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'10px'}},
+        'Web NFC APIでNFCタグ・フィールドを検出。',NFC_SUPPORTED?'':'非対応ブラウザではシミュレーションモードで動作。',h('br'),
+        'NFC (13.56MHz) の近接場を利用してタグの存在と内容を読み取り。')));
+
+    /* NFC Status + Controls */
+    ch.push(h('div',{className:'sec',key:'nfc-ctrl'},
+      h('div',{style:{textAlign:'center',marginBottom:'12px'}},
+        h('div',{className:'nfc-pulse',style:{
+          color:nfc.state.fieldStrength>0.5?'#9966ff':nfc.state.fieldStrength>0?'#9966ff66':'#1a2530',
+          background:nfc.state.fieldStrength>0.5?'radial-gradient(circle,#9966ff22,transparent)':'transparent',
+          border:'2px solid '+(nfc.state.scanning?'#9966ff44':'#1a2530')
+        }},
+          h('span',{style:{fontSize:'24px',color:nfc.state.fieldStrength>0.5?'#9966ff':'#334455'}},
+            nfc.state.fieldStrength>0.5?'◉':nfc.state.scanning?'◎':'○')),
+        h('div',{style:{fontSize:'10px',color:nfc.state.scanning?'#9966ff':'#445566',letterSpacing:'2px',marginTop:'8px'}},
+          nfc.state.scanning?(nfc.state.fieldStrength>0.5?'TAG DETECTED':'SCANNING...'):' IDLE'),
+        h('div',{style:{fontSize:'9px',color:'#334455',marginTop:'4px'}},'src: '+nfc.state.source+(NFC_SUPPORTED?' (Web NFC)':' (sim)'))
+      ),
+
+      /* Field strength bar */
+      h('div',{className:'em-bar-row',style:{marginBottom:'10px'}},
+        h('span',{style:{fontSize:'9px',color:'#556677',letterSpacing:'1px',minWidth:'44px'}},'FIELD'),
+        h('div',{className:'em-bar-bg',style:{height:'8px'}},
+          h('div',{className:'em-bar-fill',style:{width:(nfc.state.fieldStrength*100)+'%',background:'linear-gradient(90deg,#9966ff44,#9966ff)',transition:'width .3s'}})),
+        h('span',{style:{fontSize:'11px',color:'#9966ff',minWidth:'50px',textAlign:'right'}},(nfc.state.fieldStrength*100).toFixed(0)+'%')),
+
+      h('div',{style:{display:'flex',gap:'8px'}},
+        !nfc.state.scanning?
+          h('button',{className:'btn',onClick:nfc.startScan,style:{background:'linear-gradient(180deg,#9966ff22,#9966ff11)',border:'1px solid #9966ff44',color:'#9966ff'}},'▶ START NFC SCAN'):
+          h('button',{className:'btn btn-stop',onClick:nfc.stopScan},'■ STOP'))
     ));
 
-    // BLE section
-    ch.push(h('div',{className:'sec',key:'ble'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'BLE PROXIMITY SCANNER'),
-      ble.isSupported?h('div',null,
-        h('div',{className:'ctrl'},
-          h('button',{className:'btn btn-sm',onClick:ble.scanOnce,disabled:ble.data.scanning,
-            style:{background:'linear-gradient(180deg,#00ddff22,#00ddff11)',border:'1px solid #00ddff44',color:'#00ddff'}
-          },ble.data.scanning?'● SCANNING...':'▶ SCAN DEVICE'),
-          ble.hasLEScan?h('button',{className:'btn btn-sm',
-            onClick:ble.data.scanning?ble.stopAdvScan:ble.startAdvScan,
-            style:{background:ble.data.scanning?'linear-gradient(180deg,#ff333322,#ff333311)':'transparent',
-              border:'1px solid '+(ble.data.scanning?'#ff333344':'#00ddff33'),
-              color:ble.data.scanning?'#ff3333':'#00ddff88'}
-          },ble.data.scanning?'■ STOP ADV':'◉ ADV SCAN'):null,
-          ble.data.devices.length>0?h('button',{className:'btn btn-sm btn-clear',onClick:ble.clearDevices},'CLEAR'):null),
-        ble.data.error?h('div',{className:'err'},'⚠ '+ble.data.error):null,
-        h('div',{style:{fontSize:'9px',color:'#44556688',marginBottom:'8px'}},
-          'SCAN DEVICE: ブラウザのデバイスピッカーで1台ずつ検出（GATT接続）',
-          ble.hasLEScan?' | ADV SCAN: バックグラウンドでアドバタイズメントパケットを受信（実験的）':''),
+    /* NFC Tag History */
+    if(nfc.state.tagHistory.length>0){
+      ch.push(h('div',{className:'sec',key:'nfc-tags'},
+        h('div',{className:'sec-label'},'TAG HISTORY'),
+        nfc.state.tagHistory.slice(0,8).map(function(tag,i){
+          return h('div',{key:i,style:{padding:'8px',marginBottom:'4px',border:'1px solid #9966ff22',borderRadius:'2px',background:'rgba(153,102,255,.03)',animation:'fadeIn .25s ease'}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'4px'}},
+              h('span',{style:{fontSize:'10px',color:'#9966ff',letterSpacing:'1px'}},'UID: '+tag.serialNumber),
+              h('span',{style:{fontSize:'9px',color:'#556677'}},fT(tag.time))),
+            tag.records.map(function(rec,j){
+              return h('div',{key:j,style:{fontSize:'10px',color:'#667788',padding:'2px 0'}},
+                h('span',{style:{color:'#445566'}},'['+rec.type+'] '),rec.payload);
+            }));
+        })));
+    }
 
-        ble.data.devices.length>0?h('div',null,
-          h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'1.5px',marginBottom:'6px'}},
-            ble.data.devices.length+' DEVICE'+(ble.data.devices.length>1?'S':'')+' FOUND'),
-          ble.data.devices.map(function(dev,i){
-            var rssiPct=dev.rssi!=null?Math.max(0,Math.min(100,(dev.rssi+100)*2)):null;
-            var rssiColor=dev.rssi!=null?(dev.rssi>-50?'#00ffaa':dev.rssi>-70?'#00ddff':dev.rssi>-85?'#ffcc00':'#ff4444'):'#556677';
-            return h('div',{className:'ble-device',key:dev.id},
-              h('div',{className:'ble-device-row'},
-                h('div',null,
-                  h('span',{className:'ble-name'},dev.name),
-                  h('div',{className:'ble-meta'},'ID: '+dev.id.substr(0,12)+'...'+(dev.manufacturer?' | '+dev.manufacturer:''))),
-                h('div',{style:{textAlign:'right'}},
-                  dev.rssi!=null?h('div',{className:'ble-rssi',style:{color:rssiColor}},dev.rssi,h('span',{style:{fontSize:'10px',color:'#556677'}},' dBm')):
-                    h('div',{style:{fontSize:'11px',color:'#556677'}},'RSSI N/A'),
-                  dev.batteryLevel!=null?h('div',{style:{fontSize:'9px',color:'#00ffaa88'}},'🔋 '+dev.batteryLevel+'%'):null,
-                  h('div',{style:{fontSize:'9px',color:'#445566'}},dev.connected?'GATT':'DISC'))),
-              dev.rssi!=null?h('div',{className:'rssi-bar'},h('div',{className:'rssi-fill',style:{width:rssiPct+'%',background:rssiColor+'88'}})):null,
-              dev.services&&dev.services.length>0?h('div',{className:'ble-meta',style:{marginTop:'4px'}},'Services: '+dev.services.join(', ')):null
-            );
-          })
-        ):h('div',{style:{textAlign:'center',padding:'24px',color:'#334455'}},
-          h('div',{style:{fontSize:'24px',opacity:.3,marginBottom:'6px'}},'◇'),
-          h('div',{style:{fontSize:'10px',letterSpacing:'2px'}},'NO BLE DEVICES'),
-          h('div',{style:{fontSize:'9px',color:'#223344',marginTop:'4px'}},'SCAN DEVICE をタップして検出開始'))
-      ):h('div',{style:{color:'#ff666688',fontSize:'11px',padding:'10px'}},
-        '⚠ Web Bluetooth is not supported in this browser.',h('br'),
-        'Chrome / Edge on Android, ChromeOS, or macOS required.')
+    if(nfc.state.error){ch.push(h('div',{className:'err',key:'nfc-err'},'⚠ '+nfc.state.error));}
+
+    /* ── Divider ── */
+    ch.push(h('div',{key:'div',style:{borderTop:'1px solid #1a2530',margin:'18px 0'}}));
+
+    /* ── THERMAL Section ── */
+    ch.push(h('div',{className:'sec',key:'therm-sec'},
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff8800'}}),'THERMAL ESTIMATION'),
+      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'10px'}},
+        'ブラウザから直接温度センサーにアクセスするAPIは存在しないため、',h('br'),
+        'CPU負荷 + Battery API + 熱モデルから推定温度を算出する。')));
+
+    ch.push(h('div',{className:'sec',key:'therm-ctrl'},
+      h('div',{style:{display:'flex',gap:'8px',marginBottom:'14px'}},
+        !thermal.data.available?
+          h('button',{className:'btn',onClick:thermal.startMonitoring,style:{background:'linear-gradient(180deg,#ff880022,#ff880011)',border:'1px solid #ff880044',color:'#ff8800'}},'▶ START MONITORING'):
+          h('button',{className:'btn btn-stop',onClick:thermal.stopMonitoring},'■ STOP')),
+
+      /* Temperature display */
+      h('div',{className:'em-grid'},
+        h('div',{className:'em-card'},
+          h('div',{className:'em-card-h'},h('span',null,'EST. TEMPERATURE'),h('span',{style:{color:thermal.data.available?'#00ffaa':'#556677',fontSize:'8px'}},thermal.data.available?'● ACTIVE':'○ IDLE')),
+          h('div',{className:'em-card-v',style:{color:'#ff8800'}},thermal.data.estimatedTemp!=null?thermal.data.estimatedTemp.toFixed(1):'---',h('span',{className:'em-card-u'},'°C')),
+          h('div',{className:'em-card-sub'},'Model: CPU heat + battery + ambient'),
+          thermal.data.estimatedTemp!=null?h('div',null,
+            h('div',{className:'thermal-gradient',style:{marginTop:'8px'}},
+              h('div',{className:'thermal-marker',style:{left:Math.min(100,Math.max(0,((thermal.data.estimatedTemp-15)/40)*100))+'%'}}))):null),
+
+        h('div',{className:'em-card'},
+          h('div',{className:'em-card-h'},h('span',null,'CPU LOAD'),h('span',{style:{fontSize:'8px',color:'#556677'}},thermal.data.cpuCores+' cores')),
+          h('div',{className:'em-card-v',style:{color:'#00ddff'}},(thermal.data.cpuLoad*100).toFixed(1),h('span',{className:'em-card-u'},'%')),
+          h('div',{className:'em-bar-row'},h('div',{className:'em-bar-bg',style:{height:'6px'}},h('div',{className:'em-bar-fill',style:{width:(thermal.data.cpuLoad*100)+'%',background:thermal.data.cpuLoad>0.7?'linear-gradient(90deg,#ff4444,#ff0000)':thermal.data.cpuLoad>0.3?'linear-gradient(90deg,#ffcc0044,#ffcc00)':'linear-gradient(90deg,#00ddff44,#00ddff)'}}))),
+          h('div',{className:'em-card-sub'},'Measured via timestamp delta')),
+
+        h('div',{className:'em-card'},
+          h('div',{className:'em-card-h'},h('span',null,'BATTERY'),h('span',{style:{fontSize:'8px',color:thermal.data.batteryCharging?'#ffcc00':'#556677'}},thermal.data.batteryCharging?'⚡ CHARGING':'○')),
+          h('div',{className:'em-card-v',style:{color:thermal.data.batteryLevel!=null?(thermal.data.batteryLevel>0.5?'#00ffaa':thermal.data.batteryLevel>0.2?'#ffcc00':'#ff3333'):'#556677'}},thermal.data.batteryLevel!=null?(thermal.data.batteryLevel*100).toFixed(0):'---',h('span',{className:'em-card-u'},'%')),
+          h('div',{className:'em-card-sub'},thermal.data.batteryCharging?'Charging adds ~5°C heat':'Battery discharge nominal')),
+
+        h('div',{className:'em-card'},
+          h('div',{className:'em-card-h'},h('span',null,'THERMAL CLASS')),
+          h('div',{className:'em-card-v',style:{color:thermal.data.estimatedTemp!=null?(thermal.data.estimatedTemp>40?'#ff3333':thermal.data.estimatedTemp>32?'#ffcc00':'#00ffaa'):'#556677',fontSize:'16px'}},
+            thermal.data.estimatedTemp!=null?(thermal.data.estimatedTemp>40?'HOT':thermal.data.estimatedTemp>32?'WARM':thermal.data.estimatedTemp>25?'NORMAL':'COOL'):'---'),
+          h('div',{className:'em-card-sub'},'Thermal zone classification'))
+      ),
+
+      /* Thermal history chart */
+      thermal.data.history.length>2?h('div',{className:'cv-wrap',key:'therm-cv'},
+        h('div',{className:'cv-lbl'},h('span',null,'THERMAL HISTORY'),h('span',null,'orange=temp / blue=cpu')),
+        h(ThermalHistCanvas,{history:thermal.data.history})):null
     ));
 
-    ch.push(h('div',{className:'nfo',key:'rf-note'},
-      '▸ BLE SCAN: requestDevice() (picker) + requestLEScan() (experimental passive scan)',h('br'),
-      '▸ WIFI: Network Information API — effectiveType, downlink, RTT (RSSI not exposed)',h('br'),
-      '▸ ROADMAP: WebUSB WiFi adapter for direct RSSI, Web NFC for field detection'));
+    ch.push(h('div',{className:'nfo',key:'therm-nfo'},
+      '▸ THERMAL MODEL: T_est = T_ambient(22°C) + CPU_heat(0-15°C) + Battery_heat(0-8°C) + noise',h('br'),
+      '▸ CPU LOAD: Measured via busy-loop timestamp delta (3s interval)',h('br'),
+      '▸ BATTERY: Navigator.getBattery() API — charging state affects thermal estimate',h('br'),
+      '▸ LIMITATION: Browser sandbox prevents direct hardware temp sensor access',h('br'),
+      '▸ ROADMAP: WebHID thermal probe, IR camera (WebRTC), environmental temp API'));
   }
 
+
   /* ═══════════════════════════════════════════ */
-  /*  MEDIATION COEFFICIENT LAYER (v0.7)        */
+  /*  MEDIATION COEFFICIENT LAYER (v0.8 expanded)*/
   /* ═══════════════════════════════════════════ */
   if(layer==='mediation'){
-    var mc=mediation.composite;
-    var mcColor=mc>0.6?'#00ffaa':mc>0.3?'#ffcc00':'#ff4444';
+    var mc=mediation.composite;var mcColor=mc>0.6?'#00ffaa':mc>0.3?'#ffcc00':'#ff4444';
 
     ch.push(h('div',{className:'med-coeff',key:'med'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ffcc00'}}),'MEDIATION COEFFICIENT — μ(x,t) v0.7'),
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ffcc00'}}),'MEDIATION COEFFICIENT — μ(x,t) v0.8'),
       h('div',{style:{textAlign:'center',margin:'12px 0'}},
         h(MedRing,{value:mc,dims:mediation.dims}),
         h('div',{className:'med-center',style:{position:'relative',marginTop:'-80px',marginBottom:'40px'}},
-          h('div',{className:'med-val',style:{color:mcColor}},mc.toFixed(3)),
-          h('div',{className:'med-lbl'},'COMPOSITE'))
-      ),
+          h('div',{className:'med-val',style:{color:mcColor}},mc.toFixed(3)),h('div',{className:'med-lbl'},'COMPOSITE'))),
+
       h('div',{className:'med-dims'},
         [{k:'acoustic',l:'ACOUSTIC',c:'#00ffaa',desc:'音響反射率'},
          {k:'emField',l:'EM FIELD',c:'#cc66ff',desc:'電磁場密度'},
          {k:'photonic',l:'PHOTONIC',c:'#ffcc00',desc:'光環境'},
          {k:'kinetic',l:'KINETIC',c:'#00ddff',desc:'運動安定性'},
-         {k:'barometric',l:'BARO',c:'#88aacc',desc:'気圧安定性'},
-         {k:'network',l:'NETWORK',c:'#ff8800',desc:'ネット接続性'},
-         {k:'bleProximity',l:'BLE',c:'#00ddff',desc:'近接デバイス密度'}
-        ].map(function(d){
-          var v=mediation.dims[d.k]||0;
-          return h('div',{className:'med-dim',key:d.k},
-            h('div',{className:'med-dim-l'},d.l),
+         {k:'rfDensity',l:'RF DENSITY',c:'#ff4466',desc:'RF帯域占有率'},
+         {k:'nfcField',l:'NFC FIELD',c:'#9966ff',desc:'NFC近接場'},
+         {k:'thermal',l:'THERMAL',c:'#ff8800',desc:'熱環境安定性'}
+        ].map(function(d){var v=mediation.dims[d.k]||0;
+          return h('div',{className:'med-dim',key:d.k},h('div',{className:'med-dim-l'},d.l),
             h('div',{className:'med-dim-v',style:{color:d.c}},v.toFixed(3)),
             h('div',{style:{fontSize:'8px',color:'#334455',marginTop:'2px'}},d.desc),
-            h('div',{className:'em-bar-row',style:{marginTop:'4px'}},
-              h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(v*100)+'%',background:d.c+'88'}}))));
+            h('div',{className:'em-bar-row',style:{marginTop:'4px'}},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(v*100)+'%',background:d.c+'88'}}))));
         }))
     ));
 
-    ch.push(h('div',{className:'sec',key:'med-formula'},
-      h('div',{className:'sec-label'},'FORMULA v0.7'),
+    ch.push(h('div',{className:'sec',key:'med-formula'},h('div',{className:'sec-label'},'FORMULA v0.8'),
       h('div',{style:{fontSize:'11px',color:'#667788',lineHeight:'2',fontFamily:'monospace'}},
         'μ(x,t) = Σ wᵢ · dᵢ(x,t)',h('br'),
-        'dᵢ ∈ {acoustic, emField, photonic, kinetic, barometric, network, bleProximity}',h('br'),
-        'w = [0.25, 0.15, 0.10, 0.15, 0.10, 0.15, 0.10]',h('br'),h('br'),
-        h('span',{style:{color:'#445566'}},'v0.7で3次元（気圧・ネットワーク・BLE近接）を追加。'),h('br'),
-        h('span',{style:{color:'#445566'}},'7次元空間情報接続性指標として拡張。'))
-    ));
+        'where dᵢ ∈ {acoustic, emField, photonic, kinetic, rfDensity, nfcField, thermal}',h('br'),
+        'weights: acoustic=0.25, emField=0.15, photonic=0.10, kinetic=0.15,',h('br'),
+        '         rfDensity=0.15, nfcField=0.10, thermal=0.10',h('br'),h('br'),
+        h('span',{style:{color:'#445566'}},'v0.8では7次元に拡張。RF帯域占有率、NFC近接場、熱安定性を追加し、'),h('br'),
+        h('span',{style:{color:'#445566'}},'物理空間の情報接続性をより高精度に定量化する。'))));
 
-    ch.push(h('div',{className:'radar-wrap',key:'radar'},
-      h('div',{className:'sec-label',style:{marginBottom:'8px'}},'7-DIMENSIONAL RADAR'),
-      h(RadarCanvas,{dims:mediation.dims})));
+    ch.push(h('div',{className:'radar-wrap',key:'radar'},h('div',{className:'sec-label',style:{marginBottom:'8px'}},'7-DIMENSIONAL RADAR'),h(RadarCanvas,{dims:mediation.dims})));
   }
 
-  /* ═══════════════════════════════════════════ */
-  /*  v0.7: SYNC LAYER                          */
-  /* ═══════════════════════════════════════════ */
-  if(layer==='sync'){
-    var ss=sync.state;
-
-    ch.push(h('div',{className:'sec',key:'sync-hdr'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff8800'}}),'MULTI-DEVICE SYNC'),
-      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
-        'BroadcastChannel APIによる同一オリジン内のタブ間リアルタイム同期。',h('br'),
-        '同じURLで複数のブラウザタブ/ウィンドウを開くとデータが自動共有されます。')));
-
-    // Node info
-    ch.push(h('div',{className:'sec',key:'sync-node'},
-      h('div',{className:'sec-label'},'THIS NODE'),
-      h('div',{style:{display:'flex',gap:'12px',alignItems:'center',flexWrap:'wrap'}},
-        h('div',{className:'sync-code'},ss.nodeId),
-        h('div',{style:{fontSize:'10px',color:'#556677'}},
-          'BroadcastChannel: '+(ss.bcAvailable?h('span',{style:{color:'#00ffaa'}},'✔ AVAILABLE'):h('span',{style:{color:'#ff3333'}},'✘ N/A')),
-          h('br'),'Mode: '+ss.syncMode.toUpperCase())
-      )));
-
-    // Peers
-    ch.push(h('div',{className:'sec',key:'sync-peers'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:ss.peerCount>0?'#00ffaa':'#556677'}}),'CONNECTED PEERS: '+ss.peerCount),
-      ss.peerCount>0?h('div',null,
-        Object.values(ss.peers).map(function(peer){
-          var age=Math.floor((Date.now()-peer.lastSeen.getTime())/1000);
-          var peerMed=peer.data&&peer.data.mediation!=null?peer.data.mediation:null;
-          return h('div',{className:'sync-peer',key:peer.nodeId},
-            h('div',null,
-              h('div',{style:{fontSize:'11px',color:'#ff8800',fontWeight:500,letterSpacing:'1px'}},peer.nodeId),
-              h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'2px'}},
-                'Last: '+age+'s ago | Type: '+(peer.type||'---'))),
-            h('div',{style:{textAlign:'right'}},
-              peerMed!=null?h('div',{style:{fontSize:'14px',fontWeight:600,color:peerMed>0.6?'#00ffaa':peerMed>0.3?'#ffcc00':'#ff4444'}},
-                'μ '+peerMed.toFixed(3)):null,
-              peer.data&&peer.data.dims?h('div',{style:{fontSize:'9px',color:'#445566'}},
-                Object.keys(peer.data.dims).map(function(k){return k.substr(0,3)+':'+peer.data.dims[k].toFixed(2);}).join(' ')):null)
-          );
-        })
-      ):h('div',{style:{textAlign:'center',padding:'24px',color:'#334455'}},
-        h('div',{style:{fontSize:'24px',opacity:.3,marginBottom:'6px'}},'⟐'),
-        h('div',{style:{fontSize:'10px',letterSpacing:'2px'}},'NO PEERS DETECTED'),
-        h('div',{style:{fontSize:'9px',color:'#223344',marginTop:'6px',lineHeight:'1.8'}},
-          '同じURLで別のタブ/ウィンドウを開いてください。',h('br'),
-          'BroadcastChannelで自動的に接続されます。'))
-    ));
-
-    // Sync messages log
-    if(ss.messages.length>0){
-      ch.push(h('div',{className:'sec',key:'sync-log'},
-        h('div',{className:'sec-label'},'SYNC MESSAGE LOG'),
-        h('div',{style:{maxHeight:'200px',overflow:'auto'}},
-          ss.messages.slice(-20).reverse().map(function(msg,i){
-            var typeColor=msg.type==='heartbeat'?'#445566':msg.type==='sensor_data'?'#cc66ff':msg.type==='ping_result'?'#00ffaa':'#ff8800';
-            return h('div',{key:i,style:{
-              padding:'4px 8px',fontSize:'10px',borderBottom:'1px solid #1a253044',
-              color:'#667788',display:'flex',gap:'10px',animation:'fadeIn .25s ease'
-            }},
-              h('span',{style:{color:'#556677',minWidth:'52px'}},fT(msg.time)),
-              h('span',{style:{color:'#ff880088',minWidth:'80px',overflow:'hidden',textOverflow:'ellipsis'}},msg.from.substr(0,9)),
-              h('span',{style:{color:typeColor,minWidth:'60px',fontSize:'9px',letterSpacing:'1px'}},msg.type.toUpperCase()),
-              h('span',{style:{color:'#445566',fontSize:'9px'}},
-                msg.type==='ping_result'&&msg.data?'RTT:'+fMs(msg.data.rtt)+' CF:'+(msg.data.cf!=null?msg.data.cf.toFixed(3):'---'):
-                msg.type==='sensor_data'&&msg.data&&msg.data.mediation!=null?'μ:'+msg.data.mediation.toFixed(3):'')
-            );
-          })
-        )));
-    }
-
-    // Sync instructions
-    ch.push(h('div',{className:'nfo',key:'sync-note'},
-      '▸ SAME-ORIGIN SYNC: BroadcastChannel API — タブ間のリアルタイムメッセージング',h('br'),
-      '▸ 自動ハートビート (3秒間隔) + センサーデータ共有 (2秒間隔)',h('br'),
-      '▸ ピアのPing結果とMediation Coefficientがリアルタイムで同期',h('br'),
-      '▸ ROADMAP: WebRTC DataChannel (cross-origin) + 音響同期ビーコン'));
-
-    // How to test
-    ch.push(h('div',{className:'sec',key:'sync-howto'},
-      h('div',{className:'sec-label'},'HOW TO TEST MULTI-DEVICE SYNC'),
-      h('div',{style:{fontSize:'10px',color:'#556677',lineHeight:'2'}},
-        '1. このページを2つ以上のタブで開く',h('br'),
-        '2. 各タブが自動的にピアとして検出される',h('br'),
-        '3. SONARタブでPINGを実行すると結果が全タブに共有',h('br'),
-        '4. MEDIATIONの値がリアルタイムでクロスタブ同期',h('br'),h('br'),
-        h('span',{style:{color:'#ff880088'}},'NOTE: '),
-        '異なるデバイス間の同期にはWebRTC DataChannel（将来実装）またはWebSocket中継サーバーが必要です。',h('br'),
-        '現在は同一ブラウザのタブ間同期のみ対応しています。')
-    ));
-  }
 
   /* ═══════════════════════════════════════════ */
-  /*  PROFILE LAYER (v0.7)                      */
+  /*  SPACE PROFILE LAYER (v0.8)                */
   /* ═══════════════════════════════════════════ */
   if(layer==='profile'){
     ch.push(h('div',{className:'sec',key:'sp'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'SPACE PROFILE v0.7'),
-      h('div',{style:{margin:'10px 0'}},
-        spaceTags.map(function(t,i){
-          return h('span',{key:i,className:'sp-tag',style:{background:t.c+'15',border:'1px solid '+t.c+'44',color:t.c}},t.l);
-        })),
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'SPACE PROFILE v0.8'),
+      h('div',{style:{margin:'10px 0'}},spaceTags.map(function(t,i){
+        return h('span',{key:i,className:'sp-tag',style:{background:t.c+'15',border:'1px solid '+t.c+'44',color:t.c}},t.l);})),
       h('div',{style:{fontSize:'10px',color:'#445566',marginTop:'10px',lineHeight:'1.8'}},
-        '空間プロファイルは7次元センサーレイヤーの統合分類。',h('br'),
-        'v0.7: 気圧・ネットワーク・BLE近接タグが追加。')
-    ));
+        '空間プロファイルは全7センサーレイヤーの統合分類。',h('br'),
+        '各タブでセンサーを有効化するとプロファイルが詳細化されます。')));
 
-    // IPC Protocol Stack v0.7
     ch.push(h('div',{className:'sec',key:'ipc-stack'},
-      h('div',{className:'sec-label'},'IPC PROTOCOL STACK — pTCP v0.7'),
+      h('div',{className:'sec-label'},'IPC PROTOCOL STACK — pTCP v0.8'),
       h('div',{style:{fontSize:'10px',lineHeight:'2.2',color:'#556677'}},
-        ['L5: MULTI-DEVICE SYNC — BroadcastChannel / WebRTC (future)',
-         'L4: SPACE PROFILE — 空間分類・行動推奨',
-         'L3: MEDIATION — μ(x,t) 7次元情報物理結合係数',
-         'L2: SENSOR FUSION — 音響+EM+光+慣性+気圧+WiFi+BLE 統合',
-         'L1: ACOUSTIC SONAR — チャープ・相互相関',
-         'L1: EM FIELD — 磁力計・環境光・加速度',
-         'L1: RF/BLE — Web Bluetooth + Network Information',
-         'L1: BAROMETER — 気圧・高度推定',
-         'L0: DEVICE HARDWARE — マイク・スピーカー・センサー・無線'
+        ['L5: SPACE PROFILE — 空間分類・行動推奨・環境適応',
+         'L4: MEDIATION — μ(x,t) 7次元情報物理結合係数',
+         'L3: SENSOR FUSION — 音響+EM+光+慣性+RF+NFC+熱 統合',
+         'L2: ACOUSTIC SONAR — チャープ・相互相関',
+         'L2: EM FIELD — 磁力計・環境光・加速度',
+         'L2: RF SPECTRUM — WebUSB SDR・周波数解析',
+         'L2: NFC FIELD — 近接場検出・タグ読取',
+         'L2: THERMAL — CPU負荷・バッテリー・推定温度',
+         'L1: DEVICE HARDWARE — マイク・スピーカー・センサー・USB・NFC'
         ].map(function(line,i){
-          var colors=['#ff8800','#00ddff','#ffcc00','#cc66ff','#00ffaa','#cc66ff','#00ddff','#88aacc','#556677'];
-          return h('div',{key:i,style:{
-            padding:'4px 10px',borderLeft:'3px solid '+colors[i],
-            marginBottom:'2px',background:colors[i]+'08'
-          }},h('span',{style:{color:colors[i]}},line));
-        })
-      )
-    ));
+          var colors=['#00ddff','#ffcc00','#cc66ff','#00ffaa','#cc66ff','#ff4466','#9966ff','#ff8800','#556677'];
+          return h('div',{key:i,style:{padding:'4px 10px',borderLeft:'3px solid '+colors[i],marginBottom:'2px',background:colors[i]+'08'}},
+            h('span',{style:{color:colors[i]}},line));
+        }))));
 
-    // Roadmap v0.7
-    ch.push(h('div',{className:'sec',key:'roadmap'},
-      h('div',{className:'sec-label'},'DEVELOPMENT ROADMAP'),
+    ch.push(h('div',{className:'sec',key:'roadmap'},h('div',{className:'sec-label'},'DEVELOPMENT ROADMAP'),
       h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'2'}},
-        h('span',{style:{color:'#00ffaa'}},'v0.6'),' — Acoustic Sonar + Mag + AmbientLight + Accel + Mediation',h('br'),
-        h('span',{style:{color:'#00ffaa',fontWeight:600}},'v0.7 [CURRENT]'),
-        ' — WiFi mapping + BLE Proximity + Barometer + Multi-device sync + 7D Mediation',h('br'),
-        h('span',{style:{color:'#cc66ff'}},'v0.8 [NEXT]'),
-        ' — WebRTC cross-device sync, RF Spectrum (WebUSB SDR), NFC field detection',h('br'),
-        h('span',{style:{color:'#00ddff'}},'v0.9'),
-        ' — Spatial mapping (WebXR/ARKit), Point cloud, SLAM integration',h('br'),
-        h('span',{style:{color:'#ff8800'}},'v1.0'),
-        ' — Full Phase-Law Architecture: pTCP/IP for physical space protocol'
-      )
-    ));
+        h('span',{style:{color:'#556677'}},'v0.6'),' — Acoustic Sonar + Magnetometer + AmbientLight + Accelerometer',h('br'),
+        h('span',{style:{color:'#00ffaa'}},'v0.8 [CURRENT]'),' — RF Spectrum (WebUSB SDR) + NFC Field + Thermal Estimation + 7D Mediation',h('br'),
+        h('span',{style:{color:'#ffcc00'}},'v0.9 [NEXT]'),' — Spatial Mapping (WebXR ARCore/ARKit), Point Cloud, BLE Mesh',h('br'),
+        h('span',{style:{color:'#ff8800'}},'v1.0'),' — Full Phase-Law Architecture: pTCP/IP for physical space protocol')));
   }
+
 
   /* ── FOOTER ── */
   ch.push(h('div',{className:'leg',key:'leg'},
     [{l:'NEAR',c:'#00ffaa',r:'<5ms'},{l:'ROOM',c:'#00ddff',r:'5-20ms'},{l:'HALL',c:'#ffcc00',r:'20-50ms'},{l:'OPEN',c:'#ff8800',r:'50-150ms'},{l:'DISTANT',c:'#ff4444',r:'>150ms'}].map(function(x){
       return h('span',{className:'leg-i',key:x.l},h('span',{className:'leg-d',style:{background:x.c}}),x.l+' '+x.r);})));
 
-  ch.push(h('div',{className:'ftr',key:'ft'},
-    'pTCP v0.7 IPC | Information Physical Connector | 7-dim sensing + BLE + WiFi + Baro + Multi-sync | Phase-Law Architecture'));
+  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v0.8 IPC | Information Physical Connector | xcorr + EM + RF Spectrum + NFC + Thermal | Phase-Law Architecture'));
 
   return h('div',null,ch);
 }
