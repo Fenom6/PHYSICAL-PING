@@ -180,9 +180,13 @@ python3 -m http.server 8000
 | Mediation 次元数 | **11** |
 | Phase-Law 数 | **8** |
 | パケットタイプ数 | **12** |
+| チェックサム | **CRC32 (0xEDB88320)** |
+| BLE | **Web Bluetooth API + Simulation fallback** |
 | ネットワーク方式 | BroadcastChannel + Simulation |
+| QoS メトリクス | **RTT, Jitter, Packet Loss Rate** |
 | HEARTBEAT間隔 | 5,000 ms |
 | Mediation共有間隔 | 5,000 ms |
+| データエクスポート | **JSON (計測データ・パケットログ)** |
 
 ### 依存関係
 
@@ -210,8 +214,20 @@ README.md     ← このファイル
 | v0.6 | Acoustic Sonar + Magnetometer + AmbientLight + Accelerometer + 4D Mediation |
 | v0.8 | + RF Spectrum + NFC + Thermal + 7D Mediation |
 | v0.9 | + WebXR Spatial Mapping + BLE Mesh + 9D Mediation |
-| **v1.0** | **+ pTCP/IP Protocol + P2P Network + Phase-Law Engine + 11D Mediation** |
+| v1.0 | + pTCP/IP Protocol + P2P Network + Phase-Law Engine + 11D Mediation |
+| **v1.0a** | **+ CRC32 Checksum + Web Bluetooth API + QoS Metrics + Data Export** |
+
+### v1.0a 改善内容
+
+| 改善 | 詳細 |
+|---|---|
+| **CRC32 Checksum** | ダミーchecksum→実CRC32 (polynomial 0xEDB88320)。全パケットの完全性検証。不正パケットをdrop |
+| **Web Bluetooth API** | BLEシミュレーション→実Web Bluetooth APIスキャン対応。非対応環境はシミュレーションにフォールバック |
+| **パケット検証** | 受信パケットのCRC32検証＋VALID/INVALID表示。プロトコルモニターにCRC列追加 |
+| **ネットワークQoS** | ジッター計測・パケットロス率（‰）・RTT追跡・検証済パケット数 |
+| **データエクスポート** | 計測データ・パケットログをJSON出力。論文・ベンチマーク・実証データに使用可能 |
+| **Real/Sim区別** | BLEデバイス・ネットワークピアに REAL/SIM バッジを表示。データソースの明確化 |
 
 ---
 
-*pTCP v1.0 | Full Phase-Law Architecture | 11D Mediation + P2P Network + Phase-Law Engine | pTCP/IP for Physical Space*
+*pTCP v1.0a | Full Phase-Law Architecture | 11D Mediation + P2P Network + Phase-Law Engine + CRC32 + Web Bluetooth + QoS + Export | pTCP/IP for Physical Space*
