@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v1.0 Full Phase-Law Architecture</title>
+<title>Physical Ping — pTCP v1.0 PRO Distance Measurement</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -124,6 +124,27 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .pkt-row:nth-child(even){background:rgba(255,255,255,.005)}
 .phase-law-card{padding:14px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:8px;position:relative;overflow:hidden}
 .phase-law-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+/* Source badges */
+.src-badge{display:inline-block;padding:1px 5px;font-size:7px;letter-spacing:1.5px;font-weight:600;border-radius:2px;vertical-align:middle;line-height:1.6}
+.src-badge.real{background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.35);color:#00ffaa}
+.src-badge.sim{background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.3);color:#ffcc00}
+.src-badge.na{background:rgba(102,119,136,.08);border:1px solid rgba(102,119,136,.25);color:#667788}
+.src-badge.est{background:rgba(255,136,0,.08);border:1px solid rgba(255,136,0,.3);color:#ff8800}
+/* Reality Index */
+.reality-bar{display:flex;height:10px;border-radius:1px;overflow:hidden;gap:1px;margin:8px 0}
+.reality-bar .rb-seg{transition:width .4s ease}
+.reality-idx{padding:14px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.25);margin-bottom:14px;position:relative;overflow:hidden}
+.reality-idx::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 70% 30%,rgba(0,255,170,.02) 0%,transparent 70%);pointer-events:none}
+.src-matrix{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:4px;margin-top:8px}
+.src-cell{text-align:center;padding:6px 3px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);position:relative}
+.src-cell-l{font-size:8px;letter-spacing:1px;color:#556677;margin-bottom:2px}
+.src-cell-v{font-size:11px;font-weight:600}
+.src-cell-s{font-size:7px;margin-top:2px;letter-spacing:1px}
+/* Dim row with source */
+.dim-src-row{display:flex;align-items:center;gap:6px;padding:4px 0}
+.dim-src-row .dim-name{font-size:9px;letter-spacing:1px;color:#556677;min-width:56px}
+.dim-src-row .dim-val{font-size:12px;font-weight:500;min-width:44px;text-align:right}
+.dim-src-row .dim-bar-wrap{flex:1;display:flex;align-items:center;gap:6px}
 @media(max-width:600px){
   .log-h,.log-r{grid-template-columns:50px 40px 52px 54px 48px 50px 1fr;font-size:10px;padding:4px 6px}
   .st-v{font-size:14px}.hdr h1{font-size:16px;letter-spacing:2px}
@@ -146,25 +167,133 @@ var h=React.createElement,useState=React.useState,useRef=React.useRef,useCallbac
 /*  SIGNALS & CORE DSP                                        */
 /* ═══════════════════════════════════════════════════════════ */
 var SIGNALS={
-  chirp_mid:{id:'chirp_mid',name:'CHIRP MID',desc:'1.5→2.5kHz/20ms — 標準チャープ',type:'chirp',f1:1500,f2:2500,dur:.020,color:'#00ffaa'},
+  chirp_pro:{id:'chirp_pro',name:'CHIRP PRO',desc:'1→5kHz/30ms — 最高精度（広帯域・長時間）',type:'chirp',f1:1000,f2:5000,dur:.030,color:'#00ffaa'},
+  chirp_mid:{id:'chirp_mid',name:'CHIRP MID',desc:'1.5→2.5kHz/20ms — 標準チャープ',type:'chirp',f1:1500,f2:2500,dur:.020,color:'#00ddff'},
   chirp_low:{id:'chirp_low',name:'CHIRP LOW',desc:'500→1.5kHz/30ms — 低周波透過',type:'chirp',f1:500,f2:1500,dur:.030,color:'#ff8800'},
   chirp_high:{id:'chirp_high',name:'CHIRP HIGH',desc:'3→6kHz/15ms — 高周波指向',type:'chirp',f1:3000,f2:6000,dur:.015,color:'#00ddff'},
   chirp_wide:{id:'chirp_wide',name:'CHIRP WIDE',desc:'800→4kHz/25ms — 広帯域',type:'chirp',f1:800,f2:4000,dur:.025,color:'#ffcc00'},
   pulse_2k:{id:'pulse_2k',name:'PULSE 2kHz',desc:'2kHz/15ms — 基準パルス',type:'tone',freq:2000,dur:.015,color:'#cc66ff'},
   click:{id:'click',name:'CLICK',desc:'符号化/10ms — 最高分解能',type:'click',dur:.010,color:'#ff4466'}
 };
-var SIG_ORDER=['chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
+var SIG_ORDER=['chirp_pro','chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
 function genSignal(sig,sr){var N=Math.floor(sr*sig.dur),b=new Float32Array(N);if(sig.type==='chirp')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*.5*(1-Math.cos(2*Math.PI*i/(N-1)));}else if(sig.type==='tone')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*sig.freq*t)*.5*(1-Math.cos(2*Math.PI*i/(N-1)));}else{var fc=2500;for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*fc*t*(1+.5*t/sig.dur))*Math.exp(-Math.pow((i-N/2)/(N/5),2));}}return b;}
-var CFG={sr:44100,listenMs:500,bufSize:256,blanking:8,maxThresh:.45,minConf:.04,histMax:64};
-function xcorr(sig,ref,sr,blankMs){var rL=ref.length,sL=sig.length,bS=Math.floor(sr*blankMs/1000),mL=sL-rL;if(mL<=bS)return{corr:new Float32Array(0),peakLag:-1,peakVal:0,bS:bS};var rE=0;for(var i=0;i<rL;i++)rE+=ref[i]*ref[i];rE=Math.sqrt(rE);var cL=mL-bS,corr=new Float32Array(cL),pV=0,pI=0;for(var lag=bS;lag<mL;lag++){var sum=0,sE=0;for(var j=0;j<rL;j++){sum+=sig[lag+j]*ref[j];sE+=sig[lag+j]*sig[lag+j];}sE=Math.sqrt(sE);var ncc=(rE>0&&sE>0)?sum/(rE*sE):0;var idx=lag-bS;corr[idx]=ncc;if(ncc>pV){pV=ncc;pI=idx;}}return{corr:corr,peakLag:pI+bS,peakVal:pV,bS:bS};}
+var CFG={sr:44100,listenMs:600,bufSize:256,blanking:12,maxThresh:.45,minConf:.04,histMax:128,burstCount:3,burstGap:80,kalmanQ:.08,kalmanR:2.5,rollingWindow:12,outlierK:2.2,speedOfSound:343.0};
+
+/* ═══ Sub-sample parabolic peak interpolation ═══ */
+function parabolicPeak(corr,idx){
+  if(idx<=0||idx>=corr.length-1)return{lag:idx,val:corr[idx]};
+  var a=corr[idx-1],b=corr[idx],c=corr[idx+1];
+  var denom=a-2*b+c;
+  if(Math.abs(denom)<1e-12)return{lag:idx,val:b};
+  var delta=0.5*(a-c)/denom;
+  delta=Math.max(-0.5,Math.min(0.5,delta));
+  var peakVal=b-0.25*(a-c)*delta;
+  return{lag:idx+delta,val:peakVal};
+}
+
+function xcorr(sig,ref,sr,blankMs){
+  var rL=ref.length,sL=sig.length,bS=Math.floor(sr*blankMs/1000),mL=sL-rL;
+  if(mL<=bS)return{corr:new Float32Array(0),peakLag:-1,peakVal:0,bS:bS,refinedLag:-1};
+  var rE=0;for(var i=0;i<rL;i++)rE+=ref[i]*ref[i];rE=Math.sqrt(rE);
+  var cL=mL-bS,corr=new Float32Array(cL),pV=0,pI=0;
+  for(var lag=bS;lag<mL;lag++){
+    var sum=0,sE=0;
+    for(var j=0;j<rL;j++){sum+=sig[lag+j]*ref[j];sE+=sig[lag+j]*sig[lag+j];}
+    sE=Math.sqrt(sE);
+    var ncc=(rE>0&&sE>0)?sum/(rE*sE):0;
+    var idx=lag-bS;corr[idx]=ncc;
+    if(ncc>pV){pV=ncc;pI=idx;}
+  }
+  /* Sub-sample refinement via parabolic interpolation */
+  var refined=parabolicPeak(corr,pI);
+  return{corr:corr,peakLag:pI+bS,peakVal:pV,bS:bS,refinedLag:refined.lag+bS,refinedVal:refined.val};
+}
+
 function lagMs(l){return(l/CFG.sr)*1000;}
 function calcTh(cn){return Math.max(CFG.minConf,Math.min(cn*2.5,CFG.maxThresh));}
 function genId(){return Math.floor(Math.random()*0xFFFF).toString(16).padStart(4,'0').toUpperCase();}
-function fMs(v){return v==null?'---':v<1?'<1ms':Math.round(v)+'ms';}
+function fMs(v){return v==null?'---':v<1?v.toFixed(2)+'ms':v<10?v.toFixed(1)+'ms':Math.round(v)+'ms';}
 function fT(d){return d.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function cls(ms){if(ms==null)return{l:'TIMEOUT',c:'#ff3333'};if(ms<5)return{l:'NEAR',c:'#00ffaa'};if(ms<20)return{l:'ROOM',c:'#00ddff'};if(ms<50)return{l:'HALL',c:'#ffcc00'};if(ms<150)return{l:'OPEN',c:'#ff8800'};return{l:'DISTANT',c:'#ff4444'};}
-function eD(ms){return ms==null?null:((ms/1000)*343)/2;}
+
+/* Temperature-compensated speed of sound: v = 331.3 + 0.606*T [m/s] */
+function speedOfSound(tempC){return tempC!=null&&!isNaN(tempC)?331.3+0.606*tempC:CFG.speedOfSound;}
+function eD(ms,tempC){if(ms==null)return null;var v=speedOfSound(tempC);return((ms/1000)*v)/2;}
 function cC(c){return c>=.5?'#00ffaa':c>=.3?'#00ddff':c>=.15?'#ffcc00':'#ff4444';}
+
+/* ═══ 1D Kalman Filter for distance smoothing ═══ */
+function KalmanFilter(q,r){
+  this.Q=q||0.08;  /* Process noise */
+  this.R=r||2.5;   /* Measurement noise */
+  this.x=null;     /* State estimate */
+  this.P=1.0;      /* Estimate covariance */
+  this.K=0;        /* Kalman gain */
+}
+KalmanFilter.prototype.update=function(z){
+  if(this.x===null){this.x=z;this.P=1.0;return z;}
+  /* Predict */
+  this.P+=this.Q;
+  /* Update */
+  this.K=this.P/(this.P+this.R);
+  this.x+=this.K*(z-this.x);
+  this.P*=(1-this.K);
+  return this.x;
+};
+KalmanFilter.prototype.reset=function(){this.x=null;this.P=1.0;};
+KalmanFilter.prototype.value=function(){return this.x;};
+
+/* ═══ Rolling statistics with outlier rejection ═══ */
+function RollingStats(windowSize,outlierK){
+  this.win=windowSize||12;
+  this.k=outlierK||2.2;
+  this.data=[];
+}
+RollingStats.prototype.push=function(v){
+  this.data.push(v);
+  if(this.data.length>this.win)this.data.shift();
+};
+RollingStats.prototype.median=function(){
+  if(!this.data.length)return null;
+  var s=this.data.slice().sort(function(a,b){return a-b;});
+  var m=Math.floor(s.length/2);
+  return s.length%2?s[m]:(s[m-1]+s[m])/2;
+};
+RollingStats.prototype.mad=function(){
+  var med=this.median();if(med===null)return 0;
+  var devs=this.data.map(function(v){return Math.abs(v-med);}).sort(function(a,b){return a-b;});
+  var m=Math.floor(devs.length/2);
+  return devs.length%2?devs[m]:(devs[m-1]+devs[m])/2;
+};
+RollingStats.prototype.isOutlier=function(v){
+  if(this.data.length<3)return false;
+  var med=this.median(),mad=this.mad();
+  if(mad<0.001)return Math.abs(v-med)>0.5;
+  return Math.abs(v-med)>this.k*1.4826*mad;
+};
+RollingStats.prototype.filteredMean=function(){
+  if(!this.data.length)return null;
+  var med=this.median(),mad=this.mad(),k=this.k,self=this;
+  var valid=this.data.filter(function(v){return!self.isOutlier(v);});
+  if(!valid.length)return med;
+  return valid.reduce(function(s,v){return s+v;},0)/valid.length;
+};
+RollingStats.prototype.std=function(){
+  if(this.data.length<2)return null;
+  var m=this.filteredMean();if(m===null)return null;
+  var self=this;
+  var valid=this.data.filter(function(v){return!self.isOutlier(v);});
+  if(valid.length<2)return null;
+  var ss=valid.reduce(function(s,v){return s+(v-m)*(v-m);},0)/(valid.length-1);
+  return Math.sqrt(ss);
+};
+RollingStats.prototype.clear=function(){this.data=[];};
+RollingStats.prototype.count=function(){return this.data.length;};
+RollingStats.prototype.stability=function(){
+  var s=this.std();if(s===null)return null;
+  var m=this.filteredMean();if(!m||m===0)return null;
+  var cv=s/Math.abs(m);/* coefficient of variation */
+  return Math.max(0,Math.min(1,1-cv*5));/* 0=unstable, 1=very stable */
+};
 function flat(b){var t=0;for(var i=0;i<b.length;i++)t+=b[i].length;var f=new Float32Array(t);var o=0;for(var i=0;i<b.length;i++){f.set(b[i],o);o+=b[i].length;}return f;}
 function rmsV(a){var s=0;for(var i=0;i<a.length;i++)s+=a[i]*a[i];return Math.sqrt(s/a.length);}
 
@@ -458,10 +587,11 @@ var PHASE_LAWS=[
   {id:'PL-008',name:'Information-Physical Coupling Principle',desc:'情報物理結合原理（主定理）: μ(x,t)は空間の全次元にわたる情報と物理の結合度を表す不変量である',dim:'composite',rule:function(d,composite){return{state:composite>.6?'COUPLED':composite>.3?'PARTIAL':'DECOUPLED',score:composite,msg:'結合係数 μ='+(composite).toFixed(4)+' — '+(composite>.6?'情報と物理が強く結合':composite>.3?'部分的結合':'結合が弱い')};}}
 ];
 
-function evaluatePhaseLaws(dims,composite){
+function evaluatePhaseLaws(dims,composite,sources){
   return PHASE_LAWS.map(function(law){
     var result=law.rule(dims,composite);
-    return Object.assign({},law,{result:result});
+    var src=law.dim==='composite'?null:(sources&&sources[law.dim]?sources[law.dim]:'na');
+    return Object.assign({},law,{result:result,source:src});
   });
 }
 
@@ -469,24 +599,62 @@ function evaluatePhaseLaws(dims,composite){
 /*  MEDIATION COEFFICIENT v1.0 — 11 dimensions                */
 /* ═══════════════════════════════════════════════════════════ */
 function calcMed(acoustic,mag,light,motion,rfData,nfcData,thermalData,spatialData,bleData,netData){
-  var dims={};
+  var dims={},sources={};
+  /* Acoustic — REAL if we have actual ping results */
   dims.acoustic=acoustic&&acoustic.rtt!=null?Math.min(1,acoustic.cf||0):0;
+  sources.acoustic=acoustic&&acoustic.rtt!=null?'real':'na';
+
+  /* EM Field — REAL from magnetometer/orientation, partially real from deviceorientation */
   dims.emField=mag.available?(mag.source==='magnetometer'?Math.min(1,mag.mag/100):Math.min(1,mag.mag/90)):0.5;
+  sources.emField=mag.available?(mag.source==='magnetometer'?'real':'real'):(dims.emField===0.5?'est':'na');
+
+  /* Photonic — REAL from AmbientLightSensor or camera, EST if fallback */
   dims.photonic=light.available&&light.lux!=null?Math.min(1,light.lux/1000):0.5;
+  sources.photonic=light.available?(light.source==='sensor'?'real':(light.source==='camera'?'real':'est')):(dims.photonic===0.5?'est':'na');
+
+  /* Kinetic — REAL from DeviceMotion */
   dims.kinetic=motion.available?Math.max(0,1-Math.abs(motion.mag-9.81)/5):0.5;
+  sources.kinetic=motion.available?'real':(dims.kinetic===0.5?'est':'na');
+
+  /* RF — always simulation */
   dims.rfDensity=rfData&&rfData.spectrum?rfDensity(rfData.spectrum,-70):0;
+  sources.rfDensity=rfData&&rfData.spectrum?'sim':'na';
+
+  /* NFC — always simulation */
   dims.nfcField=nfcData?nfcData.state.fieldStrength||0:0;
+  sources.nfcField=nfcData&&nfcData.state.scanning?'sim':'na';
+
+  /* Thermal — estimation from CPU benchmark */
   dims.thermal=thermalData&&thermalData.data.available?Math.max(0,Math.min(1,1-((thermalData.data.est||22)-20)/40)):0.5;
+  sources.thermal=thermalData&&thermalData.data.available?'est':(dims.thermal===0.5?'est':'na');
+
+  /* Spatial — always simulation */
   if(spatialData&&spatialData.state.active){var ps=Math.min(1,spatialData.state.planeCount/10),as=Math.min(1,spatialData.state.totalArea/50),pts=Math.min(1,spatialData.state.pointCloud.length/500);dims.spatial=ps*.4+as*.3+pts*.3;}else dims.spatial=0;
+  sources.spatial=spatialData&&spatialData.state.active?(spatialData.state.source==='simulation'?'sim':'real'):'na';
+
+  /* BLE — real if Web Bluetooth, sim if fallback */
   if(bleData&&bleData.state.scanning){dims.bleMesh=Math.min(1,bleData.state.total/10)*.6+bleData.state.density*.4;}else dims.bleMesh=0;
-  /* v1.0: Network connectivity dimension */
+  sources.bleMesh=bleData&&bleData.state.scanning?(bleData.state.source==='bluetooth'?'real':'sim'):'na';
+
+  /* v1.0: Network */
   if(netData&&netData.connected){dims.network=Math.min(1,netData.stats.peers/5)*.6+(netData.stats.recv>0?Math.min(1,netData.stats.recv/50)*.4:0);}else dims.network=0;
-  /* v1.0: Collaborative coverage — how much shared data from peers */
+  /* Check if any peer is non-simulated */
+  var hasRealPeer=netData&&netData.peers.some(function(p){return!p.simulated;});
+  sources.network=netData&&netData.connected?(hasRealPeer?'real':'sim'):'na';
+
+  /* v1.0: Collaborative */
   if(netData&&netData.peers.length>0){var avgPeerMed=netData.peers.reduce(function(s,p){return s+(p.mediation||0);},0)/netData.peers.length;dims.collaborative=avgPeerMed;}else dims.collaborative=0;
+  sources.collaborative=netData&&netData.peers.length>0?(hasRealPeer?'real':'sim'):'na';
 
   var weights={acoustic:.15,emField:.08,photonic:.06,kinetic:.08,rfDensity:.10,nfcField:.05,thermal:.05,spatial:.12,bleMesh:.08,network:.13,collaborative:.10};
   var total=0,wSum=0;for(var k in dims){if(weights[k]!=null){total+=dims[k]*weights[k];wSum+=weights[k];}}
-  return{composite:wSum>0?total/wSum:0,dims:dims};
+
+  /* Reality metrics */
+  var realCount=0,simCount=0,estCount=0,naCount=0,realWeight=0,totalWeight=0;
+  for(var k in sources){if(weights[k]!=null){totalWeight+=weights[k];if(sources[k]==='real'){realCount++;realWeight+=weights[k];}else if(sources[k]==='sim')simCount++;else if(sources[k]==='est')estCount++;else naCount++;}}
+  var realityIndex=totalWeight>0?realWeight/totalWeight:0;
+
+  return{composite:wSum>0?total/wSum:0,dims:dims,sources:sources,reality:{index:realityIndex,real:realCount,sim:simCount,est:estCount,na:naCount,total:realCount+simCount+estCount+naCount}};
 }
 
 function classifySpace(med,hist){
@@ -513,8 +681,8 @@ function WaveCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.curr
 function SigPreview(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.sig)return;var buf=genSignal(p.sig,CFG.sr);var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=32*dpr;cv.width=W;cv.height=H;cv.style.height='32px';ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(buf.length/(W/dpr)));var mV=0;for(var i=0;i<buf.length;i+=step){var a=Math.abs(buf[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01);var yM=H/2,yS=(H/2)/mV;ctx.strokeStyle=p.sig.color+'88';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<buf.length;i+=step){var x=(i/buf.length)*W,y=yM-buf[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();},[p.sig]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'32px'}});}
 function SpectrumCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.spectrum)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=120*dpr;cv.width=W;cv.height=H;cv.style.height='120px';ctx.clearRect(0,0,W,H);var minDb=-100,maxDb=-20,range=maxDb-minDb;var grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,p.band.color+'cc');grad.addColorStop(1,p.band.color+'08');ctx.beginPath();ctx.moveTo(0,H);var xS=W/p.spectrum.length;for(var i=0;i<p.spectrum.length;i++){var y=H-((p.spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));ctx.lineTo(i*xS,y);}ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();ctx.beginPath();for(var i=0;i<p.spectrum.length;i++){var y=H-((p.spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));i===0?ctx.moveTo(i*xS,y):ctx.lineTo(i*xS,y);}ctx.strokeStyle=p.band.color;ctx.lineWidth=1.5;ctx.stroke();},[p.spectrum,p.band]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'120px'}});}
 
-/* Radar for 11D */
-function RadarCanvas(p){var dims=p.dims||{};var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,S=280*dpr;cv.width=S;cv.height=S;cv.style.width='280px';cv.style.height='280px';ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,maxR=S/2-30*dpr;var keys=['acoustic','emField','photonic','kinetic','rfDensity','nfcField','thermal','spatial','bleMesh','network','collaborative'];var labels=['ACOUS','EM','PHOTO','KINET','RF','NFC','THERM','SPACE','BLE','NET','COLLAB'];var colors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00'];var n=keys.length;for(var r=1;r<=4;r++){ctx.beginPath();ctx.arc(cx,cy,maxR*(r/4),0,Math.PI*2);ctx.strokeStyle='#1a253044';ctx.lineWidth=1;ctx.stroke();}for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angle)*maxR,cy+Math.sin(angle)*maxR);ctx.strokeStyle='#1a253066';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=colors[i];ctx.font='bold '+(6.5*dpr)+'px IBM Plex Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(labels[i],cx+Math.cos(angle)*(maxR+16*dpr),cy+Math.sin(angle)*(maxR+16*dpr));}ctx.beginPath();for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);var px=cx+Math.cos(angle)*maxR*v,py=cy+Math.sin(angle)*maxR*v;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}ctx.closePath();ctx.fillStyle='rgba(0,255,170,.06)';ctx.fill();ctx.strokeStyle='#00ffaa88';ctx.lineWidth=2;ctx.stroke();for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);ctx.beginPath();ctx.arc(cx+Math.cos(angle)*maxR*v,cy+Math.sin(angle)*maxR*v,3*dpr,0,Math.PI*2);ctx.fillStyle=colors[i];ctx.fill();}},[dims]);return h('canvas',{ref:ref,style:{width:'280px',height:'280px'}});}
+/* Radar for 11D — with source distinction */
+function RadarCanvas(p){var dims=p.dims||{};var sources=p.sources||{};var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,S=280*dpr;cv.width=S;cv.height=S;cv.style.width='280px';cv.style.height='280px';ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,maxR=S/2-30*dpr;var keys=['acoustic','emField','photonic','kinetic','rfDensity','nfcField','thermal','spatial','bleMesh','network','collaborative'];var labels=['ACOUS','EM','PHOTO','KINET','RF','NFC','THERM','SPACE','BLE','NET','COLLAB'];var colors=['#00ffaa','#cc66ff','#ffcc00','#00ddff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00'];var n=keys.length;for(var r=1;r<=4;r++){ctx.beginPath();ctx.arc(cx,cy,maxR*(r/4),0,Math.PI*2);ctx.strokeStyle='#1a253044';ctx.lineWidth=1;ctx.stroke();}for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var src=sources[keys[i]]||'na';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angle)*maxR,cy+Math.sin(angle)*maxR);ctx.strokeStyle=src==='sim'?'#ffcc0022':src==='est'?'#ff880022':'#1a253066';ctx.lineWidth=1;if(src==='sim'){ctx.setLineDash([4*dpr,3*dpr]);}ctx.stroke();ctx.setLineDash([]);/* Label with source indicator */var lx=cx+Math.cos(angle)*(maxR+16*dpr),ly=cy+Math.sin(angle)*(maxR+16*dpr);ctx.fillStyle=src==='real'?colors[i]:src==='sim'?'#ffcc00aa':src==='est'?'#ff8800aa':'#44556688';ctx.font='bold '+(6.5*dpr)+'px IBM Plex Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(labels[i],lx,ly);/* Tiny source marker */if(src!=='na'){var markerColor=src==='real'?'#00ffaa':src==='sim'?'#ffcc00':'#ff8800';ctx.fillStyle=markerColor;ctx.font=(5*dpr)+'px IBM Plex Mono';ctx.fillText(src==='real'?'●':src==='sim'?'◆':'▲',lx,ly+8*dpr);}}/* Draw polygon — different fill for real vs sim portions */ctx.beginPath();for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);var px=cx+Math.cos(angle)*maxR*v,py=cy+Math.sin(angle)*maxR*v;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}ctx.closePath();ctx.fillStyle='rgba(0,255,170,.06)';ctx.fill();ctx.strokeStyle='#00ffaa88';ctx.lineWidth=2;ctx.stroke();/* Draw individual dimension dots — color-coded by source */for(var i=0;i<n;i++){var angle=-Math.PI/2+(Math.PI*2/n)*i;var v=Math.min(1,dims[keys[i]]||0);var src=sources[keys[i]]||'na';var dotColor=src==='real'?colors[i]:src==='sim'?'#ffcc00':src==='est'?'#ff8800':'#445566';ctx.beginPath();ctx.arc(cx+Math.cos(angle)*maxR*v,cy+Math.sin(angle)*maxR*v,3*dpr,0,Math.PI*2);ctx.fillStyle=dotColor;ctx.fill();/* Hollow ring for sim */if(src==='sim'){ctx.beginPath();ctx.arc(cx+Math.cos(angle)*maxR*v,cy+Math.sin(angle)*maxR*v,5*dpr,0,Math.PI*2);ctx.strokeStyle='#ffcc0044';ctx.lineWidth=1;ctx.stroke();}}},[dims,sources]);return h('canvas',{ref:ref,style:{width:'280px',height:'280px'}});}
 
 /* MedRing for 11D */
 function MedRing(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,S=120*dpr;cv.width=S;cv.height=S;cv.style.width='120px';cv.style.height='120px';ctx.clearRect(0,0,S,S);var cx=S/2,cy=S/2,r=S/2-8*dpr;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#1a2530';ctx.lineWidth=6*dpr;ctx.stroke();var sa=-Math.PI/2,ea=sa+Math.PI*2*(p.value||0);var grad=ctx.createLinearGradient(0,0,S,S);if(p.value>.6){grad.addColorStop(0,'#00ffaa');grad.addColorStop(1,'#00ddff');}else if(p.value>.3){grad.addColorStop(0,'#ffcc00');grad.addColorStop(1,'#ff8800');}else{grad.addColorStop(0,'#ff4444');grad.addColorStop(1,'#ff3333');}ctx.beginPath();ctx.arc(cx,cy,r,sa,ea);ctx.strokeStyle=grad;ctx.lineWidth=6*dpr;ctx.lineCap='round';ctx.stroke();},[p.value]);return h('canvas',{ref:ref,style:{width:'120px',height:'120px'}});}
@@ -535,9 +703,9 @@ function exportJSON(data,filename){
 function buildExportData(hist,mediation,phaseLaws,netStats,emHist){
   return{
     version:'pTCP v1.0',exportTime:new Date().toISOString(),deviceId:DEVICE_ID,deviceName:DEVICE_NAME,
-    acoustic:{measurements:hist.map(function(h){return{time:h.time,rtt:h.rtt,confidence:h.cf,threshold:h.th,signal:h.sig,distance:h.rtt!=null?((h.rtt/1000)*343)/2:null};}),count:hist.length,detected:hist.filter(function(h){return h.rtt!=null;}).length},
-    mediation:{composite:mediation.composite,dimensions:mediation.dims},
-    phaseLaws:phaseLaws.map(function(l){return{id:l.id,name:l.name,state:l.result.state,score:l.result.score};}),
+    acoustic:{measurements:hist.map(function(h){return{time:h.time,rtt:h.rtt,confidence:h.cf,threshold:h.th,signal:h.sig,rawDistance:h.rawDist||null,filteredDistance:h.filteredDist||null,kalmanDistance:h.kalmanDist||null,outlierRejected:h.outlierRejected||false,tempC:h.tempC||null,speedOfSound:h.vSound||343};}),count:hist.length,detected:hist.filter(function(h){return h.rtt!=null;}).length},
+    mediation:{composite:mediation.composite,dimensions:mediation.dims,sources:mediation.sources,reality:mediation.reality},
+    phaseLaws:phaseLaws.map(function(l){return{id:l.id,name:l.name,state:l.result.state,score:l.result.score,source:l.source};}),
     network:netStats,emHistory:emHist
   };
 }
@@ -559,7 +727,7 @@ function App(){
   var _lc=useState(null),lCorr=_lc[0],setLCorr=_lc[1];
   var _lw=useState(null),lWave=_lw[0],setLWave=_lw[1];
   var _lr=useState(null),lRes=_lr[0],setLRes=_lr[1];
-  var _sig=useState('chirp_mid'),sigId=_sig[0],setSigId=_sig[1];
+  var _sig=useState('chirp_pro'),sigId=_sig[0],setSigId=_sig[1];
   var sensorPerm=useSP();
   var mag=useMag(),light=useLight(),motion=useMotion();
   var _geo=useGeo(),geo=_geo[0],fetchGeo=_geo[1];
@@ -571,14 +739,18 @@ function App(){
 
   var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),ambRef=useRef(null),sigBufRef=useRef(null);
   var rec=useRef({on:false,buf:[]});
+  var kalmanRef=useRef(new KalmanFilter(CFG.kalmanQ,CFG.kalmanR));
+  var rollingRef=useRef(new RollingStats(CFG.rollingWindow,CFG.outlierK));
+  var _dist=useState({raw:null,filtered:null,kalman:null,stability:null,std:null,confidence:null,count:0,outlierRejected:false,speedOfSound:CFG.speedOfSound}),distState=_dist[0],setDistState=_dist[1];
+  var _burst=useState(false),burstMode=_burst[0],setBurstMode=_burst[1];
   useEffect(function(){contRef.current=cont;},[cont]);
   useEffect(function(){ambRef.current=amb;},[amb]);
   var curSig=SIGNALS[sigId];
-  useEffect(function(){sigBufRef.current=genSignal(curSig,CFG.sr);setAmb(null);ambRef.current=null;setInfo(null);},[sigId]);
+  useEffect(function(){sigBufRef.current=genSignal(curSig,CFG.sr);setAmb(null);ambRef.current=null;setInfo(null);kalmanRef.current.reset();rollingRef.current.clear();setDistState({raw:null,filtered:null,kalman:null,stability:null,std:null,confidence:null,count:0,outlierRejected:false,speedOfSound:CFG.speedOfSound});},[sigId]);
 
   var mediation=calcMed(lRes,mag,light,motion,{spectrum:rf.spectrum},{state:nfc.state},thermal,spatial,ble,net);
   var spaceTags=classifySpace(mediation,hist);
-  var phaseLaws=evaluatePhaseLaws(mediation.dims,mediation.composite);
+  var phaseLaws=evaluatePhaseLaws(mediation.dims,mediation.composite,mediation.sources);
 
   /* Broadcast mediation periodically */
   useEffect(function(){if(!net.connected)return;var iv=setInterval(function(){net.broadcastMediation({composite:mediation.composite,dims:mediation.dims});},5000);return function(){clearInterval(iv);};},[net.connected,mediation.composite]);
@@ -590,10 +762,82 @@ function App(){
   var initAudio=useCallback(function(){return new Promise(function(ok){if(acRef.current&&acRef.current.state!=='closed'){if(acRef.current.state==='suspended')acRef.current.resume().then(function(){ok(true);});else ok(true);return;}var ctx;try{ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});}catch(ex){setErr('AudioContext: '+ex.message);ok(false);return;}(ctx.state==='suspended'?ctx.resume():Promise.resolve()).then(function(){return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}).then(function(stream){acRef.current=ctx;var src=ctx.createMediaStreamSource(stream);var proc=ctx.createScriptProcessor(CFG.bufSize,1,1);proc.onaudioprocess=function(ev){var inp=ev.inputBuffer.getChannelData(0);var sum=0;for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];setLvl(Math.sqrt(sum/inp.length));if(rec.current.on){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.buf.push(cp);}};src.connect(proc);proc.connect(ctx.destination);setErr(null);ok(true);}).catch(function(ex){setErr('マイクアクセスが必要: '+(ex.message||ex));ok(false);});});},[]);
   var playSignal=useCallback(function(){var ctx=acRef.current,buf=sigBufRef.current;if(!ctx||!buf)return;var ab=ctx.createBuffer(1,buf.length,CFG.sr);ab.getChannelData(0).set(buf);var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1;s.connect(g);g.connect(ctx.destination);s.start();},[]);
   var calibrate=useCallback(function(){return initAudio().then(function(ok){if(!ok)return;setStatus('calibrating');setInfo('環境ノイズ計測中...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,2000);});}).then(function(){rec.current.on=false;var bufs=rec.current.buf;if(!bufs||!bufs.length){setErr('音声データなし');setInfo(null);setStatus('idle');return;}var f=flat(bufs),r=rmsV(f),rf=sigBufRef.current,ac=xcorr(f,rf,CFG.sr,0);var a={rms:r,cn:ac.peakVal};setAmb(a);ambRef.current=a;setInfo('noise='+(r*1000).toFixed(2)+'mRMS / th='+calcTh(ac.peakVal).toFixed(4));setStatus('idle');});},[initAudio]);
-  var execPing=useCallback(function(){return initAudio().then(function(ok){if(!ok)return null;var a=ambRef.current;if(!a){setStatus('calibrating');setInfo('初回キャリブ...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,1500);}).then(function(){rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),rf=sigBufRef.current,ac=xcorr(f,rf,CFG.sr,0);a={rms:r2,cn:ac.peakVal};setAmb(a);ambRef.current=a;return a;});}return a;}).then(function(a){if(!a)return null;var th=calcTh(a.cn);setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){rec.current.on=false;var signal=flat(rec.current.buf);var rf=sigBufRef.current,res=xcorr(signal,rf,CFG.sr,CFG.blanking);var rtt=null,cf=res.peakVal;if(cf>=th)rtt=lagMs(res.peakLag);var id=genId();var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId};setCount(cntRef.current);setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th});setLWave(signal);setLRes(entry);setStatus('idle');return entry;});});},[initAudio,playSignal,sigId]);
+  var execPing=useCallback(function(){return initAudio().then(function(ok){if(!ok)return null;var a=ambRef.current;if(!a){setStatus('calibrating');setInfo('初回キャリブ...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,1500);}).then(function(){rec.current.on=false;var f=flat(rec.current.buf),r2=rmsV(f),rf=sigBufRef.current,ac=xcorr(f,rf,CFG.sr,0);a={rms:r2,cn:ac.peakVal};setAmb(a);ambRef.current=a;return a;});}return a;}).then(function(a){if(!a)return null;var th=calcTh(a.cn);setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){rec.current.on=false;var signal=flat(rec.current.buf);var rf=sigBufRef.current,res=xcorr(signal,rf,CFG.sr,CFG.blanking);
+      /* Use sub-sample refined lag for higher accuracy */
+      var rtt=null,cf=res.refinedVal||res.peakVal;
+      if(cf>=th&&res.refinedLag>=0)rtt=lagMs(res.refinedLag);
+      else if(cf>=th)rtt=lagMs(res.peakLag);
+
+      /* Temperature-compensated distance */
+      var tempC=thermal.data.est;
+      var vSound=speedOfSound(tempC);
+      var rawDist=eD(rtt,tempC);
+
+      /* Outlier rejection + Kalman + rolling stats */
+      var outlierRejected=false;
+      if(rawDist!=null){
+        if(rollingRef.current.count()>=3&&rollingRef.current.isOutlier(rawDist)){
+          outlierRejected=true;
+          /* Still record but don't update Kalman */
+        }else{
+          rollingRef.current.push(rawDist);
+          kalmanRef.current.update(rawDist);
+        }
+      }
+
+      var kalmanDist=kalmanRef.current.value();
+      var filteredDist=rollingRef.current.filteredMean();
+      var std=rollingRef.current.std();
+      var stability=rollingRef.current.stability();
+
+      setDistState({
+        raw:rawDist,
+        filtered:filteredDist,
+        kalman:kalmanDist,
+        stability:stability,
+        std:std,
+        confidence:cf,
+        count:rollingRef.current.count(),
+        outlierRejected:outlierRejected,
+        speedOfSound:vSound
+      });
+
+      var id=genId();
+      var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId,
+        rawDist:rawDist,filteredDist:filteredDist,kalmanDist:kalmanDist,
+        outlierRejected:outlierRejected,tempC:tempC,vSound:vSound};
+      setCount(cntRef.current);
+      setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});
+      setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th,refinedLag:res.refinedLag});
+      setLWave(signal);setLRes(entry);setStatus('idle');return entry;});});},[initAudio,playSignal,sigId,thermal.data.est]);
+
+  /* ═══ Burst Mode: execute N pings rapidly, take median ═══ */
+  var execBurst=useCallback(function(){
+    var results=[];var n=CFG.burstCount;
+    setStatus('pinging');setInfo('BURST '+n+'x 計測中...');
+    var runOne=function(i){
+      if(i>=n){
+        /* Process burst results */
+        var valid=results.filter(function(r){return r&&r.rtt!=null;});
+        if(valid.length===0){setInfo('BURST完了: 有効計測なし');setStatus('idle');return;}
+        /* Take median RTT */
+        var sorted=valid.slice().sort(function(a,b){return a.rtt-b.rtt;});
+        var medIdx=Math.floor(sorted.length/2);
+        var medResult=sorted.length%2?sorted[medIdx]:sorted[Math.max(0,medIdx-1)];
+        setInfo('BURST完了: '+valid.length+'/'+n+' 有効 | 中央値RTT='+medResult.rtt.toFixed(2)+'ms');
+        setStatus('idle');
+        return;
+      }
+      execPing().then(function(entry){
+        results.push(entry);
+        setTimeout(function(){runOne(i+1);},CFG.burstGap);
+      });
+    };
+    runOne(0);
+  },[execPing]);
   var startCont=useCallback(function(){setCont(true);contRef.current=true;var run=function(){if(!contRef.current)return;execPing().then(function(){if(contRef.current)timerRef.current=setTimeout(run,intv);});};run();},[execPing,intv]);
   var stopCont=useCallback(function(){setCont(false);contRef.current=false;if(timerRef.current)clearTimeout(timerRef.current);},[]);
-  var clear=useCallback(function(){setHist([]);setCount(0);cntRef.current=0;setLCorr(null);setLWave(null);setLRes(null);},[]);
+  var clear=useCallback(function(){setHist([]);setCount(0);cntRef.current=0;setLCorr(null);setLWave(null);setLRes(null);kalmanRef.current.reset();rollingRef.current.clear();setDistState({raw:null,filtered:null,kalman:null,stability:null,std:null,confidence:null,count:0,outlierRejected:false,speedOfSound:CFG.speedOfSound});},[]);
   var resetCal=useCallback(function(){setAmb(null);ambRef.current=null;setInfo(null);},[]);
 
   var ok=hist.filter(function(x){return x.rtt!=null;});
@@ -608,11 +852,33 @@ function App(){
   /* ── HEADER ── */
   ch.push(h('div',{className:'hdr',key:'hd'},
     h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v1.0')),
-    h('div',{className:'sub'},'FULL PHASE-LAW ARCHITECTURE · pTCP/IP FOR PHYSICAL SPACE'),
-    h('p',null,'11次元センシング＋P2Pネットワーク＋Phase-Law Engine。物理空間のためのTCP/IP完全実装。'),
+    h('div',{className:'sub'},'FULL PHASE-LAW ARCHITECTURE · PRO DISTANCE MEASUREMENT · pTCP/IP FOR PHYSICAL SPACE'),
+    h('p',null,'11次元センシング＋P2Pネットワーク＋Phase-Law Engine。サブサンプル補間・カルマンフィルタ・温度補正音速による高精度距離計測。'),
     net.connected?h('div',{style:{fontSize:'9px',color:'#00ffaa88',marginTop:'4px',display:'flex',gap:'8px',alignItems:'center'}},
       h('span',{style:{width:6,height:6,borderRadius:'50%',background:'#00ffaa',display:'inline-block',animation:'pulse 2s infinite'}}),
       'NETWORK ACTIVE | '+DEVICE_NAME+' | PEERS: '+net.stats.peers+' | UP: '+net.stats.uptime+'s'):null));
+
+  /* ── REALITY INDEX BAR (always visible) ── */
+  var ri=mediation.reality;
+  var riColor=ri.index>.5?'#00ffaa':ri.index>.2?'#ffcc00':'#ff4444';
+  var riPct=Math.round(ri.index*100);
+  var srcLabel=function(s){return s==='real'?'REAL':s==='sim'?'SIM':s==='est'?'EST':'N/A';};
+  var srcBadge=function(s){return h('span',{className:'src-badge '+(s==='real'?'real':s==='sim'?'sim':s==='est'?'est':'na')},srcLabel(s));};
+
+  ch.push(h('div',{key:'ri-bar',style:{marginBottom:'10px',padding:'8px 12px',border:'1px solid '+(ri.index>.5?'#00ffaa22':'#ffcc0022'),borderRadius:'2px',background:'rgba(0,0,0,.2)',display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap'}},
+    h('div',{style:{fontSize:'9px',letterSpacing:'2px',color:'#556677',minWidth:'90px'}},'REALITY INDEX'),
+    h('div',{style:{flex:1,minWidth:'120px'}},
+      h('div',{className:'reality-bar'},
+        ri.real>0?h('div',{className:'rb-seg',style:{width:(ri.real/ri.total*100)+'%',background:'#00ffaa'}}):null,
+        ri.est>0?h('div',{className:'rb-seg',style:{width:(ri.est/ri.total*100)+'%',background:'#ff8800'}}):null,
+        ri.sim>0?h('div',{className:'rb-seg',style:{width:(ri.sim/ri.total*100)+'%',background:'#ffcc00'}}):null,
+        ri.na>0?h('div',{className:'rb-seg',style:{width:(ri.na/ri.total*100)+'%',background:'#1a2530'}}):null)),
+    h('div',{style:{fontSize:'14px',fontWeight:600,color:riColor,minWidth:'38px',textAlign:'right'}},riPct+'%'),
+    h('div',{style:{fontSize:'9px',color:'#556677',display:'flex',gap:'8px',flexWrap:'wrap'}},
+      h('span',{style:{color:'#00ffaa'}},'●'+ri.real),
+      h('span',{style:{color:'#ff8800'}},'▲'+ri.est),
+      h('span',{style:{color:'#ffcc00'}},'◆'+ri.sim),
+      h('span',{style:{color:'#334455'}},'○'+ri.na))));
 
   /* ── TABS ── */
   var tabs=[
@@ -634,10 +900,72 @@ function App(){
   /*  SONAR TAB                                 */
   /* ═══════════════════════════════════════════ */
   if(layer==='sonar'){
-    ch.push(h('div',{className:'sec',key:'sig'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:curSig.color}}),'SIGNAL'),h('div',{className:'sel-row'},h('div',{className:'sel-grp'},h('select',{value:sigId,onChange:function(ev){setSigId(ev.target.value);},style:{borderColor:curSig.color+'66',color:curSig.color}},SIG_ORDER.map(function(id){return h('option',{value:id,key:id},SIGNALS[id].name);}))),h('div',{className:'sig-info'},h('span',{style:{color:curSig.color}},'● '),curSig.desc)),h(SigPreview,{sig:curSig})));
+    ch.push(h('div',{className:'sec',key:'sig'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:curSig.color}}),'SIGNAL ',srcBadge(mediation.sources.acoustic)),h('div',{className:'sel-row'},h('div',{className:'sel-grp'},h('select',{value:sigId,onChange:function(ev){setSigId(ev.target.value);},style:{borderColor:curSig.color+'66',color:curSig.color}},SIG_ORDER.map(function(id){return h('option',{value:id,key:id},SIGNALS[id].name);}))),h('div',{className:'sig-info'},h('span',{style:{color:curSig.color}},'● '),curSig.desc)),h(SigPreview,{sig:curSig})));
     ch.push(h('div',{className:'sec',key:'lv'},h('div',{className:'lv-row'},h('span',{className:'lv-lbl'},'MIC'),h('div',{className:'lv-bg'},h('div',{className:'lv-bar',style:{width:Math.min(100,lvl*3000)+'%',background:lvl>.001?'linear-gradient(90deg,'+curSig.color+'44,'+curSig.color+'88)':'#ff333322'}})),h('span',{className:'lv-val',style:{color:lvl>.001?curSig.color:'#ff3333'}},(lvl*1000).toFixed(1)+' mRMS'))));
+
+    /* ═══ PROMINENT DISTANCE DISPLAY ═══ */
+    var ds=distState;
+    var bestDist=ds.kalman!=null?ds.kalman:ds.filtered!=null?ds.filtered:ds.raw;
+    var stabColor=ds.stability!=null?(ds.stability>.8?'#00ffaa':ds.stability>.5?'#00ddff':ds.stability>.3?'#ffcc00':'#ff4444'):'#334455';
+    var stabLabel=ds.stability!=null?(ds.stability>.8?'EXCELLENT':ds.stability>.5?'GOOD':ds.stability>.3?'FAIR':'POOR'):'---';
+    var distUnit=bestDist!=null&&bestDist<1?{v:(bestDist*100).toFixed(1),u:'cm'}:bestDist!=null?{v:bestDist.toFixed(2),u:'m'}:{v:'---',u:'m'};
+    var uncert=ds.std!=null?(ds.std<0.01?(ds.std*1000).toFixed(1)+'mm':ds.std<1?(ds.std*100).toFixed(1)+'cm':ds.std.toFixed(2)+'m'):null;
+
+    ch.push(h('div',{key:'dist-panel',style:{marginBottom:'14px',padding:'16px',border:'1px solid '+(bestDist!=null?'#00ffaa33':'#1a2530'),borderRadius:'2px',background:bestDist!=null?'rgba(0,255,170,.02)':'rgba(0,0,0,.2)',position:'relative',overflow:'hidden'}},
+      bestDist!=null?h('div',{style:{position:'absolute',top:0,left:0,right:0,bottom:0,background:'radial-gradient(ellipse at 30% 50%,rgba(0,255,170,.04) 0%,transparent 70%)',pointerEvents:'none'}}):null,
+      h('div',{style:{display:'flex',alignItems:'flex-end',gap:'12px',marginBottom:'10px',flexWrap:'wrap'}},
+        h('div',{style:{fontSize:'9px',letterSpacing:'2px',color:'#556677'}},'DISTANCE',ds.outlierRejected?h('span',{style:{color:'#ff8800',marginLeft:'6px',fontSize:'8px'}},'⚠ OUTLIER'):''),
+        h('div',{style:{flex:1}})),
+      h('div',{style:{display:'flex',alignItems:'baseline',gap:'8px',flexWrap:'wrap'}},
+        h('div',{style:{fontSize:'42px',fontWeight:600,color:bestDist!=null?'#00ffaa':'#334455',fontVariantNumeric:'tabular-nums',lineHeight:1,textShadow:bestDist!=null?'0 0 30px rgba(0,255,170,.2)':'none'}},distUnit.v),
+        h('div',{style:{fontSize:'18px',color:'#00ffaa88',fontWeight:300}},distUnit.u),
+        uncert?h('div',{style:{fontSize:'12px',color:'#556677',marginLeft:'8px'}},'±'+uncert):null),
+      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(100px,1fr))',gap:'8px',marginTop:'12px'}},
+        h('div',{style:{padding:'6px 8px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
+          h('div',{style:{fontSize:'8px',letterSpacing:'1.5px',color:'#556677',marginBottom:'2px'}},'STABILITY'),
+          h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+            h('div',{style:{width:'6px',height:'6px',borderRadius:'50%',background:stabColor}}),
+            h('div',{style:{fontSize:'12px',fontWeight:500,color:stabColor}},stabLabel),
+            ds.stability!=null?h('div',{style:{fontSize:'10px',color:'#445566'}},(ds.stability*100).toFixed(0)+'%'):null)),
+        h('div',{style:{padding:'6px 8px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
+          h('div',{style:{fontSize:'8px',letterSpacing:'1.5px',color:'#556677',marginBottom:'2px'}},'V SOUND'),
+          h('div',{style:{fontSize:'12px',fontWeight:500,color:'#88aacc'}},ds.speedOfSound.toFixed(1),h('span',{style:{fontSize:'9px',color:'#556677',marginLeft:'3px'}},'m/s'),
+            thermal.data.est!=null?h('span',{style:{fontSize:'9px',color:'#ff880088',marginLeft:'4px'}},thermal.data.est.toFixed(0)+'°C'):null)),
+        h('div',{style:{padding:'6px 8px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
+          h('div',{style:{fontSize:'8px',letterSpacing:'1.5px',color:'#556677',marginBottom:'2px'}},'SAMPLES'),
+          h('div',{style:{fontSize:'12px',fontWeight:500,color:'#88aacc'}},ds.count+'/'+CFG.rollingWindow)),
+        h('div',{style:{padding:'6px 8px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
+          h('div',{style:{fontSize:'8px',letterSpacing:'1.5px',color:'#556677',marginBottom:'2px'}},'RAW'),
+          h('div',{style:{fontSize:'12px',fontWeight:500,color:ds.raw!=null?'#667788':'#334455'}},ds.raw!=null?(ds.raw<1?(ds.raw*100).toFixed(1)+'cm':ds.raw.toFixed(2)+'m'):'---'))),
+      ds.stability!=null?h('div',{style:{marginTop:'8px'}},
+        h('div',{style:{height:'4px',background:'#0a0f14',borderRadius:'1px',overflow:'hidden'}},
+          h('div',{style:{height:'100%',width:(ds.stability*100)+'%',background:'linear-gradient(90deg,'+stabColor+'88,'+stabColor+')',borderRadius:'1px',transition:'width .5s ease'}}))):null,
+
+      /* Distance trend mini-graph */
+      hist.length>2?h('div',{style:{marginTop:'10px',paddingTop:'8px',borderTop:'1px solid #1a2530'}},
+        h('div',{style:{fontSize:'8px',letterSpacing:'1.5px',color:'#445566',marginBottom:'4px'}},'DISTANCE TREND (last '+Math.min(hist.length,24)+')'),
+        h('div',{style:{display:'flex',alignItems:'flex-end',gap:'1px',height:'32px'}},
+          (function(){
+            var recent=hist.slice(0,24).reverse();
+            var dists=recent.map(function(x){return x.kalmanDist||x.filteredDist||eD(x.rtt,x.tempC);});
+            var validDists=dists.filter(function(d){return d!=null&&d>0;});
+            if(!validDists.length)return null;
+            var minD=Math.min.apply(null,validDists)*0.9;
+            var maxD=Math.max.apply(null,validDists)*1.1;
+            var range=maxD-minD||1;
+            return dists.map(function(d,i){
+              if(d==null)return h('div',{key:i,style:{flex:1,height:'2px',background:'#ff333322',borderRadius:'1px'}});
+              var pct=Math.max(3,((d-minD)/range)*30);
+              var isOutlier=recent[i]&&recent[i].outlierRejected;
+              return h('div',{key:i,style:{flex:1,height:pct+'px',background:isOutlier?'#ff880044':'#00ffaa44',borderRadius:'1px 1px 0 0',transition:'height .3s'}});
+            });
+          })())):null
+    ));
+
     var ctrls=[];
-    if(!cont){ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',style:{borderColor:curSig.color+'44',color:curSig.color}},status==='calibrating'?'CALIB...':status==='pinging'?'XCORR...':'▶ PING'));ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'◉ CONT'));}else ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'));
+    if(!cont){ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',style:{borderColor:curSig.color+'44',color:curSig.color}},status==='calibrating'?'CALIB...':status==='pinging'?'XCORR...':'▶ PING'));
+    ctrls.push(h('button',{className:'btn',onClick:execBurst,disabled:status!=='idle',key:'bb',style:{background:'#00ddff11',border:'1px solid #00ddff44',color:'#00ddff',padding:'10px 16px',fontSize:'11px',letterSpacing:'1px'}},'⟐ BURST ×'+CFG.burstCount));
+    ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'◉ CONT'));}else ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'));
     ctrls.push(h('button',{className:'btn btn-sm btn-calib',onClick:amb?resetCal:calibrate,key:'cal'},amb?'↻ RECAL':'⚡ CALIB'));
     ctrls.push(h('div',{className:'sel-grp',key:'iv'},h('span',null,'INT'),h('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
       [1000,1500,2000,3000,5000].map(function(v){return h('option',{value:v,key:v},v+'ms');}))));
@@ -645,12 +973,21 @@ function App(){
     ch.push(h('div',{className:'ctrl',key:'ctrl'},ctrls));
     if(err)ch.push(h('div',{className:'err',key:'err'},'⚠ '+err));
     if(info)ch.push(h('div',{className:'nfo',key:'nfo'},info));
-    if(hist.length>0){ch.push(h('div',{className:'sts',key:'st'},[{l:'SENT',v:count,c:'#c0d0e0'},{l:'AVG',v:avg!=null?Math.round(avg)+'ms':'---',c:'#00ffaa'},{l:'MIN',v:mn!=null?Math.round(mn)+'ms':'---',c:'#00ddff'},{l:'MAX',v:mx!=null?Math.round(mx)+'ms':'---',c:'#ffcc00'},{l:'LOSS',v:loss.toFixed(0)+'%',c:loss>30?'#ff3333':'#667788'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));}
-    if(lCorr&&lCorr.corr&&lCorr.corr.length>0)ch.push(h('div',{className:'cv-wrap',key:'xc'},h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),h('span',null,'peak @ '+(lCorr.pL>=0?lagMs(lCorr.pL).toFixed(1)+'ms':'---'))),h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color})));
+    if(hist.length>0){
+      var avgDist=ok.length?ok.reduce(function(s,x){return s+(x.kalmanDist||x.filteredDist||eD(x.rtt,x.tempC)||0);},0)/ok.length:null;
+      ch.push(h('div',{className:'sts',key:'st'},[
+        {l:'SENT',v:count,c:'#c0d0e0'},
+        {l:'AVG RTT',v:avg!=null?avg.toFixed(1)+'ms':'---',c:'#00ffaa'},
+        {l:'MIN RTT',v:mn!=null?mn.toFixed(1)+'ms':'---',c:'#00ddff'},
+        {l:'MAX RTT',v:mx!=null?mx.toFixed(1)+'ms':'---',c:'#ffcc00'},
+        {l:'AVG DIST',v:avgDist!=null?(avgDist<1?(avgDist*100).toFixed(0)+'cm':avgDist.toFixed(2)+'m'):'---',c:'#00ffaa'},
+        {l:'LOSS',v:loss.toFixed(0)+'%',c:loss>30?'#ff3333':'#667788'}
+      ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));}
+    if(lCorr&&lCorr.corr&&lCorr.corr.length>0)ch.push(h('div',{className:'cv-wrap',key:'xc'},h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),h('span',null,'peak @ '+(lCorr.refinedLag>=0?lagMs(lCorr.refinedLag).toFixed(2)+'ms':'---')+' (sub-sample)')),h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color})));
     if(lWave&&lWave.length>0)ch.push(h('div',{className:'cv-wrap',key:'rw'},h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE')),h(WaveCanvas,{smp:lWave,sigColor:curSig.color})));
     if(hist.length>1)ch.push(h('div',{className:'sec',key:'tl'},h('div',{className:'sec-label'},'RTT TIMELINE'),h('div',{className:'tl-bars'},hist.slice().reverse().slice(-48).map(function(x,i){var c=cls(x.rtt),bH=x.rtt!=null?Math.max(3,Math.min(40,(x.rtt/200)*40)):40;return h('div',{className:'tl-b',key:i,style:{height:bH+'px',background:x.rtt==null?'#ff333322':(x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:c.c),opacity:x.rtt==null?.5:.6}});}))));
-    if(hist.length>0)ch.push(h('div',{className:'log',key:'log'},h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'SIG')),h('div',{className:'log-b'},hist.slice(0,30).map(function(x){var c=cls(x.rtt),d=eD(x.rtt);return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id},h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),h('span',{style:{color:c.c,fontSize:'9px'}},c.l),h('span',null,d!=null?d.toFixed(1)+'m':'---'),h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),h('span',{style:{fontSize:'9px',color:x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788'}},x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?'));}))));
-    if(hist.length===0&&!err)ch.push(h('div',{className:'empty',key:'emp'},h('div',{className:'empty-i'},'◎'),h('div',{className:'empty-t'},'ACOUSTIC SONAR'),h('div',{className:'empty-d'},'信号を選択してPING。')));
+    if(hist.length>0)ch.push(h('div',{className:'log',key:'log'},h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'SIG')),h('div',{className:'log-b'},hist.slice(0,30).map(function(x){var c=cls(x.rtt),d=x.kalmanDist!=null?x.kalmanDist:x.filteredDist!=null?x.filteredDist:eD(x.rtt,x.tempC);return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id,style:x.outlierRejected?{borderLeft:'2px solid #ff880044'}:null},h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),h('span',{style:{color:c.c,fontSize:'9px'}},c.l),h('span',{style:{color:x.outlierRejected?'#ff880088':'#8899aa'}},d!=null?d.toFixed(2)+'m':'---',x.outlierRejected?h('span',{style:{fontSize:'7px',color:'#ff8800',marginLeft:'2px'}},'⚠'):''),h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),h('span',{style:{fontSize:'9px',color:x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788'}},x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?'));}))));
+    if(hist.length===0&&!err)ch.push(h('div',{className:'empty',key:'emp'},h('div',{className:'empty-i'},'◎'),h('div',{className:'empty-t'},'ACOUSTIC SONAR — PRO'),h('div',{className:'empty-d'},'信号を選択してPING。サブサンプル補間・カルマンフィルタ・温度補正音速・外れ値除去で高精度距離計測。')));
   }
 
   /* ═══ EM ═══ */
@@ -658,27 +995,27 @@ function App(){
     ch.push(h('div',{className:'sec',key:'em-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#cc66ff'}}),'EM / ENVIRONMENTAL SENSORS')));
     if(sensorPerm.needsRequest)ch.push(h('div',{key:'perm',style:{padding:'14px',marginBottom:'14px',background:'rgba(204,102,255,.06)',border:'1px solid #cc66ff44',borderRadius:'2px',textAlign:'center'}},h('button',{className:'btn',onClick:sensorPerm.requestAll,style:{background:'#cc66ff22',border:'1px solid #cc66ff66',color:'#cc66ff'}},'▶ GRANT SENSOR ACCESS')));
     ch.push(h('div',{className:'em-grid',key:'em-cards'},
-      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MAGNETIC'),h('span',{style:{color:mag.available?'#00ffaa':'#ff3333',fontSize:'8px'}},mag.available?'●':'○')),h('div',{className:'em-card-v',style:{color:'#cc66ff'}},mag.mag.toFixed(1),h('span',{className:'em-card-u'},mag.source==='magnetometer'?'μT':'°')),h('div',{className:'em-card-sub'},'src: '+mag.source)),
-      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'LIGHT'),h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},light.available?'●':'○')),h('div',{className:'em-card-v',style:{color:'#ffcc00'}},light.lux!=null?light.lux.toFixed(0):'---',h('span',{className:'em-card-u'},'lux'))),
-      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MOTION')),h('div',{className:'em-card-v',style:{color:'#00ddff'}},motion.mag.toFixed(2),h('span',{className:'em-card-u'},'m/s²'))),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MAGNETIC'),h('span',{style:{display:'flex',gap:'4px',alignItems:'center'}},srcBadge(mediation.sources.emField),h('span',{style:{color:mag.available?'#00ffaa':'#ff3333',fontSize:'8px'}},mag.available?'●':'○'))),h('div',{className:'em-card-v',style:{color:'#cc66ff'}},mag.mag.toFixed(1),h('span',{className:'em-card-u'},mag.source==='magnetometer'?'μT':'°')),h('div',{className:'em-card-sub'},'src: '+mag.source)),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'LIGHT'),h('span',{style:{display:'flex',gap:'4px',alignItems:'center'}},srcBadge(mediation.sources.photonic),h('span',{style:{color:light.available?'#00ffaa':'#ff3333',fontSize:'8px'}},light.available?'●':'○'))),h('div',{className:'em-card-v',style:{color:'#ffcc00'}},light.lux!=null?light.lux.toFixed(0):'---',h('span',{className:'em-card-u'},'lux'))),
+      h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'MOTION'),srcBadge(mediation.sources.kinetic)),h('div',{className:'em-card-v',style:{color:'#00ddff'}},motion.mag.toFixed(2),h('span',{className:'em-card-u'},'m/s²'))),
       h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'GEO')),h('div',{className:'em-card-v',style:{color:'#ff8800',fontSize:'14px'}},geo.available?geo.lat.toFixed(4)+', '+geo.lon.toFixed(4):'---'),h('button',{className:'btn btn-sm',onClick:fetchGeo,style:{marginTop:'4px',background:'transparent',border:'1px solid #ff880044',color:'#ff8800'}},'↻ FIX'))));
   }
 
   /* ═══ RF ═══ */
   if(layer==='rf'){
-    ch.push(h('div',{className:'sec',key:'rf'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff4466'}}),'RF SPECTRUM (SIM)'),h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'8px'}},RF_ORDER.map(function(id){var b=RF_BANDS[id];return h('span',{key:id,className:'rf-band-tag'+(rf.bandId===id?' active':''),onClick:function(){rf.setBandId(id);},style:{background:b.color+'15',border:'1px solid '+(rf.bandId===id?b.color+'88':b.color+'33'),color:b.color}},b.name);})),h('div',{className:'ctrl'},!rf.state.scanning?h('button',{className:'btn',onClick:rf.start,style:{background:'#ff446622',border:'1px solid #ff446644',color:'#ff4466'}},'▶ SCAN'):h('button',{className:'btn btn-stop',onClick:rf.stop},'■ STOP')),rf.spectrum?h(SpectrumCanvas,{spectrum:rf.spectrum,band:rf.band}):h('div',{className:'empty'},h('div',{className:'empty-t'},'START SCAN'))));
+    ch.push(h('div',{className:'sec',key:'rf'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff4466'}}),'RF SPECTRUM ',srcBadge(mediation.sources.rfDensity)),h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'8px'}},RF_ORDER.map(function(id){var b=RF_BANDS[id];return h('span',{key:id,className:'rf-band-tag'+(rf.bandId===id?' active':''),onClick:function(){rf.setBandId(id);},style:{background:b.color+'15',border:'1px solid '+(rf.bandId===id?b.color+'88':b.color+'33'),color:b.color}},b.name);})),h('div',{className:'ctrl'},!rf.state.scanning?h('button',{className:'btn',onClick:rf.start,style:{background:'#ff446622',border:'1px solid #ff446644',color:'#ff4466'}},'▶ SCAN'):h('button',{className:'btn btn-stop',onClick:rf.stop},'■ STOP')),rf.spectrum?h(SpectrumCanvas,{spectrum:rf.spectrum,band:rf.band}):h('div',{className:'empty'},h('div',{className:'empty-t'},'START SCAN'))));
   }
 
   /* ═══ NFC/THERMAL ═══ */
   if(layer==='nfc_th'){
-    ch.push(h('div',{className:'sec',key:'nfc'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#9966ff'}}),'NFC FIELD (SIM)'),h('div',{className:'ctrl'},!nfc.state.scanning?h('button',{className:'btn',onClick:nfc.start,style:{background:'#9966ff22',border:'1px solid #9966ff44',color:'#9966ff'}},'▶ NFC SCAN'):h('button',{className:'btn btn-stop',onClick:nfc.stop},'■ STOP')),nfc.state.tagHistory.length>0?nfc.state.tagHistory.slice(0,4).map(function(t,i){return h('div',{key:i,style:{padding:'4px 8px',fontSize:'10px',borderBottom:'1px solid #1a253033'}},h('span',{style:{color:'#9966ff'}},'UID: '+t.serialNumber),' ',h('span',{style:{color:'#556677'}},fT(t.time)));}):null));
-    ch.push(h('div',{className:'sec',key:'th'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff8800'}}),'THERMAL (EST)'),h('div',{className:'ctrl'},!thermal.data.available?h('button',{className:'btn',onClick:thermal.start,style:{background:'#ff880022',border:'1px solid #ff880044',color:'#ff8800'}},'▶ MONITOR'):h('button',{className:'btn btn-stop',onClick:thermal.stop},'■ STOP')),h('div',{className:'em-grid'},h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'EST. TEMP')),h('div',{className:'em-card-v',style:{color:'#ff8800'}},thermal.data.est!=null?thermal.data.est.toFixed(1):'---',h('span',{className:'em-card-u'},'°C'))),h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'CPU')),h('div',{className:'em-card-v',style:{color:'#00ddff'}},(thermal.data.cpuLoad*100).toFixed(0),h('span',{className:'em-card-u'},'%'))))));
+    ch.push(h('div',{className:'sec',key:'nfc'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#9966ff'}}),'NFC FIELD ',srcBadge(mediation.sources.nfcField)),h('div',{className:'ctrl'},!nfc.state.scanning?h('button',{className:'btn',onClick:nfc.start,style:{background:'#9966ff22',border:'1px solid #9966ff44',color:'#9966ff'}},'▶ NFC SCAN'):h('button',{className:'btn btn-stop',onClick:nfc.stop},'■ STOP')),nfc.state.tagHistory.length>0?nfc.state.tagHistory.slice(0,4).map(function(t,i){return h('div',{key:i,style:{padding:'4px 8px',fontSize:'10px',borderBottom:'1px solid #1a253033'}},h('span',{style:{color:'#9966ff'}},'UID: '+t.serialNumber),' ',h('span',{style:{color:'#556677'}},fT(t.time)));}):null));
+    ch.push(h('div',{className:'sec',key:'th'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ff8800'}}),'THERMAL ',srcBadge(mediation.sources.thermal)),h('div',{className:'ctrl'},!thermal.data.available?h('button',{className:'btn',onClick:thermal.start,style:{background:'#ff880022',border:'1px solid #ff880044',color:'#ff8800'}},'▶ MONITOR'):h('button',{className:'btn btn-stop',onClick:thermal.stop},'■ STOP')),h('div',{className:'em-grid'},h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'EST. TEMP')),h('div',{className:'em-card-v',style:{color:'#ff8800'}},thermal.data.est!=null?thermal.data.est.toFixed(1):'---',h('span',{className:'em-card-u'},'°C'))),h('div',{className:'em-card'},h('div',{className:'em-card-h'},h('span',null,'CPU')),h('div',{className:'em-card-v',style:{color:'#00ddff'}},(thermal.data.cpuLoad*100).toFixed(0),h('span',{className:'em-card-u'},'%'))))));
   }
 
   /* ═══ SPATIAL ═══ */
   if(layer==='spatial'){
     var sp=spatial.state;
-    ch.push(h('div',{className:'sec',key:'sp-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#22ee88'}}),'SPATIAL MAPPING (SIM)'),h('div',{className:'ctrl'},!sp.active?h('button',{className:'btn',onClick:spatial.startSim,style:{background:'#22ee8822',border:'1px solid #22ee8844',color:'#22ee88'}},'▶ START'):h('button',{className:'btn btn-stop',onClick:spatial.stop},'■ STOP'),sp.active?h('button',{className:'btn btn-sm',onClick:function(){spatial.placeAnchor();if(net.connected)net.shareAnchor({time:Date.now()});},style:{background:'transparent',border:'1px solid #ff446644',color:'#ff4466'}},'⊕ ANCHOR'):null)));
+    ch.push(h('div',{className:'sec',key:'sp-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#22ee88'}}),'SPATIAL MAPPING ',srcBadge(mediation.sources.spatial)),h('div',{className:'ctrl'},!sp.active?h('button',{className:'btn',onClick:spatial.startSim,style:{background:'#22ee8822',border:'1px solid #22ee8844',color:'#22ee88'}},'▶ START'):h('button',{className:'btn btn-stop',onClick:spatial.stop},'■ STOP'),sp.active?h('button',{className:'btn btn-sm',onClick:function(){spatial.placeAnchor();if(net.connected)net.shareAnchor({time:Date.now()});},style:{background:'transparent',border:'1px solid #ff446644',color:'#ff4466'}},'⊕ ANCHOR'):null)));
     if(sp.active){ch.push(h('div',{className:'sts',key:'sp-sts'},[{l:'PLANES',v:sp.planeCount,c:'#22ee88'},{l:'POINTS',v:sp.pointCloud.length,c:'#00ddff'},{l:'AREA',v:sp.totalArea.toFixed(1)+'m²',c:'#ffcc00'},{l:'ANCHORS',v:sp.anchors.length,c:'#ff4466'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));ch.push(h('div',{className:'spatial-3d-wrap',key:'sp-3d'},h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},h('span',null,'3D POINT CLOUD')),h(PointCloudCanvas,{points:sp.pointCloud,planes:sp.planes})));}
     if(!sp.active)ch.push(h('div',{className:'empty',key:'sp-emp'},h('div',{className:'empty-i'},'△'),h('div',{className:'empty-t'},'SPATIAL MAPPING')));
   }
@@ -686,8 +1023,7 @@ function App(){
   /* ═══ BLE ═══ */
   if(layer==='ble'){
     var bl=ble.state;
-    var bleSourceLabel=bl.source==='bluetooth'?'REAL':'SIM';var bleSourceColor=bl.source==='bluetooth'?'#00ffaa':'#ffcc00';
-    ch.push(h('div',{className:'sec',key:'ble-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#4488ff'}}),'BLE MESH ',h('span',{style:{color:bleSourceColor,fontSize:'9px',padding:'1px 4px',border:'1px solid '+bleSourceColor+'44',borderRadius:'2px',marginLeft:'4px'}},bleSourceLabel)),h('div',{className:'ctrl'},!bl.scanning?h('button',{className:'btn',onClick:ble.startScan,style:{background:'#4488ff22',border:'1px solid #4488ff44',color:'#4488ff'}},'▶ SCAN'):h('button',{className:'btn btn-stop',onClick:ble.stopScan},'■ STOP'))));
+    ch.push(h('div',{className:'sec',key:'ble-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#4488ff'}}),'BLE MESH ',srcBadge(mediation.sources.bleMesh)),h('div',{className:'ctrl'},!bl.scanning?h('button',{className:'btn',onClick:ble.startScan,style:{background:'#4488ff22',border:'1px solid #4488ff44',color:'#4488ff'}},'▶ SCAN'):h('button',{className:'btn btn-stop',onClick:ble.stopScan},'■ STOP'))));
     if(bl.scanning||bl.devices.length>0){ch.push(h('div',{className:'sts',key:'ble-sts'},[{l:'DEVICES',v:bl.total,c:'#4488ff'},{l:'AVG RSSI',v:bl.avgRSSI+'dBm',c:'#ffcc00'},{l:'LINKS',v:bl.links.length,c:'#cc66ff'},{l:'DENSITY',v:(bl.density*100).toFixed(0)+'%',c:'#00ffaa'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));bl.devices.slice().sort(function(a,b){return b.rssi-a.rssi;}).slice(0,8).forEach(function(d,i){var rc=d.rssi>-50?'#00ffaa':d.rssi>-70?'#4488ff':d.rssi>-85?'#ffcc00':'#ff4444';ch.push(h('div',{className:'ble-dev',key:'bd'+i},h('div',{style:{display:'flex',justifyContent:'space-between'}},h('span',{style:{color:'#c0d0e0',fontSize:'11px'}},d.name,d.real?h('span',{style:{color:'#00ffaa',fontSize:'8px',marginLeft:'6px',padding:'0 3px',border:'1px solid #00ffaa44',borderRadius:'2px'}},'REAL'):h('span',{style:{color:'#556677',fontSize:'8px',marginLeft:'6px',padding:'0 3px',border:'1px solid #1a2530',borderRadius:'2px'}},'SIM')),h('span',{style:{color:rc,fontWeight:600,fontSize:'11px'}},d.rssi+'dBm')),h('div',{style:{background:'#0a0f14',borderRadius:'1px',marginTop:'3px'}},h('div',{className:'ble-rssi-bar',style:{width:Math.max(0,Math.min(100,(d.rssi+100)/60*100))+'%',background:rc}})),h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'2px'}},'dist: '+(d.distance!=null?d.distance.toFixed(1)+'m':'---'))));});}
     if(!bl.scanning&&bl.devices.length===0)ch.push(h('div',{className:'empty',key:'ble-emp'},h('div',{className:'empty-i'},'◌'),h('div',{className:'empty-t'},'BLE MESH')));
   }
@@ -697,7 +1033,7 @@ function App(){
   /* ═══════════════════════════════════════════ */
   if(layer==='network'){
     ch.push(h('div',{className:'sec',key:'net-hdr'},
-      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ffaa'}}),'pTCP/IP NETWORK — MULTI-DEVICE SYNC'),
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ffaa'}}),'pTCP/IP NETWORK ',srcBadge(mediation.sources.network),' ',srcBadge(mediation.sources.collaborative)),
       h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
         'BroadcastChannel API＋シミュレーションによるP2Pデバイスメッシュ。',h('br'),
         '複数タブで開くとリアルタイムに相互発見・Mediation共有が行われます。')));
@@ -824,11 +1160,12 @@ function App(){
       var res=law.result;
       var stateColor=res.state==='MATCHED'||res.state==='CONTINUOUS'||res.state==='OPEN'||res.state==='STABLE'||res.state==='DENSE'||res.state==='COMPLETE'||res.state==='CONNECTED'||res.state==='COUPLED'?'#00ffaa':
         res.state==='MISMATCHED'||res.state==='SPARSE'||res.state==='NARROW'||res.state==='UNSTABLE'||res.state==='PARTIAL'||res.state==='ISOLATED'||res.state==='DECOUPLED'?'#ff4444':'#ffcc00';
+      var lawSrc=law.source;
       ch.push(h('div',{className:'phase-law-card',key:'pl-'+i,style:{'--law-color':stateColor}},
         h('div',{style:{position:'absolute',left:0,top:0,bottom:0,width:'3px',background:stateColor}}),
         h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'6px'}},
           h('div',null,
-            h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px'}},law.id),
+            h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',display:'flex',alignItems:'center',gap:'6px'}},law.id,lawSrc?srcBadge(lawSrc):h('span',{className:'src-badge real'},'ALL')),
             h('div',{style:{fontSize:'12px',color:'#c0d0e0',marginTop:'2px'}},law.name)),
           h('div',{style:{textAlign:'right'}},
             h('div',{style:{fontSize:'14px',color:stateColor,fontWeight:600}},res.state),
@@ -836,7 +1173,9 @@ function App(){
         h('div',{style:{fontSize:'9px',color:'#445566',marginBottom:'4px'}},law.desc),
         h('div',{style:{fontSize:'10px',color:stateColor+'aa'}},res.msg),
         h('div',{className:'em-bar-row',style:{marginTop:'6px'}},
-          h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(res.score*100)+'%',background:stateColor+'88'}})))));
+          h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(res.score*100)+'%',background:lawSrc==='real'?stateColor+'88':lawSrc==='sim'?'#ffcc0044':stateColor+'44'}}))),
+        lawSrc==='sim'?h('div',{style:{fontSize:'8px',color:'#ffcc0088',marginTop:'4px',letterSpacing:'1px'}},'⚠ SIM — シミュレーションデータに基づく評価'):
+        lawSrc==='est'?h('div',{style:{fontSize:'8px',color:'#ff880088',marginTop:'4px',letterSpacing:'1px'}},'△ EST — 推定値に基づく評価'):null));
     });
 
     ch.push(h('div',{className:'sec',key:'pl-summary'},
@@ -845,22 +1184,46 @@ function App(){
         'Active Laws: '+phaseLaws.length,h('br'),
         'COUPLED: '+phaseLaws.filter(function(l){return l.result.state==='MATCHED'||l.result.state==='CONTINUOUS'||l.result.state==='OPEN'||l.result.state==='STABLE'||l.result.state==='DENSE'||l.result.state==='COMPLETE'||l.result.state==='CONNECTED'||l.result.state==='COUPLED';}).length,
         ' | PARTIAL: '+phaseLaws.filter(function(l){return l.result.state==='PARTIAL'||l.result.state==='NARROW';}).length,
-        ' | DECOUPLED: '+phaseLaws.filter(function(l){return l.result.state==='MISMATCHED'||l.result.state==='SPARSE'||l.result.state==='UNSTABLE'||l.result.state==='ISOLATED'||l.result.state==='DECOUPLED';}).length)));
+        ' | DECOUPLED: '+phaseLaws.filter(function(l){return l.result.state==='MISMATCHED'||l.result.state==='SPARSE'||l.result.state==='UNSTABLE'||l.result.state==='ISOLATED'||l.result.state==='DECOUPLED';}).length,h('br'),
+        h('span',{style:{color:'#00ffaa'}},'REAL-based: '+phaseLaws.filter(function(l){return l.source==='real';}).length),
+        ' | ',h('span',{style:{color:'#ffcc00'}},'SIM-based: '+phaseLaws.filter(function(l){return l.source==='sim';}).length),
+        ' | ',h('span',{style:{color:'#ff8800'}},'EST-based: '+phaseLaws.filter(function(l){return l.source==='est';}).length),
+        ' | ',h('span',{style:{color:'#445566'}},'N/A: '+phaseLaws.filter(function(l){return l.source==='na';}).length))));
   }
 
   /* ═══ MEDIATION (11D) ═══ */
   if(layer==='mediation'){
     var mc=mediation.composite,mcC=mc>.6?'#00ffaa':mc>.3?'#ffcc00':'#ff4444';
+    var ri2=mediation.reality;var ri2C=ri2.index>.5?'#00ffaa':ri2.index>.2?'#ffcc00':'#ff4444';
     ch.push(h('div',{className:'med-coeff',key:'med'},
       h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#ffcc00'}}),'MEDIATION COEFFICIENT — μ(x,t) v1.0'),
       h('div',{style:{textAlign:'center',margin:'12px 0'}},h(MedRing,{value:mc,dims:mediation.dims}),
         h('div',{style:{position:'relative',marginTop:'-80px',marginBottom:'40px',textAlign:'center'}},h('div',{className:'med-val',style:{color:mcC}},mc.toFixed(3)),h('div',{className:'med-lbl'},'COMPOSITE'))),
-      h('div',{className:'med-dims'},
+      /* Reality Index detail */
+      h('div',{className:'reality-idx',style:{margin:'0 0 12px'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}},
+          h('div',{style:{fontSize:'10px',letterSpacing:'2px',color:'#556677'}},'REALITY INDEX'),
+          h('div',{style:{fontSize:'18px',fontWeight:600,color:ri2C}},Math.round(ri2.index*100)+'%')),
+        h('div',{className:'reality-bar',style:{height:'14px'}},
+          ri2.real>0?h('div',{className:'rb-seg',style:{width:(ri2.real/ri2.total*100)+'%',background:'#00ffaa'},title:ri2.real+' REAL'}):null,
+          ri2.est>0?h('div',{className:'rb-seg',style:{width:(ri2.est/ri2.total*100)+'%',background:'#ff8800'},title:ri2.est+' EST'}):null,
+          ri2.sim>0?h('div',{className:'rb-seg',style:{width:(ri2.sim/ri2.total*100)+'%',background:'#ffcc00'},title:ri2.sim+' SIM'}):null,
+          ri2.na>0?h('div',{className:'rb-seg',style:{width:(ri2.na/ri2.total*100)+'%',background:'#1a2530'},title:ri2.na+' N/A'}):null),
+        h('div',{style:{display:'flex',justifyContent:'space-between',marginTop:'6px',fontSize:'9px'}},
+          h('span',{style:{color:'#00ffaa'}},'● REAL: '+ri2.real),
+          h('span',{style:{color:'#ff8800'}},'▲ EST: '+ri2.est),
+          h('span',{style:{color:'#ffcc00'}},'◆ SIM: '+ri2.sim),
+          h('span',{style:{color:'#334455'}},'○ N/A: '+ri2.na)),
+        h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'8px',lineHeight:'1.8'}},
+          'μ(x,t) の信頼性指標。REAL=実センサーデータ、EST=推定値（デフォルト0.5等）、SIM=シミュレーション生成、N/A=未計測。',h('br'),
+          'Reality Index = Σ(REAL次元の重み) / Σ(全次元の重み) — REALデータの重み付き占有率。')),
+      /* Source-annotated dimension grid */
+      h('div',{className:'src-matrix'},
         [{k:'acoustic',l:'ACOUSTIC',c:'#00ffaa'},{k:'emField',l:'EM',c:'#cc66ff'},{k:'photonic',l:'PHOTONIC',c:'#ffcc00'},
          {k:'kinetic',l:'KINETIC',c:'#00ddff'},{k:'rfDensity',l:'RF',c:'#ff4466'},{k:'nfcField',l:'NFC',c:'#9966ff'},
          {k:'thermal',l:'THERMAL',c:'#ff8800'},{k:'spatial',l:'SPATIAL',c:'#22ee88'},{k:'bleMesh',l:'BLE',c:'#4488ff'},
          {k:'network',l:'NETWORK',c:'#00ffaa'},{k:'collaborative',l:'COLLAB',c:'#ffaa00'}
-        ].map(function(dd){var v=mediation.dims[dd.k]||0;return h('div',{className:'med-dim',key:dd.k},h('div',{className:'med-dim-l'},dd.l),h('div',{className:'med-dim-v',style:{color:dd.c}},v.toFixed(3)),h('div',{className:'em-bar-row',style:{marginTop:'4px'}},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(v*100)+'%',background:dd.c+'88'}}))));}))
+        ].map(function(dd){var v=mediation.dims[dd.k]||0;var src=mediation.sources[dd.k]||'na';var srcC=src==='real'?'#00ffaa':src==='sim'?'#ffcc00':src==='est'?'#ff8800':'#445566';return h('div',{className:'src-cell',key:dd.k,style:{borderColor:src==='real'?dd.c+'33':src==='sim'?'#ffcc0022':'#1a2530'}},h('div',{className:'src-cell-l'},dd.l),h('div',{className:'src-cell-v',style:{color:src==='na'?'#334455':dd.c}},v.toFixed(3)),h('div',{className:'src-cell-s'},srcBadge(src)),h('div',{className:'em-bar-row',style:{marginTop:'4px'}},h('div',{className:'em-bar-bg'},h('div',{className:'em-bar-fill',style:{width:(v*100)+'%',background:src==='real'?dd.c+'88':src==='sim'?'#ffcc0044':src==='est'?'#ff880044':'#33445544'}}))));}))
     ));
     ch.push(h('div',{className:'sec',key:'med-f'},h('div',{className:'sec-label'},'FORMULA v1.0'),
       h('div',{style:{fontSize:'10px',color:'#667788',lineHeight:'2',fontFamily:'monospace'}},
@@ -868,12 +1231,53 @@ function App(){
         'dᵢ ∈ {acoustic, emField, photonic, kinetic, rfDensity, nfcField, thermal,',h('br'),
         '       spatial, bleMesh, network, collaborative}',h('br'),
         'w = [.15, .08, .06, .08, .10, .05, .05, .12, .08, .13, .10]',h('br'),h('br'),
-        h('span',{style:{color:'#445566'}},'v1.0では11次元に拡張。Network（P2P接続性）とCollaborative（協調計測カバレッジ）を追加。'))));
-    ch.push(h('div',{className:'radar-wrap',key:'radar'},h('div',{className:'sec-label',style:{marginBottom:'8px'}},'11-DIMENSIONAL RADAR'),h(RadarCanvas,{dims:mediation.dims})));
+        h('span',{style:{color:'#00ffaa'}},'REALITY INDEX:'),h('br'),
+        'ρ(x,t) = Σ wᵢ · 𝟙[sourceᵢ = REAL] / Σ wᵢ',h('br'),
+        h('span',{style:{color:'#445566'}},'REALデータの重み付き占有率。ρ=1.0で全次元が実測データ。'),h('br'),h('br'),
+        h('span',{style:{color:'#445566'}},'v1.0では11次元に拡張。各次元にソース属性（REAL/SIM/EST/N/A）を付与。'))));
+    ch.push(h('div',{className:'radar-wrap',key:'radar'},h('div',{className:'sec-label',style:{marginBottom:'8px'}},'11-DIMENSIONAL RADAR',h('span',{style:{fontSize:'8px',color:'#334455',marginLeft:'8px'}},'● REAL  ◆ SIM  ▲ EST')),h(RadarCanvas,{dims:mediation.dims,sources:mediation.sources})));
   }
 
   /* ═══ PROFILE ═══ */
   if(layer==='profile'){
+    /* Sensor Source Matrix */
+    var allDimInfo=[
+      {k:'acoustic',l:'ACOUSTIC',c:'#00ffaa',hw:'Mic/Speaker',api:'Web Audio API + ScriptProcessor'},
+      {k:'emField',l:'EM FIELD',c:'#cc66ff',hw:'Magnetometer / Gyro',api:'Magnetometer API / DeviceOrientation'},
+      {k:'photonic',l:'PHOTONIC',c:'#ffcc00',hw:'Light Sensor / Camera',api:'AmbientLightSensor / getUserMedia'},
+      {k:'kinetic',l:'KINETIC',c:'#00ddff',hw:'Accelerometer',api:'DeviceMotion'},
+      {k:'rfDensity',l:'RF DENSITY',c:'#ff4466',hw:'—',api:'シミュレーション'},
+      {k:'nfcField',l:'NFC FIELD',c:'#9966ff',hw:'—',api:'シミュレーション (Web NFC未対応)'},
+      {k:'thermal',l:'THERMAL',c:'#ff8800',hw:'CPU benchmark',api:'推定（CPU負荷→温度推定）'},
+      {k:'spatial',l:'SPATIAL',c:'#22ee88',hw:'—',api:'シミュレーション (WebXR対応予定)'},
+      {k:'bleMesh',l:'BLE MESH',c:'#4488ff',hw:'Bluetooth radio',api:'Web Bluetooth API (requestLEScan)'},
+      {k:'network',l:'NETWORK',c:'#00ffaa',hw:'—',api:'BroadcastChannel / WebRTC'},
+      {k:'collaborative',l:'COLLAB',c:'#ffaa00',hw:'—',api:'Peer Mediation集約'}
+    ];
+
+    ch.push(h('div',{className:'sec',key:'src-matrix-sec'},
+      h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'SENSOR SOURCE MATRIX'),
+      h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.6',marginBottom:'10px'}},'各計測次元のデータソース・取得方法・現在の状態を一覧表示。'),
+      h('div',{style:{overflowX:'auto'}},
+        h('table',{style:{width:'100%',borderCollapse:'collapse',fontSize:'10px'}},
+          h('thead',null,h('tr',{style:{borderBottom:'1px solid #1a2530'}},
+            h('th',{style:{textAlign:'left',padding:'6px 8px',color:'#556677',letterSpacing:'1.5px',fontSize:'8px'}},'DIM'),
+            h('th',{style:{textAlign:'center',padding:'6px 4px',color:'#556677',letterSpacing:'1.5px',fontSize:'8px'}},'SOURCE'),
+            h('th',{style:{textAlign:'center',padding:'6px 4px',color:'#556677',letterSpacing:'1.5px',fontSize:'8px'}},'VALUE'),
+            h('th',{style:{textAlign:'left',padding:'6px 8px',color:'#556677',letterSpacing:'1.5px',fontSize:'8px'}},'API / METHOD'),
+            h('th',{style:{textAlign:'center',padding:'6px 4px',color:'#556677',letterSpacing:'1.5px',fontSize:'8px'}},'WEIGHT'))),
+          h('tbody',null,allDimInfo.map(function(dd){
+            var src=mediation.sources[dd.k]||'na';
+            var val=mediation.dims[dd.k]||0;
+            var weights={acoustic:.15,emField:.08,photonic:.06,kinetic:.08,rfDensity:.10,nfcField:.05,thermal:.05,spatial:.12,bleMesh:.08,network:.13,collaborative:.10};
+            return h('tr',{key:dd.k,style:{borderBottom:'1px solid #1a253033',background:src==='real'?'rgba(0,255,170,.02)':src==='sim'?'rgba(255,204,0,.015)':'transparent'}},
+              h('td',{style:{padding:'5px 8px',color:dd.c}},dd.l),
+              h('td',{style:{padding:'5px 4px',textAlign:'center'}},srcBadge(src)),
+              h('td',{style:{padding:'5px 4px',textAlign:'center',color:src==='na'?'#334455':dd.c,fontWeight:500}},val.toFixed(3)),
+              h('td',{style:{padding:'5px 8px',color:'#445566',fontSize:'9px'}},dd.api),
+              h('td',{style:{padding:'5px 4px',textAlign:'center',color:'#556677'}},weights[dd.k]));
+          }))))));
+
     ch.push(h('div',{className:'sec',key:'sp'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ddff'}}),'SPACE PROFILE v1.0'),h('div',{style:{margin:'10px 0'}},spaceTags.map(function(t,i){return h('span',{key:i,className:'sp-tag',style:{background:t.c+'15',border:'1px solid '+t.c+'44',color:t.c}},t.l);})),h('div',{style:{fontSize:'10px',color:'#445566',marginTop:'10px',lineHeight:'1.8'}},'全11センサーレイヤー＋P2Pネットワーク＋Phase-Law Engineの統合分類。')));
 
     ch.push(h('div',{className:'sec',key:'ipc'},h('div',{className:'sec-label'},'pTCP/IP PROTOCOL STACK v1.0'),
@@ -883,6 +1287,7 @@ function App(){
          'L7: pTCP TRANSPORT — 信頼性パケット配送・フロー制御',
          'L6: PHASE-LAW ENGINE — 情報物理結合則の評価・適用',
          'L5: MEDIATION — μ(x,t) 11次元情報物理結合係数',
+         'L5b: REALITY INDEX — ρ(x,t) 実測/SIM/EST分類・信頼性指標',
          'L4: SENSOR FUSION — 全11チャネル統合',
          'L3: SONAR — チャープ・相互相関',
          'L3: EM — 磁力計・環境光・加速度',
@@ -896,7 +1301,7 @@ function App(){
          'L2: DEVICE HW — マイク・スピーカー・センサー',
          'L1: PHYSICAL — 音波・電磁波・光・慣性・空間形状'
         ].map(function(line,i){
-          var colors=['#00ddff','#88aacc','#88aacc','#ff66aa','#ffcc00','#cc66ff','#00ffaa','#cc66ff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00','#556677','#334455'];
+          var colors=['#00ddff','#88aacc','#88aacc','#ff66aa','#ffcc00','#00ffaa88','#cc66ff','#00ffaa','#cc66ff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00','#556677','#334455'];
           return h('div',{key:i,style:{padding:'3px 10px',borderLeft:'3px solid '+colors[i],marginBottom:'1px',background:colors[i]+'06',fontSize:'10px'}},h('span',{style:{color:colors[i]}},line));
         }))));
 
@@ -906,6 +1311,10 @@ function App(){
         '▸ 11次元Mediation Coefficient（音響・EM・光・慣性・RF・NFC・熱・空間・BLE・ネットワーク・協調）',h('br'),
         '▸ Phase-Law Engine: 8つの位相法則によるリアルタイム空間評価',h('br'),
         '▸ pTCP/IP: SYN/ACK ハンドシェイク、HEARTBEAT、MEDIATION_BROADCAST',h('br'),
+        '▸ ',h('span',{style:{color:'#00ffaa'}},'PRO距離計測'),' — サブサンプル放物線補間・カルマンフィルタ・MAD外れ値除去',h('br'),
+        '▸ ',h('span',{style:{color:'#00ffaa'}},'温度補正音速'),' — v = 331.3 + 0.606T [m/s] (thermal sensor連動)',h('br'),
+        '▸ ',h('span',{style:{color:'#00ffaa'}},'バーストモード'),' — 複数ping→中央値取得で高信頼計測',h('br'),
+        '▸ ',h('span',{style:{color:'#00ffaa'}},'Reality Index ρ(x,t)'),' — 実測データ占有率の重み付き指標（REAL/SIM/EST/N/A分類）',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'CRC32 Checksum'),' — パケット完全性検証（polynomial 0xEDB88320）',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'Web Bluetooth'),' — 実BLEスキャン対応（フォールバック：シミュレーション）',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'Network QoS'),' — ジッター・パケットロス率・RTT追跡',h('br'),
@@ -923,8 +1332,13 @@ function App(){
   }
 
   /* FOOTER */
-  ch.push(h('div',{className:'leg',key:'leg'},[{l:'NEAR',c:'#00ffaa',r:'<5ms'},{l:'ROOM',c:'#00ddff',r:'5-20ms'},{l:'HALL',c:'#ffcc00',r:'20-50ms'},{l:'OPEN',c:'#ff8800',r:'50-150ms'},{l:'DISTANT',c:'#ff4444',r:'>150ms'}].map(function(x){return h('span',{className:'leg-i',key:x.l},h('span',{className:'leg-d',style:{background:x.c}}),x.l+' '+x.r);})));
-  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Full Phase-Law Architecture | 11D Mediation + P2P Network + Phase-Law Engine | pTCP/IP for Physical Space'));
+  ch.push(h('div',{className:'leg',key:'leg'},[{l:'NEAR',c:'#00ffaa',r:'<5ms'},{l:'ROOM',c:'#00ddff',r:'5-20ms'},{l:'HALL',c:'#ffcc00',r:'20-50ms'},{l:'OPEN',c:'#ff8800',r:'50-150ms'},{l:'DISTANT',c:'#ff4444',r:'>150ms'}].map(function(x){return h('span',{className:'leg-i',key:x.l},h('span',{className:'leg-d',style:{background:x.c}}),x.l+' '+x.r);}),
+    h('span',{style:{borderLeft:'1px solid #1a2530',paddingLeft:'8px',marginLeft:'4px'},key:'src-leg'},
+      h('span',{style:{color:'#00ffaa',marginRight:'6px'}},'● REAL'),
+      h('span',{style:{color:'#ff8800',marginRight:'6px'}},'▲ EST'),
+      h('span',{style:{color:'#ffcc00',marginRight:'6px'}},'◆ SIM'),
+      h('span',{style:{color:'#334455'}},'○ N/A'))));
+  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Full Phase-Law Architecture | PRO Distance: Sub-sample Interpolation + Kalman Filter + Temp-Compensated SoS + Outlier Rejection | 11D Mediation + Reality Index + P2P Network'));
   return h('div',null,ch);
 }
 
