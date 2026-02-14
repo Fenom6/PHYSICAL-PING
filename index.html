@@ -176,8 +176,8 @@ var SIGNALS={
   click:{id:'click',name:'CLICK',desc:'符号化/10ms — 最高分解能',type:'click',dur:.010,color:'#ff4466'}
 };
 var SIG_ORDER=['chirp_pro','chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
-function genSignal(sig,sr){var N=Math.floor(sr*sig.dur),b=new Float32Array(N);if(sig.type==='chirp')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*.5*(1-Math.cos(2*Math.PI*i/(N-1)));}else if(sig.type==='tone')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*sig.freq*t)*.5*(1-Math.cos(2*Math.PI*i/(N-1)));}else{var fc=2500;for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*fc*t*(1+.5*t/sig.dur))*Math.exp(-Math.pow((i-N/2)/(N/5),2));}}return b;}
-var CFG={sr:44100,listenMs:600,bufSize:256,blanking:2,maxThresh:.45,minConf:.04,histMax:128,burstCount:3,burstGap:80,kalmanQ:.08,kalmanR:2.5,rollingWindow:12,outlierK:2.2,speedOfSound:343.0,loopbackMarginMs:2.5};
+function genSignal(sig,sr){var amp=CFG.sigAmplitude||.85;var N=Math.floor(sr*sig.dur),b=new Float32Array(N);if(sig.type==='chirp')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*amp*(1-Math.cos(2*Math.PI*i/(N-1)));}else if(sig.type==='tone')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*sig.freq*t)*amp*(1-Math.cos(2*Math.PI*i/(N-1)));}else{var fc=2500;for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*fc*t*(1+.5*t/sig.dur))*Math.exp(-Math.pow((i-N/2)/(N/5),2))*amp*2;}}return b;}
+var CFG={sr:44100,listenMs:800,bufSize:256,blanking:2,maxThresh:.45,minConf:.003,histMax:128,burstCount:3,burstGap:80,kalmanQ:.08,kalmanR:2.5,rollingWindow:12,outlierK:2.2,speedOfSound:343.0,loopbackMarginMs:5,sigAmplitude:.85};
 
 /* ═══ Sub-sample parabolic peak interpolation ═══ */
 function parabolicPeak(corr,idx){
@@ -204,22 +204,49 @@ function findFirstPeakIdx(corr,threshold,startIdx){
   return -1;
 }
 
+/* ═══ Adaptive echo threshold ═══ */
+/* For matched filter output, threshold is relative to direct path peak.
+   Wall echoes are typically 1-10% of direct path amplitude in MF output. */
+function calcEchoThreshold(mf,searchStartIdx,directPeakVal){
+  /* Analyze MF noise floor from tail region */
+  var tailStart=Math.floor(Math.max(searchStartIdx,mf.length*0.75));
+  var tailEnd=mf.length;
+  if(tailEnd-tailStart<30){tailStart=Math.max(0,mf.length-200);}
+  var sum=0,cnt=0;
+  for(var i=tailStart;i<tailEnd;i++){sum+=Math.abs(mf[i]);cnt++;}
+  var mean=cnt>0?sum/cnt:0;
+  var varSum=0;
+  for(var i=tailStart;i<tailEnd;i++){var d=Math.abs(mf[i])-mean;varSum+=d*d;}
+  var std=cnt>1?Math.sqrt(varSum/(cnt-1)):0.001;
+
+  var fromNoise=mean+4.0*std;                      /* 4σ above MF noise floor */
+  var fromDirect=Math.abs(directPeakVal)*0.02;      /* 2% of direct path MF peak */
+  var th=Math.max(fromNoise,fromDirect);
+  return{th:th,noiseMean:mean,noiseStd:std,fromNoise:fromNoise,fromDirect:fromDirect,directPeak:directPeakVal};
+}
+
 function xcorr(sig,ref,sr,blankMs){
   var rL=ref.length,sL=sig.length,bS=Math.floor(sr*blankMs/1000),mL=sL-rL;
-  if(mL<=bS)return{corr:new Float32Array(0),peakLag:-1,peakVal:0,bS:bS,refinedLag:-1};
-  var rE=0;for(var i=0;i<rL;i++)rE+=ref[i]*ref[i];rE=Math.sqrt(rE);
-  var cL=mL-bS,corr=new Float32Array(cL),pV=0,pI=0;
+  if(mL<=bS)return{corr:new Float32Array(0),mf:new Float32Array(0),peakLag:-1,peakVal:0,bS:bS,refinedLag:-1,mfPeakVal:0};
+  var rE=0;for(var i=0;i<rL;i++)rE+=ref[i]*ref[i];var rEsq=Math.sqrt(rE);
+  var cL=mL-bS,corr=new Float32Array(cL),mf=new Float32Array(cL),pV=0,pI=0,mfPV=0,mfPI=0;
   for(var lag=bS;lag<mL;lag++){
     var sum=0,sE=0;
     for(var j=0;j<rL;j++){sum+=sig[lag+j]*ref[j];sE+=sig[lag+j]*sig[lag+j];}
     sE=Math.sqrt(sE);
-    var ncc=(rE>0&&sE>0)?sum/(rE*sE):0;
-    var idx=lag-bS;corr[idx]=ncc;
+    var ncc=(rEsq>0&&sE>0)?sum/(rEsq*sE):0;
+    var mfVal=rE>0?sum/rE:0; /* Matched filter: normalized by ref energy only */
+    var idx=lag-bS;
+    corr[idx]=ncc;
+    mf[idx]=mfVal;
     if(ncc>pV){pV=ncc;pI=idx;}
+    if(mfVal>mfPV){mfPV=mfVal;mfPI=idx;}
   }
   /* Sub-sample refinement via parabolic interpolation */
   var refined=parabolicPeak(corr,pI);
-  return{corr:corr,peakLag:pI+bS,peakVal:pV,bS:bS,refinedLag:refined.lag+bS,refinedVal:refined.val};
+  var mfRefined=parabolicPeak(mf,mfPI);
+  return{corr:corr,mf:mf,peakLag:pI+bS,peakVal:pV,bS:bS,refinedLag:refined.lag+bS,refinedVal:refined.val,
+    mfPeakLag:mfPI+bS,mfPeakVal:mfPV,mfRefinedLag:mfRefined.lag+bS,mfRefinedVal:mfRefined.val};
 }
 
 function lagMs(l){return(l/CFG.sr)*1000;}
@@ -689,11 +716,13 @@ function classifySpace(med,hist){
 /* ═══════════════════════════════════════════════════════════ */
 /*  CANVAS COMPONENTS                                          */
 /* ═══════════════════════════════════════════════════════════ */
-function CorrCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.corr||!p.corr.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=100*dpr;cv.width=W;cv.height=H;cv.style.height='100px';ctx.clearRect(0,0,W,H);var mC=0;for(var i=0;i<p.corr.length;i++){var a=Math.abs(p.corr[i]);if(a>mC)mC=a;}mC=Math.max(mC,.1)*1.15;var xS=W/p.corr.length,yM=H/2,yS=(H/2)/mC;ctx.strokeStyle='#1a2530';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,yM);ctx.lineTo(W,yM);ctx.stroke();if(p.th>0){var ty=yM-p.th*yS;ctx.strokeStyle='#ff880044';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);}ctx.strokeStyle=(p.sigColor||'#00ddff')+'66';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<p.corr.length;i++){var x=i*xS,y=yM-p.corr[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
-  /* Loopback marker (system latency — dimmed dashed line) */
-  if(p.loopbackIdx!=null&&p.loopbackIdx>=0&&p.loopbackIdx<p.corr.length){var lx=p.loopbackIdx*xS;ctx.strokeStyle='#ff666644';ctx.lineWidth=1;ctx.setLineDash([3*dpr,3*dpr]);ctx.beginPath();ctx.moveTo(lx,0);ctx.lineTo(lx,H);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff666688';ctx.font=(8*dpr)+'px IBM Plex Mono';ctx.fillText('LOOPBACK',lx+4*dpr,H-6*dpr);}
-  /* Echo peak marker (actual reflection) */
-  if(p.pL>=0){var ai=p.pL-(p.bS||0);if(ai>=0&&ai<p.corr.length){var px=ai*xS;var aiInt=Math.round(ai);var py=aiInt>=0&&aiInt<p.corr.length?yM-p.corr[aiInt]*yS:yM;var det=p.cf>=p.th;ctx.strokeStyle=(det?cC(p.cf):'#ff3333')+'cc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();ctx.fillStyle=det?cC(p.cf):'#ff3333';ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();ctx.font=(10*dpr)+'px IBM Plex Mono';ctx.fillText('ECHO',px+6*dpr,14*dpr);}}},[p.corr,p.pL,p.bS,p.cf,p.th,p.sigColor,p.loopbackIdx]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'100px'}});}
+function CorrCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.corr||!p.corr.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=100*dpr;cv.width=W;cv.height=H;cv.style.height='100px';ctx.clearRect(0,0,W,H);var data=p.corr;var mC=0;for(var i=0;i<data.length;i++){var a=Math.abs(data[i]);if(a>mC)mC=a;}mC=Math.max(mC,.01)*1.15;var xS=W/data.length,yM=H/2,yS=(H/2)/mC;
+  ctx.strokeStyle='#1a2530';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,yM);ctx.lineTo(W,yM);ctx.stroke();
+  if(p.th>0){var ty=yM-p.th*yS;if(ty>0&&ty<H){ctx.strokeStyle='#ff880044';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);}}
+  ctx.strokeStyle=(p.sigColor||'#00ddff')+'66';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<data.length;i++){var x=i*xS,y=yM-data[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();
+  /* Note: correlation starts AFTER loopback+margin (blanked region) */
+  ctx.fillStyle='#ff666633';ctx.font=(7*dpr)+'px IBM Plex Mono';ctx.fillText('← direct path blanked',4*dpr,H-4*dpr);
+  if(p.pL>=0){var ai=p.pL-(p.bS||0);if(ai>=0&&ai<data.length){var px=ai*xS;var aiInt=Math.round(ai);var py=aiInt>=0&&aiInt<data.length?yM-data[aiInt]*yS:yM;var det=p.cf>=p.th;ctx.strokeStyle=(det?cC(p.cf):'#ff3333')+'cc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();ctx.fillStyle=det?cC(p.cf):'#ff3333';ctx.beginPath();ctx.arc(px,py,4*dpr,0,Math.PI*2);ctx.fill();ctx.font=(10*dpr)+'px IBM Plex Mono';ctx.fillText((det?'ECHO ':'?? ')+lagMs(p.pL).toFixed(1)+'ms',px+6*dpr,14*dpr);}}},[p.corr,p.pL,p.bS,p.cf,p.th,p.sigColor]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'100px'}});}
 function WaveCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.smp||!p.smp.length)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=46*dpr;cv.width=W;cv.height=H;cv.style.height='46px';ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(p.smp.length/(W/dpr)));var mV=0;for(var i=0;i<p.smp.length;i+=step){var a=Math.abs(p.smp[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01)*1.1;var yM=H/2,yS=(H/2)/mV;ctx.strokeStyle=(p.sigColor||'#00ffaa')+'33';ctx.lineWidth=1;ctx.beginPath();for(var i=0;i<p.smp.length;i+=step){var x=(i/p.smp.length)*W,y=yM-p.smp[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();},[p.smp,p.sigColor]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'46px'}});}
 function SigPreview(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.sig)return;var buf=genSignal(p.sig,CFG.sr);var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=32*dpr;cv.width=W;cv.height=H;cv.style.height='32px';ctx.clearRect(0,0,W,H);var step=Math.max(1,Math.floor(buf.length/(W/dpr)));var mV=0;for(var i=0;i<buf.length;i+=step){var a=Math.abs(buf[i]);if(a>mV)mV=a;}mV=Math.max(mV,.01);var yM=H/2,yS=(H/2)/mV;ctx.strokeStyle=p.sig.color+'88';ctx.lineWidth=1.5;ctx.beginPath();for(var i=0;i<buf.length;i+=step){var x=(i/buf.length)*W,y=yM-buf[i]*yS;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();},[p.sig]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'32px'}});}
 function SpectrumCanvas(p){var ref=useRef(null);useEffect(function(){var cv=ref.current;if(!cv||!p.spectrum)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,W=cv.offsetWidth*dpr,H=120*dpr;cv.width=W;cv.height=H;cv.style.height='120px';ctx.clearRect(0,0,W,H);var minDb=-100,maxDb=-20,range=maxDb-minDb;var grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,p.band.color+'cc');grad.addColorStop(1,p.band.color+'08');ctx.beginPath();ctx.moveTo(0,H);var xS=W/p.spectrum.length;for(var i=0;i<p.spectrum.length;i++){var y=H-((p.spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));ctx.lineTo(i*xS,y);}ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();ctx.beginPath();for(var i=0;i<p.spectrum.length;i++){var y=H-((p.spectrum[i]-minDb)/range)*H;y=Math.max(0,Math.min(H,y));i===0?ctx.moveTo(i*xS,y):ctx.lineTo(i*xS,y);}ctx.strokeStyle=p.band.color;ctx.lineWidth=1.5;ctx.stroke();},[p.spectrum,p.band]);return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'120px'}});}
@@ -778,71 +807,62 @@ function App(){
   /* Audio */
   var initAudio=useCallback(function(){return new Promise(function(ok){if(acRef.current&&acRef.current.state!=='closed'){if(acRef.current.state==='suspended')acRef.current.resume().then(function(){ok(true);});else ok(true);return;}var ctx;try{ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});}catch(ex){setErr('AudioContext: '+ex.message);ok(false);return;}(ctx.state==='suspended'?ctx.resume():Promise.resolve()).then(function(){return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}).then(function(stream){acRef.current=ctx;var src=ctx.createMediaStreamSource(stream);var proc=ctx.createScriptProcessor(CFG.bufSize,1,1);proc.onaudioprocess=function(ev){var inp=ev.inputBuffer.getChannelData(0);var sum=0;for(var i=0;i<inp.length;i++)sum+=inp[i]*inp[i];setLvl(Math.sqrt(sum/inp.length));if(rec.current.on){var cp=new Float32Array(inp.length);cp.set(inp);rec.current.buf.push(cp);}};src.connect(proc);proc.connect(ctx.destination);setErr(null);ok(true);}).catch(function(ex){setErr('マイクアクセスが必要: '+(ex.message||ex));ok(false);});});},[]);
   var playSignal=useCallback(function(){var ctx=acRef.current,buf=sigBufRef.current;if(!ctx||!buf)return;var ab=ctx.createBuffer(1,buf.length,CFG.sr);ab.getChannelData(0).set(buf);var s=ctx.createBufferSource();s.buffer=ab;var g=ctx.createGain();g.gain.value=1;s.connect(g);g.connect(ctx.destination);s.start();},[]);
-  var calibrate=useCallback(function(){return initAudio().then(function(ok){if(!ok)return;setStatus('calibrating');setInfo('Phase 1/2: 環境ノイズ計測中...');rec.current.on=true;rec.current.buf=[];return new Promise(function(r){setTimeout(r,1500);});}).then(function(){rec.current.on=false;var bufs=rec.current.buf;if(!bufs||!bufs.length){setErr('音声データなし');setInfo(null);setStatus('idle');return;}var noiseFlat=flat(bufs),noiseRMS=rmsV(noiseFlat),rf=sigBufRef.current,noiseCor=xcorr(noiseFlat,rf,CFG.sr,0);
-    /* Phase 2: Loopback — play signal and find direct-path peak = system latency */
-    setInfo('Phase 2/2: ループバック遅延計測中...');rec.current.on=true;rec.current.buf=[];playSignal();return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){rec.current.on=false;var sig=flat(rec.current.buf);var loopRes=xcorr(sig,rf,CFG.sr,CFG.blanking);
-      /* The strongest peak IS the direct path (speaker→mic on same device) = system latency */
-      var offsetLag=loopRes.refinedLag>=0?loopRes.refinedLag:loopRes.peakLag;
-      var offsetMs=offsetLag>=0?lagMs(offsetLag):0;
-      var offsetConf=loopRes.refinedVal||loopRes.peakVal;
-      var a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackOffset:offsetMs,loopbackLag:offsetLag,loopbackConf:offsetConf};
+  var calibrate=useCallback(function(){return initAudio().then(function(ok){if(!ok)return;
+    setStatus('calibrating');setInfo('Phase 1/2: ノイズフロア計測中...');
+    rec.current.on=true;rec.current.buf=[];
+    return new Promise(function(r){setTimeout(r,1200);});}).then(function(){
+    rec.current.on=false;var bufs=rec.current.buf;
+    if(!bufs||!bufs.length){setErr('音声データなし');setInfo(null);setStatus('idle');return;}
+    var noiseFlat=flat(bufs),noiseRMS=rmsV(noiseFlat),rf=sigBufRef.current,noiseCor=xcorr(noiseFlat,rf,CFG.sr,0);
+    /* Phase 2: Loopback — play signal, find direct-path peak = system latency */
+    setInfo('Phase 2/2: ループバック遅延計測中...');
+    rec.current.on=true;rec.current.buf=[];playSignal();
+    return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
+      rec.current.on=false;var sig=flat(rec.current.buf);
+      var loopRes=xcorr(sig,rf,CFG.sr,CFG.blanking);
+      var offsetMs=loopRes.refinedLag>=0?lagMs(loopRes.refinedLag):loopRes.peakLag>=0?lagMs(loopRes.peakLag):0;
+      var a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackMs:offsetMs,loopbackConf:loopRes.refinedVal||loopRes.peakVal};
       setAmb(a);ambRef.current=a;
-      setInfo('✓ noise='+(noiseRMS*1000).toFixed(2)+'mRMS | loopback='+offsetMs.toFixed(2)+'ms (≈'+((offsetMs/1000*speedOfSound(thermal.data.est))/2*100).toFixed(1)+'cm equiv) | conf='+offsetConf.toFixed(3));
-      setStatus('idle');});});},[initAudio,playSignal,thermal.data.est]);
+      var equivCm=((offsetMs/1000)*speedOfSound(thermal.data.est))/2*100;
+      setInfo('✓ noise='+(noiseRMS*1000).toFixed(2)+'mRMS | loopback='+offsetMs.toFixed(1)+'ms (≈'+equivCm.toFixed(0)+'cm equiv)');
+      setStatus('idle');
+    });});},[initAudio,playSignal,thermal.data.est]);
   var execPing=useCallback(function(){return initAudio().then(function(ok){if(!ok)return null;var a=ambRef.current;if(!a){
-    /* Auto-calibration with loopback */
-    setStatus('calibrating');setInfo('初回キャリブ+ループバック...');rec.current.on=true;rec.current.buf=[];
-    return new Promise(function(r){setTimeout(r,1000);}).then(function(){
+    /* Auto-calibration: noise floor + loopback in one go */
+    setStatus('calibrating');setInfo('初回キャリブ+ループバック...');
+    rec.current.on=true;rec.current.buf=[];
+    return new Promise(function(r){setTimeout(r,800);}).then(function(){
       rec.current.on=false;var f=flat(rec.current.buf),noiseRMS=rmsV(f),rf=sigBufRef.current,noiseCor=xcorr(f,rf,CFG.sr,0);
-      /* Loopback measurement */
+      /* Loopback: play signal, find direct-path peak */
       rec.current.on=true;rec.current.buf=[];playSignal();
       return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
-        rec.current.on=false;var sig=flat(rec.current.buf);var loopRes=xcorr(sig,rf,CFG.sr,CFG.blanking);
-        var offsetLag=loopRes.refinedLag>=0?loopRes.refinedLag:loopRes.peakLag;
-        var offsetMs=offsetLag>=0?lagMs(offsetLag):0;
-        a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackOffset:offsetMs,loopbackLag:offsetLag,loopbackConf:loopRes.refinedVal||loopRes.peakVal};
+        rec.current.on=false;var sig=flat(rec.current.buf);
+        var loopRes=xcorr(sig,rf,CFG.sr,CFG.blanking);
+        var offsetMs=loopRes.refinedLag>=0?lagMs(loopRes.refinedLag):loopRes.peakLag>=0?lagMs(loopRes.peakLag):0;
+        a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackMs:offsetMs,loopbackConf:loopRes.refinedVal||loopRes.peakVal};
         setAmb(a);ambRef.current=a;
-        setInfo('loopback='+offsetMs.toFixed(2)+'ms');
-        return a;});});}return a;}).then(function(a){if(!a)return null;var th=calcTh(a.cn);setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){rec.current.on=false;var signal=flat(rec.current.buf);var rf=sigBufRef.current,res=xcorr(signal,rf,CFG.sr,CFG.blanking);
+        setInfo('loopback='+offsetMs.toFixed(1)+'ms');
+        return a;});});}return a;}).then(function(a){if(!a)return null;
+      var th=calcTh(a.cn);
+      setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();
+      return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
+      rec.current.on=false;var signal=flat(rec.current.buf);var rf=sigBufRef.current;
 
-      /* ═══ LOOPBACK-COMPENSATED FIRST-PEAK DETECTION ═══ */
-      /* The correlation contains:
-         - Direct path peak at lag ≈ loopbackLag (system latency)
-         - First reflection at lag = loopbackLag + 2*distance/v*sr
-         - Later reflections at higher lags
-         We search for the first peak AFTER loopback+margin = first reflection */
+      /* ═══ DYNAMIC BLANKING: skip past the direct path ═══ */
+      /* loopbackMs = system latency (speaker→mic on same device).
+         Set blanking = loopbackMs + margin so xcorr only sees echoes. */
+      var loopMs=a.loopbackMs||0;
+      var dynamicBlankMs=loopMs+CFG.loopbackMarginMs;
+      var res=xcorr(signal,rf,CFG.sr,dynamicBlankMs);
 
-      var loopLag=a.loopbackLag||0;
-      var marginSamples=Math.floor(CFG.sr*CFG.loopbackMarginMs/1000);
-      var searchStartLag=loopLag+marginSamples;
-      var searchStartIdx=Math.max(0,searchStartLag-res.bS);
-
-      var rtt=null,cf=0,echoLag=-1;
-      var firstIdx=findFirstPeakIdx(res.corr,th,searchStartIdx);
-
-      if(firstIdx>=0){
-        var refined=parabolicPeak(res.corr,firstIdx);
-        var echoLagSamples=refined.lag+res.bS;
-        echoLag=echoLagSamples;
-        var echoMs=lagMs(echoLagSamples);
-        var loopMs=a.loopbackOffset||0;
-        rtt=echoMs-loopMs;
-        cf=refined.val;
-        if(rtt<0.15)rtt=null; /* Echo too close to direct path — likely direct path tail */
+      /* Standard peak detection — strongest NCC peak after blanking = wall echo */
+      var rtt=null,cf=res.refinedVal||res.peakVal;
+      if(cf>=th&&res.refinedLag>=0){
+        rtt=lagMs(res.refinedLag)-loopMs;
+      }else if(cf>=th&&res.peakLag>=0){
+        rtt=lagMs(res.peakLag)-loopMs;
       }
-
-      /* If first-peak found nothing, try global max as fallback (but still subtract loopback) */
-      if(rtt==null&&res.peakVal>=th){
-        var globalLag=res.refinedLag>=0?res.refinedLag:res.peakLag;
-        var globalMs=lagMs(globalLag);
-        var loopMs2=a.loopbackOffset||0;
-        var fallbackRtt=globalMs-loopMs2;
-        if(fallbackRtt>=0.15){
-          rtt=fallbackRtt;
-          cf=res.refinedVal||res.peakVal;
-          echoLag=globalLag;
-        }
-      }
+      if(rtt!=null&&rtt<0.1)rtt=null;
 
       /* Temperature-compensated distance */
       var tempC=thermal.data.est;
@@ -866,26 +886,18 @@ function App(){
       var stability=rollingRef.current.stability();
 
       setDistState({
-        raw:rawDist,
-        filtered:filteredDist,
-        kalman:kalmanDist,
-        stability:stability,
-        std:std,
-        confidence:cf,
-        count:rollingRef.current.count(),
-        outlierRejected:outlierRejected,
-        speedOfSound:vSound,
-        loopbackMs:a.loopbackOffset||0
+        raw:rawDist,filtered:filteredDist,kalman:kalmanDist,stability:stability,std:std,
+        confidence:cf,count:rollingRef.current.count(),outlierRejected:outlierRejected,
+        speedOfSound:vSound,loopbackMs:loopMs
       });
 
       var id=genId();
       var entry={id:id,time:new Date(),rtt:rtt,cf:cf,th:th,seq:cntRef.current++,sig:sigId,
         rawDist:rawDist,filteredDist:filteredDist,kalmanDist:kalmanDist,
-        outlierRejected:outlierRejected,tempC:tempC,vSound:vSound,
-        loopbackMs:a.loopbackOffset||0,echoLag:echoLag};
+        outlierRejected:outlierRejected,tempC:tempC,vSound:vSound,loopbackMs:loopMs};
       setCount(cntRef.current);
       setHist(function(p){return[entry].concat(p).slice(0,CFG.histMax);});
-      setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th,refinedLag:echoLag,loopbackIdx:loopLag>res.bS?loopLag-res.bS:-1});
+      setLCorr({corr:res.corr,pL:res.peakLag,bS:res.bS,cf:cf,th:th,refinedLag:res.refinedLag>=0?res.refinedLag:res.peakLag});
       setLWave(signal);setLRes(entry);setStatus('idle');return entry;});});},[initAudio,playSignal,sigId,thermal.data.est]);
 
   /* ═══ Burst Mode: execute N pings rapidly, take median ═══ */
@@ -1046,7 +1058,7 @@ function App(){
     if(!cont){ctrls.push(h('button',{className:'btn btn-ping',onClick:execPing,disabled:status!=='idle',key:'pb',style:{borderColor:curSig.color+'44',color:curSig.color}},status==='calibrating'?'CALIB...':status==='pinging'?'XCORR...':'▶ PING'));
     ctrls.push(h('button',{className:'btn',onClick:execBurst,disabled:status!=='idle',key:'bb',style:{background:'#00ddff11',border:'1px solid #00ddff44',color:'#00ddff',padding:'10px 16px',fontSize:'11px',letterSpacing:'1px'}},'⟐ BURST ×'+CFG.burstCount));
     ctrls.push(h('button',{className:'btn btn-cont',onClick:startCont,disabled:status!=='idle',key:'cb'},'◉ CONT'));}else ctrls.push(h('button',{className:'btn btn-stop',onClick:stopCont,key:'sb'},'■ STOP'));
-    ctrls.push(h('button',{className:'btn btn-sm btn-calib',onClick:amb?resetCal:calibrate,key:'cal'},amb?'↻ RECAL':'⚡ CALIB (LOOPBACK)'));
+    ctrls.push(h('button',{className:'btn btn-sm btn-calib',onClick:amb?resetCal:calibrate,key:'cal'},amb?'↻ RECAL':'⚡ CALIB+LOOP'));
     ctrls.push(h('div',{className:'sel-grp',key:'iv'},h('span',null,'INT'),h('select',{value:intv,onChange:function(ev){setIntv(+ev.target.value);}},
       [1000,1500,2000,3000,5000].map(function(v){return h('option',{value:v,key:v},v+'ms');}))));
     if(hist.length>0)ctrls.push(h('button',{className:'btn btn-sm btn-clear',onClick:clear,key:'cl'},'CLEAR'));
@@ -1065,12 +1077,14 @@ function App(){
       ].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));}
     if(lCorr&&lCorr.corr&&lCorr.corr.length>0){
       var dispRtt=lRes&&lRes.rtt!=null?lRes.rtt:null;
-      var loopMs=amb&&amb.loopbackOffset?amb.loopbackOffset:0;
-      ch.push(h('div',{className:'cv-wrap',key:'xc'},h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION'),h('span',null,dispRtt!=null?'echo RTT='+dispRtt.toFixed(2)+'ms (loopback='+loopMs.toFixed(1)+'ms subtracted)':'---')),h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.refinedLag>=0?lCorr.refinedLag:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color,loopbackIdx:lCorr.loopbackIdx})));}
+      var loopMs=amb&&amb.loopbackMs?amb.loopbackMs:0;
+      ch.push(h('div',{className:'cv-wrap',key:'xc'},
+        h('div',{className:'cv-lbl'},h('span',null,'CROSS-CORRELATION (after blanking)'),h('span',null,dispRtt!=null?'echo RTT='+dispRtt.toFixed(2)+'ms (loop='+loopMs.toFixed(0)+'ms blanked)':'no echo detected')),
+        h(CorrCanvas,{corr:lCorr.corr,pL:lCorr.refinedLag>=0?lCorr.refinedLag:lCorr.pL,bS:lCorr.bS,cf:lCorr.cf,th:lCorr.th,sigColor:curSig.color})));}
     if(lWave&&lWave.length>0)ch.push(h('div',{className:'cv-wrap',key:'rw'},h('div',{className:'cv-lbl'},h('span',null,'RAW CAPTURE')),h(WaveCanvas,{smp:lWave,sigColor:curSig.color})));
     if(hist.length>1)ch.push(h('div',{className:'sec',key:'tl'},h('div',{className:'sec-label'},'RTT TIMELINE'),h('div',{className:'tl-bars'},hist.slice().reverse().slice(-48).map(function(x,i){var c=cls(x.rtt),bH=x.rtt!=null?Math.max(3,Math.min(40,(x.rtt/200)*40)):40;return h('div',{className:'tl-b',key:i,style:{height:bH+'px',background:x.rtt==null?'#ff333322':(x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:c.c),opacity:x.rtt==null?.5:.6}});}))));
     if(hist.length>0)ch.push(h('div',{className:'log',key:'log'},h('div',{className:'log-h'},h('span',null,'TIME'),h('span',null,'SEQ'),h('span',null,'RTT'),h('span',null,'CLASS'),h('span',null,'DIST'),h('span',null,'CONF'),h('span',null,'SIG')),h('div',{className:'log-b'},hist.slice(0,30).map(function(x){var c=cls(x.rtt),d=x.kalmanDist!=null?x.kalmanDist:x.filteredDist!=null?x.filteredDist:eD(x.rtt,x.tempC);return h('div',{className:'log-r'+(x.rtt==null?' to':''),key:x.seq+'-'+x.id,style:x.outlierRejected?{borderLeft:'2px solid #ff880044'}:null},h('span',{style:{color:'#556677'}},fT(x.time)),h('span',{style:{color:'#445566'}},'0x'+x.id),h('span',{style:{color:c.c,fontWeight:600}},fMs(x.rtt)),h('span',{style:{color:c.c,fontSize:'9px'}},c.l),h('span',{style:{color:x.outlierRejected?'#ff880088':'#8899aa'}},d!=null?d.toFixed(2)+'m':'---',x.outlierRejected?h('span',{style:{fontSize:'7px',color:'#ff8800',marginLeft:'2px'}},'⚠'):''),h('span',{style:{color:cC(x.cf)}},x.cf.toFixed(3)),h('span',{style:{fontSize:'9px',color:x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].color:'#667788'}},x.sig&&SIGNALS[x.sig]?SIGNALS[x.sig].name.substr(0,4):'?'));}))));
-    if(hist.length===0&&!err)ch.push(h('div',{className:'empty',key:'emp'},h('div',{className:'empty-i'},'◎'),h('div',{className:'empty-t'},'ACOUSTIC SONAR — PRO'),h('div',{className:'empty-d'},'PINGで計測開始。初回はループバック遅延を自動キャリブレーション（スピーカー→マイク間のシステム遅延を測定・差し引き）。CALIBで手動キャリブも可。')));
+    if(hist.length===0&&!err)ch.push(h('div',{className:'empty',key:'emp'},h('div',{className:'empty-i'},'◎'),h('div',{className:'empty-t'},'ACOUSTIC SONAR — PRO'),h('div',{className:'empty-d'},'PINGで計測開始。初回はループバック遅延を自動計測し、直接音を除外して壁反射エコーのみを検出します。CALIBで手動キャリブも可。')));
   }
 
   /* ═══ EM ═══ */
@@ -1394,8 +1408,8 @@ function App(){
         '▸ 11次元Mediation Coefficient（音響・EM・光・慣性・RF・NFC・熱・空間・BLE・ネットワーク・協調）',h('br'),
         '▸ Phase-Law Engine: 8つの位相法則によるリアルタイム空間評価',h('br'),
         '▸ pTCP/IP: SYN/ACK ハンドシェイク、HEARTBEAT、MEDIATION_BROADCAST',h('br'),
-        '▸ ',h('span',{style:{color:'#00ffaa'}},'PRO距離計測'),' — ループバックキャリブレーション・初到達ピーク検出・サブサンプル補間・カルマンフィルタ',h('br'),
-        '▸ ',h('span',{style:{color:'#00ffaa'}},'ループバック補正'),' — システム遅延（DAC→SPK→MIC→ADC）を自動測定・差し引き',h('br'),
+        '▸ ',h('span',{style:{color:'#00ffaa'}},'PRO距離計測'),' — マッチドフィルタ・自己キャリブ直接音検出・適応閾値エコー検出',h('br'),
+        '▸ ',h('span',{style:{color:'#00ffaa'}},'自己キャリブ'),' — 各PINGで直接音ピーク自動検出→エコーΔtから距離算出',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'温度補正音速'),' — v = 331.3 + 0.606T [m/s] (thermal sensor連動)',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'バーストモード'),' — 複数ping→中央値取得で高信頼計測',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'Reality Index ρ(x,t)'),' — 実測データ占有率の重み付き指標（REAL/SIM/EST/N/A分類）',h('br'),
@@ -1422,7 +1436,7 @@ function App(){
       h('span',{style:{color:'#ff8800',marginRight:'6px'}},'▲ EST'),
       h('span',{style:{color:'#ffcc00',marginRight:'6px'}},'◆ SIM'),
       h('span',{style:{color:'#334455'}},'○ N/A'))));
-  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Loopback-Calibrated PRO Distance | First-Arrival Detection + Sub-sample Interpolation + Kalman Filter + Temp SoS | 11D Mediation + P2P'));
+  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Matched Filter Echo Detection + Self-Calibrating Direct Path + Adaptive Threshold + Kalman Filter | 11D Mediation + P2P'));
   return h('div',null,ch);
 }
 
