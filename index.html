@@ -1228,18 +1228,20 @@ function App(){
     /* Packet format documentation */
     ch.push(h('div',{className:'sec',key:'proto-fmt'},
       h('div',{className:'sec-label'},'pTCP PACKET FORMAT v1.0'),
-      h('div',{style:{fontSize:'10px',color:'#556677',lineHeight:'2',fontFamily:'monospace'}},
-        '┌──────┬──────┬──────┬──────┬──────┐',h('br'),
-        '│ VER  │ TYPE │ SEQ  │ SRC  │ DST  │',h('br'),
-        '├──────┼──────┼──────┼──────┤      │',h('br'),
-        '│ TS   │ TTL  │',h('span',{style:{color:'#00ffaa'}},' CRC32'),h('span',{style:{color:'#556677'}},' │ PAYLOAD...  │'),h('br'),
-        '└──────┴──────┴──────┴─────────────┘',h('br'),h('br'),
-        h('span',{style:{color:'#00ffaa'}},'CHECKSUM: '),'CRC32 (polynomial 0xEDB88320) over header+payload',h('br'),
+      h('pre',{style:{fontSize:'10px',color:'#556677',lineHeight:'1.5',fontFamily:'"IBM Plex Mono",monospace',margin:'8px 0',overflow:'auto'}},
+        '┌──────┬──────┬──────┬──────┬──────┐\n',
+        '│ VER  │ TYPE │  SEQ │  SRC │  DST │\n',
+        '├──────┼──────┼──────┼──────┴──────┤\n',
+        '│  TS  │  TTL │',h('span',{style:{color:'#00ffaa'}},'CRC32'),h('span',{style:{color:'#556677'}},' │ PAYLOAD...  │\n'),
+        '└──────┴──────┴──────┴─────────────┘\n'),
+      h('div',{style:{fontSize:'10px',color:'#556677',lineHeight:'1.8',fontFamily:'"IBM Plex Mono",monospace',marginTop:'6px'}},
+        h('span',{style:{color:'#00ffaa'}},'CHECKSUM: '),'CRC32 (poly 0xEDB88320)',h('br'),
         h('span',{style:{color:'#445566'}},'TYPES: '),
-        'SYN(0x01) SYN_ACK(0x02) ACK(0x03) PING(0x10) PONG(0x11)',h('br'),
-        'SENSOR_DATA(0x20) SPATIAL_SHARE(0x21) ANCHOR_SHARE(0x22)',h('br'),
-        'MEDIATION_BROADCAST(0x30) PROFILE_SYNC(0x31)',h('br'),
-        'PHASE_LAW_UPDATE(0x40) HEARTBEAT(0x50) DISCONNECT(0xFF)')));
+        'SYN(01) SYN_ACK(02) ACK(03)',h('br'),
+        '  PING(10) PONG(11) SENSOR(20)',h('br'),
+        '  SPATIAL(21) ANCHOR(22)',h('br'),
+        '  MEDIATION(30) PROFILE(31)',h('br'),
+        '  PHASE_LAW(40) HB(50) DISC(FF)')));
   }
 
   /* ═══════════════════════════════════════════ */
