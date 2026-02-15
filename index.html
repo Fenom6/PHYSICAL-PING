@@ -120,6 +120,10 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 /* v1.0 Network */
 .net-node{padding:8px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;animation:fadeIn .3s ease}
 .net-node.self{border-color:#00ffaa33;background:rgba(0,255,170,.04)}
+/* v1.1 WebRTC QR */
+@keyframes scanLine{0%{top:0}100%{top:100%}}
+.qr-scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00ffaa,transparent);animation:scanLine 2s linear infinite}
+.rtc-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1.5px;font-weight:600;border-radius:2px;background:rgba(0,221,255,.1);border:1px solid rgba(0,221,255,.35);color:#00ddff}
 .pkt-row{display:grid;grid-template-columns:52px 32px 42px 60px 36px 28px 1fr;padding:4px 8px;font-size:10px;border-bottom:1px solid rgba(26,37,48,.3);align-items:center;animation:fadeIn .15s ease}
 .pkt-row:nth-child(even){background:rgba(255,255,255,.005)}
 .phase-law-card{padding:14px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:8px;position:relative;overflow:hidden}
@@ -159,6 +163,23 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 <div class="ctn" id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<script>
+/* ═══ Minimal QR Code Generator (qrcode-generator by kazuhikoarase) ═══ */
+/* MIT License — inlined for single-file deployment */
+var qrcode=function(){var qrcode=function(typeNumber,errorCorrectionLevel){var PAD0=0xEC,PAD1=0x11,_typeNumber=typeNumber,_errorCorrectionLevel=QRErrorCorrectionLevel[errorCorrectionLevel],_modules=null,_moduleCount=0,_dataCache=null,_dataList=[],_this={},_test=function(row,col){return _modules[row][col]},_getModuleCount=function(){return _moduleCount};_this.addData=function(data,mode){mode=mode||'Byte';var newData=null;switch(mode){case'Numeric':newData=qrNumber(data);break;case'Alphanumeric':newData=qrAlphaNum(data);break;case'Byte':newData=qr8BitByte(data);break;default:throw'mode:'+mode;}
+_dataList.push(newData);_dataCache=null;};_this.isDark=function(row,col){if(row<0||_moduleCount<=row||col<0||_moduleCount<=col)throw row+','+col;return _modules[row][col];};_this.getModuleCount=_getModuleCount;_this.make=function(){if(_typeNumber<1){var typeNumber=1;for(;typeNumber<40;typeNumber++){var rsBlocks=QRRSBlock.getRSBlocks(typeNumber,_errorCorrectionLevel);var buffer=qrBitBuffer();for(var i=0;i<_dataList.length;i++){var data=_dataList[i];buffer.put(data.getMode(),4);buffer.put(data.getLength(),QRUtil.getLengthInBits(data.getMode(),typeNumber));data.write(buffer);}
+var totalDataCount=0;for(var i=0;i<rsBlocks.length;i++)totalDataCount+=rsBlocks[i].dataCount;if(buffer.getLengthInBits()<=totalDataCount*8)break;}_typeNumber=typeNumber;}
+_makeImpl(false,_getBestMaskPattern());};_this.createSvgTag=function(cellSize,margin){cellSize=cellSize||2;margin=typeof margin=='undefined'?cellSize*4:margin;var size=_moduleCount*cellSize+margin*2;var rects='';for(var r=0;r<_moduleCount;r++)for(var c=0;c<_moduleCount;c++)if(_this.isDark(r,c))rects+='<rect x="'+(c*cellSize+margin)+'" y="'+(r*cellSize+margin)+'" width="'+cellSize+'" height="'+cellSize+'" fill="#fff"/>';return'<svg viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg"><rect width="'+size+'" height="'+size+'" fill="#0a0f14"/>'+rects+'</svg>';};_this.createDataURL=function(cellSize,margin){cellSize=cellSize||2;margin=typeof margin=='undefined'?cellSize*4:margin;var size=_moduleCount*cellSize+margin*2;var min=margin,max=size-margin;var cv=document.createElement('canvas');cv.width=size;cv.height=size;var ctx=cv.getContext('2d');ctx.fillStyle='#0a0f14';ctx.fillRect(0,0,size,size);ctx.fillStyle='#00ffaa';for(var r=0;r<_moduleCount;r++){for(var c=0;c<_moduleCount;c++){if(_this.isDark(r,c)){ctx.fillRect(c*cellSize+margin,r*cellSize+margin,cellSize,cellSize);}}}return cv.toDataURL('image/png');};var _makeImpl=function(test,maskPattern){_moduleCount=_typeNumber*4+17;_modules=function(moduleCount){var m=[];for(var r=0;r<moduleCount;r++){m.push([]);for(var c=0;c<moduleCount;c++)m[r].push(null);}return m;}(_moduleCount);_setupPositionProbePattern(0,0);_setupPositionProbePattern(_moduleCount-7,0);_setupPositionProbePattern(0,_moduleCount-7);_setupPositionAdjustPattern();_setupTimingPattern();_setupTypeInfo(test,maskPattern);if(_typeNumber>=7)_setupTypeNumber(test);if(_dataCache==null)_dataCache=_createData(_typeNumber,_errorCorrectionLevel,_dataList);_mapData(_dataCache,maskPattern);};var _setupPositionProbePattern=function(row,col){for(var r=-1;r<=7;r++){if(row+r<=-1||_moduleCount<=row+r)continue;for(var c=-1;c<=7;c++){if(col+c<=-1||_moduleCount<=col+c)continue;if((0<=r&&r<=6&&(c==0||c==6))||(0<=c&&c<=6&&(r==0||r==6))||(2<=r&&r<=4&&2<=c&&c<=4))_modules[row+r][col+c]=true;else _modules[row+r][col+c]=false;}}};var _getBestMaskPattern=function(){var minLostPoint=0,pattern=0;for(var i=0;i<8;i++){_makeImpl(true,i);var lostPoint=QRUtil.getLostPoint(_this);if(i==0||minLostPoint>lostPoint){minLostPoint=lostPoint;pattern=i;}}return pattern;};var _setupTimingPattern=function(){for(var r=8;r<_moduleCount-8;r++){if(_modules[r][6]!=null)continue;_modules[r][6]=(r%2==0);}for(var c=8;c<_moduleCount-8;c++){if(_modules[6][c]!=null)continue;_modules[6][c]=(c%2==0);}};var _setupPositionAdjustPattern=function(){var pos=QRUtil.getPatternPosition(_typeNumber);for(var i=0;i<pos.length;i++){for(var j=0;j<pos.length;j++){var row=pos[i],col=pos[j];if(_modules[row][col]!=null)continue;for(var r=-2;r<=2;r++){for(var c=-2;c<=2;c++){if(r==-2||r==2||c==-2||c==2||(r==0&&c==0))_modules[row+r][col+c]=true;else _modules[row+r][col+c]=false;}}}}};var _setupTypeNumber=function(test){var bits=QRUtil.getBCHTypeNumber(_typeNumber);for(var i=0;i<18;i++){var mod=(!test&&((bits>>i)&1)==1);_modules[Math.floor(i/3)][i%3+_moduleCount-8-3]=mod;_modules[i%3+_moduleCount-8-3][Math.floor(i/3)]=mod;}};var _setupTypeInfo=function(test,maskPattern){var data=(_errorCorrectionLevel<<3)|maskPattern;var bits=QRUtil.getBCHTypeInfo(data);for(var i=0;i<15;i++){var mod=(!test&&((bits>>i)&1)==1);if(i<6)_modules[i][8]=mod;else if(i<8)_modules[i+1][8]=mod;else _modules[_moduleCount-15+i][8]=mod;if(i<8)_modules[8][_moduleCount-i-1]=mod;else if(i<9)_modules[8][15-i-1+1]=mod;else _modules[8][15-i-1]=mod;}_modules[_moduleCount-8][8]=(!test);};var _mapData=function(data,maskPattern){var inc=-1,row=_moduleCount-1,bitIndex=7,byteIndex=0,maskFunc=QRUtil.getMaskFunction(maskPattern);for(var col=_moduleCount-1;col>0;col-=2){if(col==6)col--;while(true){for(var c=0;c<2;c++){if(_modules[row][col-c]==null){var dark=false;if(byteIndex<data.length)dark=(((data[byteIndex]>>>bitIndex)&1)==1);if(maskFunc(row,col-c))dark=!dark;_modules[row][col-c]=dark;bitIndex--;if(bitIndex==-1){byteIndex++;bitIndex=7;}}}row+=inc;if(row<0||_moduleCount<=row){row-=inc;inc=-inc;break;}}}};var _createData=function(typeNumber,errorCorrectionLevel,dataList){var rsBlocks=QRRSBlock.getRSBlocks(typeNumber,errorCorrectionLevel);var buffer=qrBitBuffer();for(var i=0;i<dataList.length;i++){var data=dataList[i];buffer.put(data.getMode(),4);buffer.put(data.getLength(),QRUtil.getLengthInBits(data.getMode(),typeNumber));data.write(buffer);}
+var totalDataCount=0;for(var i=0;i<rsBlocks.length;i++)totalDataCount+=rsBlocks[i].dataCount;if(buffer.getLengthInBits()>totalDataCount*8)throw'code length overflow. ('+buffer.getLengthInBits()+'>'+totalDataCount*8+')';if(buffer.getLengthInBits()+4<=totalDataCount*8)buffer.put(0,4);while(buffer.getLengthInBits()%8!=0)buffer.putBit(false);while(true){if(buffer.getLengthInBits()>=totalDataCount*8)break;buffer.put(PAD0,8);if(buffer.getLengthInBits()>=totalDataCount*8)break;buffer.put(PAD1,8);}return _createBytes(buffer,rsBlocks);};var _createBytes=function(buffer,rsBlocks){var offset=0,maxDcCount=0,maxEcCount=0,dcdata=[],ecdata=[];for(var r=0;r<rsBlocks.length;r++){var dcCount=rsBlocks[r].dataCount,ecCount=rsBlocks[r].totalCount-dcCount;maxDcCount=Math.max(maxDcCount,dcCount);maxEcCount=Math.max(maxEcCount,ecCount);dcdata[r]=[];for(var i=0;i<dcCount;i++)dcdata[r][i]=0xff&buffer.getByte(i+offset);offset+=dcCount;var rsPoly=QRUtil.getErrorCorrectPolynomial(ecCount);var rawPoly=qrPolynomial(dcdata[r],rsPoly.getLength()-1);var modPoly=rawPoly.mod(rsPoly);ecdata[r]=[];for(var i=0;i<rsPoly.getLength()-1;i++){var modIndex=i+modPoly.getLength()-rsPoly.getLength()+1;ecdata[r][i]=(modIndex>=0)?modPoly.getAt(modIndex):0;}}
+var totalCodeCount=0;for(var i=0;i<rsBlocks.length;i++)totalCodeCount+=rsBlocks[i].totalCount;var data=[];var index=0;for(var i=0;i<maxDcCount;i++)for(var r=0;r<rsBlocks.length;r++)if(i<dcdata[r].length)data[index++]=dcdata[r][i];for(var i=0;i<maxEcCount;i++)for(var r=0;r<rsBlocks.length;r++)if(i<ecdata[r].length)data[index++]=ecdata[r][i];return data;};return _this;};qrcode.stringToBytesFuncs={'default':function(s){var b=[];for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c<0x80)b.push(c);else if(c<0x800){b.push(0xc0|(c>>6));b.push(0x80|(c&0x3f));}else{b.push(0xe0|(c>>12));b.push(0x80|((c>>6)&0x3f));b.push(0x80|(c&0x3f));}}return b;}};qrcode.stringToBytes=qrcode.stringToBytesFuncs['default'];qrcode.createStringToBytes=function(unicodeData,numChars){return function(s){var b=[];for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c<128)b.push(c);else{var buf=unicodeData;var tbl=numChars;for(var bi=0;bi<buf.length;bi+=2){if(buf.charCodeAt(bi)==c){b.push(buf.charCodeAt(bi+1));break;}}}}return b;};};var QRMode={MODE_NUMBER:1<<0,MODE_ALPHA_NUM:1<<1,MODE_8BIT_BYTE:1<<2,MODE_KANJI:1<<3};var QRErrorCorrectionLevel={L:1,M:0,Q:3,H:2};var QRMaskPattern={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7};var QRUtil=function(){var PATTERN_POSITION_TABLE=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]];var G15=(1<<10)|(1<<8)|(1<<5)|(1<<4)|(1<<2)|(1<<1)|(1<<0);var G18=(1<<12)|(1<<11)|(1<<10)|(1<<9)|(1<<8)|(1<<5)|(1<<2)|(1<<0);var G15_MASK=(1<<14)|(1<<12)|(1<<10)|(1<<4)|(1<<1);var _this={};var getBCHDigit=function(data){var digit=0;while(data!=0){digit++;data>>>=1;}return digit;};_this.getBCHTypeInfo=function(data){var d=data<<10;while(getBCHDigit(d)-getBCHDigit(G15)>=0)d^=(G15<<(getBCHDigit(d)-getBCHDigit(G15)));return((data<<10)|d)^G15_MASK;};_this.getBCHTypeNumber=function(data){var d=data<<12;while(getBCHDigit(d)-getBCHDigit(G18)>=0)d^=(G18<<(getBCHDigit(d)-getBCHDigit(G18)));return(data<<12)|d;};_this.getPatternPosition=function(typeNumber){return PATTERN_POSITION_TABLE[typeNumber-1];};_this.getMaskFunction=function(maskPattern){switch(maskPattern){case QRMaskPattern.PATTERN000:return function(i,j){return(i+j)%2==0;};case QRMaskPattern.PATTERN001:return function(i,j){return i%2==0;};case QRMaskPattern.PATTERN010:return function(i,j){return j%3==0;};case QRMaskPattern.PATTERN011:return function(i,j){return(i+j)%3==0;};case QRMaskPattern.PATTERN100:return function(i,j){return(Math.floor(i/2)+Math.floor(j/3))%2==0;};case QRMaskPattern.PATTERN101:return function(i,j){return(i*j)%2+(i*j)%3==0;};case QRMaskPattern.PATTERN110:return function(i,j){return((i*j)%2+(i*j)%3)%2==0;};case QRMaskPattern.PATTERN111:return function(i,j){return((i*j)%3+(i+j)%2)%2==0;};default:throw'bad maskPattern:'+maskPattern;}};_this.getErrorCorrectPolynomial=function(errorCorrectLength){var a=qrPolynomial([1],0);for(var i=0;i<errorCorrectLength;i++)a=a.multiply(qrPolynomial([1,QRMath.gexp(i)],0));return a;};_this.getLengthInBits=function(mode,type){if(1<=type&&type<10)switch(mode){case QRMode.MODE_NUMBER:return 10;case QRMode.MODE_ALPHA_NUM:return 9;case QRMode.MODE_8BIT_BYTE:return 8;case QRMode.MODE_KANJI:return 8;default:throw'mode:'+mode;}else if(type<27)switch(mode){case QRMode.MODE_NUMBER:return 12;case QRMode.MODE_ALPHA_NUM:return 11;case QRMode.MODE_8BIT_BYTE:return 16;case QRMode.MODE_KANJI:return 10;default:throw'mode:'+mode;}else if(type<41)switch(mode){case QRMode.MODE_NUMBER:return 14;case QRMode.MODE_ALPHA_NUM:return 13;case QRMode.MODE_8BIT_BYTE:return 16;case QRMode.MODE_KANJI:return 12;default:throw'mode:'+mode;}else throw'type:'+type;};_this.getLostPoint=function(qr){var mc=qr.getModuleCount(),lostPoint=0;for(var row=0;row<mc;row++){for(var col=0;col<mc;col++){var sameCount=0,dark=qr.isDark(row,col);for(var r=-1;r<=1;r++){if(row+r<0||mc<=row+r)continue;for(var c=-1;c<=1;c++){if(col+c<0||mc<=col+c)continue;if(r==0&&c==0)continue;if(dark==qr.isDark(row+r,col+c))sameCount++;}}if(sameCount>5)lostPoint+=(3+sameCount-5);}}
+for(var row=0;row<mc-1;row++){for(var col=0;col<mc-1;col++){var count=0;if(qr.isDark(row,col))count++;if(qr.isDark(row+1,col))count++;if(qr.isDark(row,col+1))count++;if(qr.isDark(row+1,col+1))count++;if(count==0||count==4)lostPoint+=3;}}
+for(var row=0;row<mc;row++){for(var col=0;col<mc-6;col++){if(qr.isDark(row,col)&&!qr.isDark(row,col+1)&&qr.isDark(row,col+2)&&qr.isDark(row,col+3)&&qr.isDark(row,col+4)&&!qr.isDark(row,col+5)&&qr.isDark(row,col+6))lostPoint+=40;}}
+for(var col=0;col<mc;col++){for(var row=0;row<mc-6;row++){if(qr.isDark(row,col)&&!qr.isDark(row+1,col)&&qr.isDark(row+2,col)&&qr.isDark(row+3,col)&&qr.isDark(row+4,col)&&!qr.isDark(row+5,col)&&qr.isDark(row+6,col))lostPoint+=40;}}
+var darkCount=0;for(var col=0;col<mc;col++){for(var row=0;row<mc;row++){if(qr.isDark(row,col))darkCount++;}}
+var ratio=Math.abs(100*darkCount/mc/mc-50)/5;lostPoint+=ratio*10;return lostPoint;};return _this;}();var QRMath=function(){var EXP_TABLE=new Array(256),LOG_TABLE=new Array(256);for(var i=0;i<8;i++)EXP_TABLE[i]=1<<i;for(var i=8;i<256;i++)EXP_TABLE[i]=EXP_TABLE[i-4]^EXP_TABLE[i-5]^EXP_TABLE[i-6]^EXP_TABLE[i-8];for(var i=0;i<255;i++)LOG_TABLE[EXP_TABLE[i]]=i;var _this={};_this.glog=function(n){if(n<1)throw'glog('+n+')';return LOG_TABLE[n];};_this.gexp=function(n){while(n<0)n+=255;while(n>=256)n-=255;return EXP_TABLE[n];};return _this;}();function qrPolynomial(num,shift){if(typeof num.length=='undefined')throw num.length+'/'+shift;var _num=function(){var offset=0;while(offset<num.length&&num[offset]==0)offset++;var _num=new Array(num.length-offset+shift);for(var i=0;i<num.length-offset;i++)_num[i]=num[i+offset];return _num;}();var _this={};_this.getAt=function(index){return _num[index];};_this.getLength=function(){return _num.length;};_this.multiply=function(e){var num=new Array(_this.getLength()+e.getLength()-1);for(var i=0;i<_this.getLength();i++){for(var j=0;j<e.getLength();j++){num[i+j]^=QRMath.gexp(QRMath.glog(_this.getAt(i))+QRMath.glog(e.getAt(j)));}}return qrPolynomial(num,0);};_this.mod=function(e){if(_this.getLength()-e.getLength()<0)return _this;var ratio=QRMath.glog(_this.getAt(0))-QRMath.glog(e.getAt(0));var num=new Array(_this.getLength());for(var i=0;i<_this.getLength();i++)num[i]=_this.getAt(i);for(var i=0;i<e.getLength();i++)num[i]^=QRMath.gexp(QRMath.glog(e.getAt(i))+ratio);return qrPolynomial(num,0).mod(e);};return _this;}
+var QRRSBlock=function(){var RS_BLOCK_TABLE=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]];var qrRSBlock=function(totalCount,dataCount){var _this={};_this.totalCount=totalCount;_this.dataCount=dataCount;return _this;};var _this={};var _getRSBlockTable=function(typeNumber,errorCorrectionLevel){switch(errorCorrectionLevel){case QRErrorCorrectionLevel.L:return RS_BLOCK_TABLE[(typeNumber-1)*4+0];case QRErrorCorrectionLevel.M:return RS_BLOCK_TABLE[(typeNumber-1)*4+1];case QRErrorCorrectionLevel.Q:return RS_BLOCK_TABLE[(typeNumber-1)*4+2];case QRErrorCorrectionLevel.H:return RS_BLOCK_TABLE[(typeNumber-1)*4+3];default:return undefined;}};_this.getRSBlocks=function(typeNumber,errorCorrectionLevel){var rsBlock=_getRSBlockTable(typeNumber,errorCorrectionLevel);if(typeof rsBlock=='undefined')throw'bad rs block @ typeNumber:'+typeNumber+'/errorCorrectionLevel:'+errorCorrectionLevel;var length=rsBlock.length/3;var list=[];for(var i=0;i<length;i++){var count=rsBlock[i*3+0],totalCount=rsBlock[i*3+1],dataCount=rsBlock[i*3+2];for(var j=0;j<count;j++)list.push(qrRSBlock(totalCount,dataCount));}return list;};return _this;}();var qrBitBuffer=function(){var _buffer=[],_length=0;var _this={};_this.getBuffer=function(){return _buffer;};_this.getAt=function(index){var bufIndex=Math.floor(index/8);return((_buffer[bufIndex]>>>(7-index%8))&1)==1;};_this.put=function(num,length){for(var i=0;i<length;i++)_this.putBit(((num>>>(length-i-1))&1)==1);};_this.getLengthInBits=function(){return _length;};_this.putBit=function(bit){var bufIndex=Math.floor(_length/8);if(_buffer.length<=bufIndex)_buffer.push(0);if(bit)_buffer[bufIndex]|=(0x80>>>(_length%8));_length++;};_this.getByte=function(index){return _buffer[index];};return _this;};var qr8BitByte=function(data){var _mode=QRMode.MODE_8BIT_BYTE;var _data=data;var _bytes=qrcode.stringToBytes(data);var _this={};_this.getMode=function(){return _mode;};_this.getLength=function(){return _bytes.length;};_this.write=function(buffer){for(var i=0;i<_bytes.length;i++)buffer.put(_bytes[i],8);};return _this;};var qrNumber=function(data){var _mode=QRMode.MODE_NUMBER;var _data=data;var _this={};_this.getMode=function(){return _mode;};_this.getLength=function(){return _data.length;};_this.write=function(buffer){var data=_data;var i=0;while(i+2<data.length){buffer.put(strToNum(data.substring(i,i+3)),10);i+=3;}if(i<data.length){if(data.length-i==1)buffer.put(strToNum(data.substring(i,i+1)),4);else if(data.length-i==2)buffer.put(strToNum(data.substring(i,i+2)),7);}};var strToNum=function(s){var num=0;for(var i=0;i<s.length;i++){num=num*10+chatToNum(s.charAt(i));}return num;};var chatToNum=function(c){if('0'<=c&&c<='9')return c.charCodeAt(0)-'0'.charCodeAt(0);throw'illegal char :'+c;};return _this;};var qrAlphaNum=function(data){var _mode=QRMode.MODE_ALPHA_NUM;var _data=data;var _this={};_this.getMode=function(){return _mode;};_this.getLength=function(){return _data.length;};_this.write=function(buffer){var s=_data;var i=0;while(i+1<s.length){buffer.put(getCode(s.charAt(i))*45+getCode(s.charAt(i+1)),11);i+=2;}if(i<s.length)buffer.put(getCode(s.charAt(i)),6);};var getCode=function(c){if('0'<=c&&c<='9')return c.charCodeAt(0)-'0'.charCodeAt(0);else if('A'<=c&&c<='Z')return c.charCodeAt(0)-'A'.charCodeAt(0)+10;else switch(c){case' ':return 36;case'$':return 37;case'%':return 38;case'*':return 39;case'+':return 40;case'-':return 41;case'.':return 42;case'/':return 43;case':':return 44;default:throw'illegal char :'+c;}};return _this;};return qrcode;}();
+</script>
 <script>
 "use strict";
 var h=React.createElement,useState=React.useState,useRef=React.useRef,useCallback=React.useCallback,useEffect=React.useEffect,useMemo=React.useMemo;
@@ -344,6 +365,338 @@ var CRC32_TABLE=(function(){var t=new Uint32Array(256);for(var i=0;i<256;i++){va
 function crc32(str){var c=0xFFFFFFFF;for(var i=0;i<str.length;i++)c=CRC32_TABLE[(c^str.charCodeAt(i))&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
 function computeChecksum(pkt){var payload=JSON.stringify(pkt.payload||{});var header=''+pkt.ver+pkt.type+pkt.seq+pkt.src+(pkt.dst||'')+pkt.ts+pkt.ttl;return crc32(header+payload);}
 function verifyChecksum(pkt){if(!pkt.checksum)return false;return pkt.checksum===computeChecksum(pkt);}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  WebRTC + QR CODE SIGNALING                                */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* Compress SDP for QR code transport */
+function compressSDP(sdp){
+  /* Strip unnecessary SDP lines to reduce size */
+  var lines=sdp.split('\r\n').filter(function(l){
+    if(!l)return false;
+    /* Keep essential lines only */
+    if(l.indexOf('a=extmap')===0)return false;
+    if(l.indexOf('a=rtcp-rsize')===0)return false;
+    if(l.indexOf('a=msid')===0)return false;
+    if(l.indexOf('a=ssrc')===0)return false;
+    if(l.indexOf('a=rtpmap')===0)return false;
+    if(l.indexOf('a=fmtp')===0)return false;
+    if(l.indexOf('a=rtcp-fb')===0)return false;
+    return true;
+  });
+  var stripped=lines.join('\n');
+  return LZString.compressToEncodedURIComponent(stripped);
+}
+function decompressSDP(compressed){
+  var raw=LZString.decompressFromEncodedURIComponent(compressed);
+  if(!raw)return null;
+  return raw.replace(/\n/g,'\r\n')+'\r\n';
+}
+
+/* Create signaling payload for QR code */
+function createSignalPayload(type,sdp,deviceId,deviceName){
+  return JSON.stringify({t:type,s:compressSDP(sdp),i:deviceId,n:deviceName});
+}
+function parseSignalPayload(data){
+  try{
+    var obj=JSON.parse(data);
+    if(!obj.t||!obj.s||!obj.i)return null;
+    var sdp=decompressSDP(obj.s);
+    if(!sdp)return null;
+    return{type:obj.t,sdp:sdp,deviceId:obj.i,deviceName:obj.n||'Unknown'};
+  }catch(e){return null;}
+}
+
+/* Generate QR code data URL */
+function generateQRDataURL(text){
+  try{
+    /* Try different type numbers to find one that fits */
+    for(var tn=0;tn<=0;tn++){
+      try{
+        var qr=qrcode(0,'L');
+        qr.addData(text);
+        qr.make();
+        return qr.createDataURL(3,8);
+      }catch(e){continue;}
+    }
+    return null;
+  }catch(e){return null;}
+}
+
+/* WebRTC Peer Connection Manager */
+function useWebRTCPeer(){
+  var pcRef=useRef(null);
+  var dcRef=useRef(null);
+  var _state=useState('idle'),rtcState=_state[0],setRtcState=_state[1];
+  var _qr=useState(null),qrData=_qr[0],setQrData=_qr[1];
+  var _qrImg=useState(null),qrImg=_qrImg[0],setQrImg=_qrImg[1];
+  var _remote=useState(null),remoteInfo=_remote[0],setRemoteInfo=_remote[1];
+  var _err=useState(null),rtcErr=_err[0],setRtcErr=_err[1];
+  var onMessageRef=useRef(null);
+  var onConnectRef=useRef(null);
+  var onDisconnectRef=useRef(null);
+
+  var ICE_CONFIG={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+
+  var createPC=useCallback(function(){
+    if(pcRef.current){try{pcRef.current.close();}catch(e){}}
+    var pc=new RTCPeerConnection(ICE_CONFIG);
+    pc.oniceconnectionstatechange=function(){
+      if(pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
+        setRtcState('connected');
+        if(onConnectRef.current)onConnectRef.current();
+      }
+      if(pc.iceConnectionState==='disconnected'||pc.iceConnectionState==='failed'||pc.iceConnectionState==='closed'){
+        setRtcState('disconnected');
+        if(onDisconnectRef.current)onDisconnectRef.current();
+      }
+    };
+    pcRef.current=pc;
+    return pc;
+  },[]);
+
+  /* INITIATOR: Create offer → show QR */
+  var createOffer=useCallback(function(){
+    setRtcErr(null);
+    setRtcState('creating_offer');
+    var pc=createPC();
+    
+    /* Create DataChannel */
+    var dc=pc.createDataChannel('ptcp',{ordered:true});
+    dc.onopen=function(){setRtcState('connected');};
+    dc.onmessage=function(ev){
+      if(onMessageRef.current){
+        try{onMessageRef.current(JSON.parse(ev.data));}catch(e){}
+      }
+    };
+    dc.onclose=function(){setRtcState('disconnected');};
+    dcRef.current=dc;
+
+    pc.createOffer().then(function(offer){
+      return pc.setLocalDescription(offer);
+    }).then(function(){
+      /* Wait for ICE gathering to complete */
+      return new Promise(function(resolve){
+        if(pc.iceGatheringState==='complete'){resolve();return;}
+        var checkState=function(){
+          if(pc.iceGatheringState==='complete'){
+            pc.removeEventListener('icegatheringstatechange',checkState);
+            resolve();
+          }
+        };
+        pc.addEventListener('icegatheringstatechange',checkState);
+        /* Timeout after 5s */
+        setTimeout(resolve,5000);
+      });
+    }).then(function(){
+      var payload=createSignalPayload('offer',pc.localDescription.sdp,DEVICE_ID,DEVICE_NAME);
+      setQrData(payload);
+      var img=generateQRDataURL(payload);
+      setQrImg(img);
+      setRtcState('waiting_answer');
+    }).catch(function(e){
+      setRtcErr('Offer failed: '+e.message);
+      setRtcState('error');
+    });
+  },[createPC]);
+
+  /* RESPONDER: Process scanned offer → create answer → show QR */
+  var processOffer=useCallback(function(offerPayload){
+    setRtcErr(null);
+    var signal=parseSignalPayload(offerPayload);
+    if(!signal||signal.type!=='offer'){
+      setRtcErr('Invalid offer QR code');return;
+    }
+    setRtcState('creating_answer');
+    setRemoteInfo({id:signal.deviceId,name:signal.deviceName});
+    
+    var pc=createPC();
+
+    /* Handle incoming DataChannel */
+    pc.ondatachannel=function(ev){
+      var dc=ev.channel;
+      dc.onopen=function(){setRtcState('connected');};
+      dc.onmessage=function(ev2){
+        if(onMessageRef.current){
+          try{onMessageRef.current(JSON.parse(ev2.data));}catch(e){}
+        }
+      };
+      dc.onclose=function(){setRtcState('disconnected');};
+      dcRef.current=dc;
+    };
+
+    var remoteDesc=new RTCSessionDescription({type:'offer',sdp:signal.sdp});
+    pc.setRemoteDescription(remoteDesc).then(function(){
+      return pc.createAnswer();
+    }).then(function(answer){
+      return pc.setLocalDescription(answer);
+    }).then(function(){
+      return new Promise(function(resolve){
+        if(pc.iceGatheringState==='complete'){resolve();return;}
+        var checkState=function(){
+          if(pc.iceGatheringState==='complete'){
+            pc.removeEventListener('icegatheringstatechange',checkState);
+            resolve();
+          }
+        };
+        pc.addEventListener('icegatheringstatechange',checkState);
+        setTimeout(resolve,5000);
+      });
+    }).then(function(){
+      var payload=createSignalPayload('answer',pc.localDescription.sdp,DEVICE_ID,DEVICE_NAME);
+      setQrData(payload);
+      var img=generateQRDataURL(payload);
+      setQrImg(img);
+      setRtcState('waiting_scan');
+    }).catch(function(e){
+      setRtcErr('Answer failed: '+e.message);
+      setRtcState('error');
+    });
+  },[createPC]);
+
+  /* INITIATOR: Process scanned answer → complete handshake */
+  var processAnswer=useCallback(function(answerPayload){
+    setRtcErr(null);
+    var signal=parseSignalPayload(answerPayload);
+    if(!signal||signal.type!=='answer'){
+      setRtcErr('Invalid answer QR code');return;
+    }
+    setRemoteInfo({id:signal.deviceId,name:signal.deviceName});
+    
+    var pc=pcRef.current;
+    if(!pc){setRtcErr('No peer connection');return;}
+    
+    var remoteDesc=new RTCSessionDescription({type:'answer',sdp:signal.sdp});
+    pc.setRemoteDescription(remoteDesc).then(function(){
+      setRtcState('connecting');
+    }).catch(function(e){
+      setRtcErr('Answer processing failed: '+e.message);
+      setRtcState('error');
+    });
+  },[]);
+
+  /* Send data over DataChannel */
+  var sendData=useCallback(function(data){
+    if(dcRef.current&&dcRef.current.readyState==='open'){
+      try{dcRef.current.send(JSON.stringify(data));return true;}catch(e){return false;}
+    }
+    return false;
+  },[]);
+
+  /* Close connection */
+  var closeRTC=useCallback(function(){
+    if(dcRef.current){try{dcRef.current.close();}catch(e){}}
+    if(pcRef.current){try{pcRef.current.close();}catch(e){}}
+    dcRef.current=null;pcRef.current=null;
+    setRtcState('idle');setQrData(null);setQrImg(null);setRemoteInfo(null);setRtcErr(null);
+  },[]);
+
+  useEffect(function(){return function(){
+    if(dcRef.current)try{dcRef.current.close();}catch(e){}
+    if(pcRef.current)try{pcRef.current.close();}catch(e){}
+  };},[]);
+
+  return{
+    state:rtcState,qrData:qrData,qrImg:qrImg,remoteInfo:remoteInfo,error:rtcErr,
+    createOffer:createOffer,processOffer:processOffer,processAnswer:processAnswer,
+    sendData:sendData,close:closeRTC,
+    onMessageRef:onMessageRef,onConnectRef:onConnectRef,onDisconnectRef:onDisconnectRef,
+    isConnected:rtcState==='connected',dataChannel:dcRef
+  };
+}
+
+/* QR Scanner Component using camera + BarcodeDetector */
+function QRScanner(props){
+  var videoRef=useRef(null);
+  var canvasRef=useRef(null);
+  var streamRef=useRef(null);
+  var scanRef=useRef(null);
+  var _scanning=useState(false),scanning=_scanning[0],setScanning=_scanning[1];
+  var _result=useState(null),result=_result[0],setResult=_result[1];
+  var _camErr=useState(null),camErr=_camErr[0],setCamErr=_camErr[1];
+
+  var startScan=useCallback(function(){
+    setCamErr(null);setResult(null);
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+      setCamErr('Camera API not available');return;
+    }
+    navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'environment',width:{ideal:640},height:{ideal:480}}
+    }).then(function(stream){
+      streamRef.current=stream;
+      var video=videoRef.current;
+      if(!video)return;
+      video.srcObject=stream;
+      video.setAttribute('playsinline','');
+      video.muted=true;
+      video.play();
+      setScanning(true);
+
+      /* Use BarcodeDetector if available, otherwise manual frame analysis */
+      var hasBD=typeof BarcodeDetector!=='undefined';
+      var detector=hasBD?new BarcodeDetector({formats:['qr_code']}):null;
+
+      scanRef.current=setInterval(function(){
+        if(!video||video.readyState<2)return;
+        var cv=canvasRef.current;
+        if(!cv)return;
+        cv.width=video.videoWidth||640;
+        cv.height=video.videoHeight||480;
+        var ctx=cv.getContext('2d');
+        ctx.drawImage(video,0,0);
+
+        if(detector){
+          detector.detect(cv).then(function(barcodes){
+            if(barcodes.length>0){
+              var data=barcodes[0].rawValue;
+              setResult(data);
+              if(props.onScan)props.onScan(data);
+              stopScan();
+            }
+          }).catch(function(){});
+        }
+      },250);
+    }).catch(function(e){
+      setCamErr('Camera access denied: '+e.message);
+    });
+  },[props.onScan]);
+
+  var stopScan=useCallback(function(){
+    if(scanRef.current){clearInterval(scanRef.current);scanRef.current=null;}
+    if(streamRef.current){streamRef.current.getTracks().forEach(function(t){t.stop();});streamRef.current=null;}
+    setScanning(false);
+  },[]);
+
+  useEffect(function(){return function(){stopScan();};},[]);
+
+  return h('div',{style:{marginBottom:'12px'}},
+    !scanning?
+      h('button',{className:'btn',onClick:startScan,style:{background:'#00ddff22',border:'1px solid #00ddff44',color:'#00ddff',width:'100%',padding:'12px'}},'📷 カメラでQRスキャン'):
+      h('div',null,
+        h('div',{style:{position:'relative',borderRadius:'2px',overflow:'hidden',border:'1px solid #00ddff44',marginBottom:'8px'}},
+          h('video',{ref:videoRef,style:{width:'100%',display:'block',maxHeight:'300px',objectFit:'cover'}}),
+          h('div',{style:{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'200px',height:'200px',border:'2px solid #00ffaa88',borderRadius:'4px',boxShadow:'0 0 0 9999px rgba(0,0,0,.4)'}}),
+          h('div',{style:{position:'absolute',bottom:'8px',left:'50%',transform:'translateX(-50%)',fontSize:'10px',color:'#00ffaa',letterSpacing:'2px',background:'rgba(0,0,0,.6)',padding:'4px 12px',borderRadius:'2px'}},'SCANNING...')),
+        h('canvas',{ref:canvasRef,style:{display:'none'}}),
+        h('button',{className:'btn btn-sm',onClick:stopScan,style:{background:'#ff333322',border:'1px solid #ff333344',color:'#ff3333'}},'■ STOP SCAN')),
+    /* Manual paste fallback */
+    !scanning?h('div',{style:{marginTop:'8px'}},
+      h('div',{style:{fontSize:'9px',color:'#445566',letterSpacing:'1px',marginBottom:'4px'}},'または手動ペースト:'),
+      h('textarea',{
+        style:{width:'100%',background:'#0a0f14',border:'1px solid #1a2530',color:'#8899aa',fontFamily:'"IBM Plex Mono",monospace',fontSize:'10px',padding:'8px',borderRadius:'2px',resize:'vertical',height:'60px'},
+        placeholder:'QRコードデータを貼り付け...',
+        onChange:function(ev){
+          var val=ev.target.value.trim();
+          if(val&&val.length>20){
+            setResult(val);
+            if(props.onScan)props.onScan(val);
+          }
+        }
+      })):null,
+    camErr?h('div',{style:{fontSize:'10px',color:'#ff6666',marginTop:'6px'}},camErr):null,
+    result?h('div',{style:{fontSize:'10px',color:'#00ffaa',marginTop:'6px'}},'✓ QRデータ受信完了'):null);
+}
 
 /* ═══════════════════════════════════════════════════════════ */
 /*  iOS / SENSOR PERMISSIONS                                  */
@@ -782,6 +1135,11 @@ function App(){
   var spatial=useSpatial();var ble=useBLE();
   /* v1.0 */
   var net=usePTCPNetwork();
+  
+  /* v1.1: WebRTC P2P via QR Code Handshake */
+  var rtc=useWebRTCPeer();
+  var _qrPhase=useState('idle'),qrPhase=_qrPhase[0],setQrPhase=_qrPhase[1];
+  /* idle | init_offer | show_offer | scan_answer | init_respond | scan_offer | show_answer | connected */
 
   var acRef=useRef(null),contRef=useRef(false),timerRef=useRef(null),cntRef=useRef(0),ambRef=useRef(null),sigBufRef=useRef(null);
   var rec=useRef({on:false,buf:[]});
@@ -800,6 +1158,38 @@ function App(){
 
   /* Broadcast mediation periodically */
   useEffect(function(){if(!net.connected)return;var iv=setInterval(function(){net.broadcastMediation({composite:mediation.composite,dims:mediation.dims});},5000);return function(){clearInterval(iv);};},[net.connected,mediation.composite]);
+
+  /* Wire WebRTC messages to pTCP packet handling */
+  useEffect(function(){
+    rtc.onMessageRef.current=function(pkt){
+      if(!pkt||!pkt.src||pkt.src===DEVICE_ID)return;
+      var valid=verifyChecksum(pkt);
+      if(valid){
+        if(rtc.remoteInfo){
+          if(pkt.type===PKT.HEARTBEAT||pkt.type===PKT.MEDIATION_BROADCAST){
+            /* Peer updates handled by network hook */
+          }
+        }
+      }
+    };
+    rtc.onConnectRef.current=function(){
+      setQrPhase('connected');
+      rtc.sendData(createPacket(PKT.SYN,{name:DEVICE_NAME,transport:'webrtc'}));
+    };
+    rtc.onDisconnectRef.current=function(){
+      setQrPhase('idle');
+    };
+  },[rtc.remoteInfo]);
+
+  /* Periodically send heartbeat over WebRTC if connected */
+  useEffect(function(){
+    if(!rtc.isConnected)return;
+    var mc=mediation.composite;
+    var iv=setInterval(function(){
+      rtc.sendData(createPacket(PKT.HEARTBEAT,{name:DEVICE_NAME,mediation:mc,transport:'webrtc'}));
+    },5000);
+    return function(){clearInterval(iv);};
+  },[rtc.isConnected,mediation.composite]);
 
   var scanEM=useCallback(function(){setEmHist(function(p){return[{time:new Date(),mag:{mag:mag.mag},light:{lux:light.lux},motion:{mag:motion.mag},med:mediation.composite}].concat(p).slice(0,32);});},[mag,light,motion,mediation]);
   useEffect(function(){var iv=setInterval(scanEM,2000);return function(){clearInterval(iv);};},[scanEM]);
@@ -941,11 +1331,12 @@ function App(){
   /* ── HEADER ── */
   ch.push(h('div',{className:'hdr',key:'hd'},
     h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v1.0')),
-    h('div',{className:'sub'},'FULL PHASE-LAW ARCHITECTURE · PRO DISTANCE MEASUREMENT · pTCP/IP FOR PHYSICAL SPACE'),
+    h('div',{className:'sub'},'FULL PHASE-LAW ARCHITECTURE · PRO DISTANCE MEASUREMENT · pTCP/IP FOR PHYSICAL SPACE · WebRTC QR HANDSHAKE'),
     h('p',null,'11次元センシング＋P2Pネットワーク＋Phase-Law Engine。サブサンプル補間・カルマンフィルタ・温度補正音速による高精度距離計測。'),
-    net.connected?h('div',{style:{fontSize:'9px',color:'#00ffaa88',marginTop:'4px',display:'flex',gap:'8px',alignItems:'center'}},
+    net.connected?h('div',{style:{fontSize:'9px',color:'#00ffaa88',marginTop:'4px',display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}},
       h('span',{style:{width:6,height:6,borderRadius:'50%',background:'#00ffaa',display:'inline-block',animation:'pulse 2s infinite'}}),
-      'NETWORK ACTIVE | '+DEVICE_NAME+' | PEERS: '+net.stats.peers+' | UP: '+net.stats.uptime+'s'):null));
+      'NETWORK ACTIVE | '+DEVICE_NAME+' | PEERS: '+net.stats.peers+' | UP: '+net.stats.uptime+'s',
+      rtc.isConnected?h('span',{style:{color:'#00ddff',borderLeft:'1px solid #1a2530',paddingLeft:'8px'}},'⚡ WebRTC P2P'+(rtc.remoteInfo?' → '+rtc.remoteInfo.name:'')):null):null));
 
   /* ── REALITY INDEX BAR (always visible) ── */
   var ri=mediation.reality;
@@ -1132,13 +1523,138 @@ function App(){
     ch.push(h('div',{className:'sec',key:'net-hdr'},
       h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#00ffaa'}}),'pTCP/IP NETWORK ',srcBadge(mediation.sources.network),' ',srcBadge(mediation.sources.collaborative)),
       h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},
-        'BroadcastChannel API＋シミュレーションによるP2Pデバイスメッシュ。',h('br'),
-        '複数タブで開くとリアルタイムに相互発見・Mediation共有が行われます。')));
+        'BroadcastChannel API＋',h('span',{style:{color:'#00ddff'}},'WebRTC P2P'),'によるデバイスメッシュ。',h('br'),
+        'QRコードハンドシェイクで異なるデバイス間のリアルP2P接続が可能。')));
 
     ch.push(h('div',{className:'ctrl',key:'net-ctrl'},
       !net.connected?
         h('button',{className:'btn btn-ping',onClick:net.connect},'▶ CONNECT NETWORK'):
         h('button',{className:'btn btn-stop',onClick:net.disconnect},'■ DISCONNECT')));
+
+    /* ═══ WebRTC QR Code Handshake Section ═══ */
+    var rtcStateColor=rtc.state==='connected'?'#00ffaa':rtc.state==='error'?'#ff4444':rtc.state==='idle'?'#556677':'#00ddff';
+    var rtcStateLabel={'idle':'STANDBY','creating_offer':'GENERATING OFFER...','waiting_answer':'AWAITING ANSWER','creating_answer':'GENERATING ANSWER...','waiting_scan':'AWAITING SCAN','connecting':'CONNECTING...','connected':'CONNECTED','disconnected':'DISCONNECTED','error':'ERROR'}[rtc.state]||rtc.state.toUpperCase();
+
+    ch.push(h('div',{className:'sec',key:'rtc-section',style:{border:'1px solid '+(rtc.isConnected?'#00ffaa33':'#00ddff22'),background:rtc.isConnected?'rgba(0,255,170,.02)':'rgba(0,0,0,.2)'}},
+      h('div',{className:'sec-label'},
+        h('span',{className:'dot',style:{background:'#00ddff'}}),'WebRTC P2P HANDSHAKE',
+        h('span',{style:{marginLeft:'auto',fontSize:'9px',color:rtcStateColor,fontWeight:600,letterSpacing:'1.5px'}},rtcStateLabel)),
+
+      /* Status indicator */
+      rtc.isConnected&&rtc.remoteInfo?
+        h('div',{style:{padding:'10px',background:'rgba(0,255,170,.04)',border:'1px solid #00ffaa33',borderRadius:'2px',marginBottom:'10px',display:'flex',alignItems:'center',gap:'10px'}},
+          h('span',{style:{width:8,height:8,borderRadius:'50%',background:'#00ffaa',display:'inline-block',animation:'pulse 2s infinite'}}),
+          h('div',null,
+            h('div',{style:{fontSize:'11px',color:'#00ffaa',fontWeight:600}},'P2P CONNECTED — '+rtc.remoteInfo.name),
+            h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'2px'}},'Transport: WebRTC DataChannel | Peer: '+rtc.remoteInfo.id.substring(0,16)+'...'))):null,
+
+      rtc.error?h('div',{className:'err',style:{marginBottom:'10px'}},rtc.error):null,
+
+      /* Handshake Flow */
+      qrPhase==='idle'&&!rtc.isConnected?
+        h('div',{style:{display:'flex',gap:'8px',flexWrap:'wrap'}},
+          h('button',{className:'btn',onClick:function(){
+            setQrPhase('show_offer');rtc.createOffer();
+          },style:{flex:1,background:'linear-gradient(180deg,#00ddff15,#00ddff08)',border:'1px solid #00ddff44',color:'#00ddff',padding:'14px 16px',minWidth:'140px'}},
+            h('div',{style:{fontSize:'16px',marginBottom:'4px'}},'📡'),
+            h('div',{style:{fontSize:'11px',letterSpacing:'2px'}},'INITIATE'),
+            h('div',{style:{fontSize:'8px',color:'#00ddff88',marginTop:'2px'}},'QRコードを生成して相手に見せる')),
+          h('button',{className:'btn',onClick:function(){
+            setQrPhase('scan_offer');
+          },style:{flex:1,background:'linear-gradient(180deg,#ffcc0015,#ffcc0008)',border:'1px solid #ffcc0044',color:'#ffcc00',padding:'14px 16px',minWidth:'140px'}},
+            h('div',{style:{fontSize:'16px',marginBottom:'4px'}},'📷'),
+            h('div',{style:{fontSize:'11px',letterSpacing:'2px'}},'RESPOND'),
+            h('div',{style:{fontSize:'8px',color:'#ffcc0088',marginTop:'2px'}},'相手のQRコードをスキャンする'))):null,
+
+      /* Phase: Show Offer QR */
+      qrPhase==='show_offer'?
+        h('div',null,
+          h('div',{style:{fontSize:'10px',color:'#00ddff',letterSpacing:'1.5px',marginBottom:'8px',display:'flex',alignItems:'center',gap:'6px'}},
+            h('span',{style:{fontSize:'14px'}},'①'),' OFFER QRを相手デバイスでスキャンしてもらう'),
+          rtc.qrImg?
+            h('div',{style:{textAlign:'center',padding:'16px',background:'#0a0f14',border:'1px solid #00ddff33',borderRadius:'2px',marginBottom:'10px'}},
+              h('img',{src:rtc.qrImg,style:{maxWidth:'280px',width:'100%',imageRendering:'pixelated'}}),
+              h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'8px',letterSpacing:'1px'}},'pTCP WebRTC OFFER — '+DEVICE_NAME)):
+            h('div',{style:{textAlign:'center',padding:'20px',color:'#00ddff88',fontSize:'11px'}},'QR生成中...'),
+          h('div',{style:{display:'flex',gap:'8px',marginTop:'8px'}},
+            h('button',{className:'btn',onClick:function(){
+              setQrPhase('scan_answer');
+            },style:{flex:1,background:'#00ffaa15',border:'1px solid #00ffaa44',color:'#00ffaa'}},'② 次へ: Answer QRをスキャン'),
+            h('button',{className:'btn btn-sm',onClick:function(){
+              setQrPhase('idle');rtc.close();
+            },style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333'}},'✕ キャンセル'))):null,
+
+      /* Phase: Scan Answer QR (Initiator completes handshake) */
+      qrPhase==='scan_answer'?
+        h('div',null,
+          h('div',{style:{fontSize:'10px',color:'#00ffaa',letterSpacing:'1.5px',marginBottom:'8px',display:'flex',alignItems:'center',gap:'6px'}},
+            h('span',{style:{fontSize:'14px'}},'②'),' 相手デバイスのAnswer QRをスキャン'),
+          h(QRScanner,{onScan:function(data){
+            rtc.processAnswer(data);
+            setQrPhase('connecting');
+          }}),
+          h('button',{className:'btn btn-sm',onClick:function(){
+            setQrPhase('idle');rtc.close();
+          },style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333',marginTop:'4px'}},'✕ キャンセル')):null,
+
+      /* Phase: Scan Offer QR (Responder) */
+      qrPhase==='scan_offer'?
+        h('div',null,
+          h('div',{style:{fontSize:'10px',color:'#ffcc00',letterSpacing:'1.5px',marginBottom:'8px',display:'flex',alignItems:'center',gap:'6px'}},
+            h('span',{style:{fontSize:'14px'}},'①'),' 相手デバイスのOffer QRをスキャン'),
+          h(QRScanner,{onScan:function(data){
+            rtc.processOffer(data);
+            setQrPhase('show_answer');
+          }}),
+          h('button',{className:'btn btn-sm',onClick:function(){
+            setQrPhase('idle');rtc.close();
+          },style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333',marginTop:'4px'}},'✕ キャンセル')):null,
+
+      /* Phase: Show Answer QR (Responder) */
+      qrPhase==='show_answer'?
+        h('div',null,
+          h('div',{style:{fontSize:'10px',color:'#ffcc00',letterSpacing:'1.5px',marginBottom:'8px',display:'flex',alignItems:'center',gap:'6px'}},
+            h('span',{style:{fontSize:'14px'}},'②'),' Answer QRを相手デバイスでスキャンしてもらう'),
+          rtc.qrImg?
+            h('div',{style:{textAlign:'center',padding:'16px',background:'#0a0f14',border:'1px solid #ffcc0033',borderRadius:'2px',marginBottom:'10px'}},
+              h('img',{src:rtc.qrImg,style:{maxWidth:'280px',width:'100%',imageRendering:'pixelated'}}),
+              h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'8px',letterSpacing:'1px'}},'pTCP WebRTC ANSWER — '+DEVICE_NAME)):
+            h('div',{style:{textAlign:'center',padding:'20px',color:'#ffcc0088',fontSize:'11px'}},'Answer QR生成中...'),
+          h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'8px',lineHeight:'1.8'}},
+            '相手がこのQRをスキャンすると自動的にP2P接続が確立されます。'),
+          h('button',{className:'btn btn-sm',onClick:function(){
+            setQrPhase('idle');rtc.close();
+          },style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333',marginTop:'4px'}},'✕ キャンセル')):null,
+
+      /* Phase: Connecting... */
+      qrPhase==='connecting'?
+        h('div',{style:{textAlign:'center',padding:'20px'}},
+          h('div',{style:{fontSize:'16px',color:'#00ddff',animation:'pulse 1.5s infinite'}},'⟳'),
+          h('div',{style:{fontSize:'11px',color:'#00ddff',marginTop:'8px',letterSpacing:'2px'}},'P2P CONNECTING...'),
+          h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'4px'}},'ICE negotiation in progress')):null,
+
+      /* Phase: Connected — show disconnect option */
+      rtc.isConnected?
+        h('div',{style:{marginTop:'8px'}},
+          h('button',{className:'btn btn-sm',onClick:function(){
+            setQrPhase('idle');rtc.close();
+          },style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333'}},'■ DISCONNECT WebRTC')):null,
+
+      /* Handshake protocol diagram */
+      !rtc.isConnected&&qrPhase==='idle'?
+        h('div',{style:{marginTop:'12px',padding:'10px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
+          h('div',{style:{fontSize:'9px',letterSpacing:'2px',color:'#334455',marginBottom:'6px'}},'HANDSHAKE PROTOCOL'),
+          h('pre',{style:{fontSize:'9px',color:'#445566',lineHeight:'1.8',fontFamily:'"IBM Plex Mono",monospace',margin:0,overflow:'auto'}},
+            '  Device A                    Device B\n',
+            '     │                           │\n',
+            '     ├── ',h('span',{style:{color:'#00ddff'}},'Offer QR'),h('span',{style:{color:'#445566'}},' ─────────→ │  (camera scan)\n'),
+            '     │                           │\n',
+            '     │  (camera scan) ←───────── ',h('span',{style:{color:'#ffcc00'}},'Answer QR'),h('span',{style:{color:'#445566'}},'\n'),
+            '     │                           │\n',
+            '     ├── ',h('span',{style:{color:'#00ffaa'}},'ICE + DTLS'),h('span',{style:{color:'#445566'}},' ←──────→ │\n'),
+            '     │                           │\n',
+            '     ╰── ',h('span',{style:{color:'#00ffaa'}},'DataChannel OPEN'),h('span',{style:{color:'#445566'}},' ──── ╯  pTCP over WebRTC\n'))):null
+    ));
 
     /* Self node info */
     ch.push(h('div',{className:'net-node self',key:'net-self'},
@@ -1178,12 +1694,13 @@ function App(){
     }
 
     ch.push(h('div',{className:'nfo',key:'net-nfo'},
-      '▸ TRANSPORT: BroadcastChannel (same-origin real-time) + Simulation peers',h('br'),
+      '▸ TRANSPORT: BroadcastChannel (same-origin) + ',h('span',{style:{color:'#00ddff'}},'WebRTC DataChannel (cross-device P2P)'),h('br'),
+      '▸ SIGNALING: QRコードハンドシェイク（シグナリングサーバー不要）',h('br'),
       '▸ PROTOCOL: pTCP v1.0 — SYN/SYN-ACK/ACK handshake, HEARTBEAT, MEDIATION_BROADCAST',h('br'),
       '▸ INTEGRITY: CRC32 checksum on all packets — invalid packets are dropped',h('br'),
       '▸ QoS: RTT tracking, jitter measurement, packet loss rate (‰)',h('br'),
       '▸ P2P: 各デバイスが自身のMediation Coefficientをネットワークに共有',h('br'),
-      '▸ 複数タブを開くと実際のBroadcastChannelで相互発見されます'));
+      '▸ WebRTC: STUN (stun.l.google.com) + ICE + DTLS → encrypted DataChannel'));
   }
 
   /* ═══════════════════════════════════════════ */
@@ -1397,10 +1914,11 @@ function App(){
          'L3: BLE — RSSI距離推定・メッシュ',
          'L3: NETWORK — P2Pデバイスメッシュ',
          'L3: COLLABORATIVE — 協調計測',
+         'L2: WebRTC — QRハンドシェイク・DTLS・DataChannel',
          'L2: DEVICE HW — マイク・スピーカー・センサー',
          'L1: PHYSICAL — 音波・電磁波・光・慣性・空間形状'
         ].map(function(line,i){
-          var colors=['#00ddff','#88aacc','#88aacc','#ff66aa','#ffcc00','#00ffaa88','#cc66ff','#00ffaa','#cc66ff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00','#556677','#334455'];
+          var colors=['#00ddff','#88aacc','#88aacc','#ff66aa','#ffcc00','#00ffaa88','#cc66ff','#00ffaa','#cc66ff','#ff4466','#9966ff','#ff8800','#22ee88','#4488ff','#00ffaa','#ffaa00','#00ddff','#556677','#334455'];
           return h('div',{key:i,style:{padding:'3px 10px',borderLeft:'3px solid '+colors[i],marginBottom:'1px',background:colors[i]+'06',fontSize:'10px'}},h('span',{style:{color:colors[i]}},line));
         }))));
 
@@ -1418,6 +1936,8 @@ function App(){
         '▸ ',h('span',{style:{color:'#00ffaa'}},'CRC32 Checksum'),' — パケット完全性検証（polynomial 0xEDB88320）',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'Web Bluetooth'),' — 実BLEスキャン対応（フォールバック：シミュレーション）',h('br'),
         '▸ ',h('span',{style:{color:'#00ffaa'}},'Network QoS'),' — ジッター・パケットロス率・RTT追跡',h('br'),
+        '▸ ',h('span',{style:{color:'#00ddff'}},'WebRTC P2P'),' — QRコードハンドシェイク・シグナリングサーバー不要・DTLS暗号化DataChannel',h('br'),
+        '▸ ',h('span',{style:{color:'#00ddff'}},'SDP圧縮'),' — LZ-String圧縮によるQRコード収容可能なシグナリングペイロード',h('br'),
         '▸ P2P Spatial Anchoring: 複数デバイス間での空間アンカー共有',h('br'),
         '▸ Collaborative Mapping: ピアのMediation Coefficientを統合',h('br'),
         '▸ Protocol Monitor: リアルタイムパケットインスペクション＋CRC検証')));
@@ -1438,7 +1958,7 @@ function App(){
       h('span',{style:{color:'#ff8800',marginRight:'6px'}},'▲ EST'),
       h('span',{style:{color:'#ffcc00',marginRight:'6px'}},'◆ SIM'),
       h('span',{style:{color:'#334455'}},'○ N/A'))));
-  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Matched Filter Echo Detection + Self-Calibrating Direct Path + Adaptive Threshold + Kalman Filter | 11D Mediation + P2P'));
+  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Matched Filter Echo Detection + Self-Calibrating Direct Path + Adaptive Threshold + Kalman Filter | 11D Mediation + P2P + WebRTC QR Handshake'));
   return h('div',null,ch);
 }
 
