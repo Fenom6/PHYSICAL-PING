@@ -198,7 +198,7 @@ var SIGNALS={
 };
 var SIG_ORDER=['chirp_pro','chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
 function genSignal(sig,sr){var amp=CFG.sigAmplitude||.85;var N=Math.floor(sr*sig.dur),b=new Float32Array(N);if(sig.type==='chirp')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*amp*(1-Math.cos(2*Math.PI*i/(N-1)));}else if(sig.type==='tone')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*sig.freq*t)*amp*(1-Math.cos(2*Math.PI*i/(N-1)));}else{var fc=2500;for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*fc*t*(1+.5*t/sig.dur))*Math.exp(-Math.pow((i-N/2)/(N/5),2))*amp*2;}}return b;}
-var CFG={sr:44100,listenMs:800,bufSize:256,blanking:2,maxThresh:.45,minConf:.003,histMax:128,burstCount:3,burstGap:80,kalmanQ:.08,kalmanR:2.5,rollingWindow:12,outlierK:2.2,speedOfSound:343.0,loopbackMarginMs:5,sigAmplitude:.85};
+var CFG={sr:44100,listenMs:800,bufSize:256,blanking:2,maxThresh:.45,minConf:.003,histMax:128,burstCount:3,burstGap:80,kalmanQ:.08,kalmanR:2.5,rollingWindow:12,outlierK:2.2,speedOfSound:343.0,loopbackMarginMs:5,sigAmplitude:.85,maxLoopbackMs:20,defaultLoopbackMs:4};
 
 /* ═══ Sub-sample parabolic peak interpolation ═══ */
 function parabolicPeak(corr,idx){
@@ -268,6 +268,56 @@ function xcorr(sig,ref,sr,blankMs){
   var mfRefined=parabolicPeak(mf,mfPI);
   return{corr:corr,mf:mf,peakLag:pI+bS,peakVal:pV,bS:bS,refinedLag:refined.lag+bS,refinedVal:refined.val,
     mfPeakLag:mfPI+bS,mfPeakVal:mfPV,mfRefinedLag:mfRefined.lag+bS,mfRefinedVal:mfRefined.val};
+}
+
+/* ═══ First-arrival loopback detection ═══ */
+/* Instead of taking the strongest peak (which can be noise in outdoor environments),
+   find the FIRST peak above a threshold within the physically valid loopback range.
+   Mobile speaker→mic latency is physically 1-20ms, never 100+ms. */
+function findLoopbackMs(sig,ref,sr){
+  var maxLag=Math.floor(sr*CFG.maxLoopbackMs/1000);
+  var minLag=Math.floor(sr*CFG.blanking/1000);
+  var rL=ref.length,sL=sig.length;
+  if(sL<rL+maxLag)return{ms:CFG.defaultLoopbackMs,conf:0,method:'fallback_short'};
+  /* Compute matched filter in valid range only */
+  var rE=0;for(var i=0;i<rL;i++)rE+=ref[i]*ref[i];
+  if(rE===0)return{ms:CFG.defaultLoopbackMs,conf:0,method:'fallback_silent'};
+  var bestVal=0,bestLag=minLag;
+  var vals=[];
+  for(var lag=minLag;lag<=maxLag&&lag<sL-rL;lag++){
+    var sum=0,sE=0;
+    for(var j=0;j<rL;j++){sum+=sig[lag+j]*ref[j];sE+=sig[lag+j]*sig[lag+j];}
+    sE=Math.sqrt(sE);var rEsq=Math.sqrt(rE);
+    var ncc=(rEsq>0&&sE>0)?sum/(rEsq*sE):0;
+    vals.push({lag:lag,ncc:ncc});
+    if(ncc>bestVal){bestVal=ncc;bestLag=lag;}
+  }
+  /* If best NCC in valid range is very weak, use default */
+  if(bestVal<0.05)return{ms:CFG.defaultLoopbackMs,conf:bestVal,method:'fallback_weak'};
+  /* Find first peak above 40% of the best — this is the first arrival */
+  var firstThresh=bestVal*0.4;
+  var firstLag=bestLag;
+  for(var k=0;k<vals.length;k++){
+    if(vals[k].ncc>=firstThresh){firstLag=vals[k].lag;break;}
+  }
+  /* Sub-sample refinement */
+  var idx=firstLag-minLag;
+  if(idx>0&&idx<vals.length-1){
+    var y0=vals[idx-1].ncc,y1=vals[idx].ncc,y2=vals[idx+1].ncc;
+    var denom=2*(2*y1-y0-y2);
+    if(Math.abs(denom)>1e-10){
+      var delta=(y0-y2)/denom;
+      if(Math.abs(delta)<0.5)firstLag=vals[idx].lag+delta;
+    }
+  }
+  return{ms:(firstLag/sr)*1000,conf:bestVal,method:'first_arrival'};
+}
+
+/* Sanitize loopback: cap to physical maximum, fallback if unreasonable */
+function sanitizeLoopback(rawMs){
+  if(rawMs==null||rawMs<=0||!isFinite(rawMs))return CFG.defaultLoopbackMs;
+  if(rawMs>CFG.maxLoopbackMs)return CFG.defaultLoopbackMs;
+  return rawMs;
 }
 
 function lagMs(l){return(l/CFG.sr)*1000;}
@@ -1209,12 +1259,12 @@ function App(){
     rec.current.on=true;rec.current.buf=[];playSignal();
     return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
       rec.current.on=false;var sig=flat(rec.current.buf);
-      var loopRes=xcorr(sig,rf,CFG.sr,CFG.blanking);
-      var offsetMs=loopRes.refinedLag>=0?lagMs(loopRes.refinedLag):loopRes.peakLag>=0?lagMs(loopRes.peakLag):0;
-      var a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackMs:offsetMs,loopbackConf:loopRes.refinedVal||loopRes.peakVal};
+      var loopDet=findLoopbackMs(sig,rf,CFG.sr);
+      var offsetMs=sanitizeLoopback(loopDet.ms);
+      var a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackMs:offsetMs,loopbackConf:loopDet.conf,loopbackMethod:loopDet.method};
       setAmb(a);ambRef.current=a;
       var equivCm=((offsetMs/1000)*speedOfSound(thermal.data.est))/2*100;
-      setInfo('✓ noise='+(noiseRMS*1000).toFixed(2)+'mRMS | loopback='+offsetMs.toFixed(1)+'ms (≈'+equivCm.toFixed(0)+'cm equiv)');
+      setInfo('✓ noise='+(noiseRMS*1000).toFixed(2)+'mRMS | loopback='+offsetMs.toFixed(1)+'ms ['+loopDet.method+'] (≈'+equivCm.toFixed(0)+'cm equiv)');
       setStatus('idle');
     });});},[initAudio,playSignal,thermal.data.est]);
   var execPing=useCallback(function(){return initAudio().then(function(ok){if(!ok)return null;var a=ambRef.current;if(!a){
@@ -1227,11 +1277,11 @@ function App(){
       rec.current.on=true;rec.current.buf=[];playSignal();
       return new Promise(function(r){setTimeout(r,CFG.listenMs);}).then(function(){
         rec.current.on=false;var sig=flat(rec.current.buf);
-        var loopRes=xcorr(sig,rf,CFG.sr,CFG.blanking);
-        var offsetMs=loopRes.refinedLag>=0?lagMs(loopRes.refinedLag):loopRes.peakLag>=0?lagMs(loopRes.peakLag):0;
-        a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackMs:offsetMs,loopbackConf:loopRes.refinedVal||loopRes.peakVal};
+        var loopDet=findLoopbackMs(sig,rf,CFG.sr);
+        var offsetMs=sanitizeLoopback(loopDet.ms);
+        a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackMs:offsetMs,loopbackConf:loopDet.conf,loopbackMethod:loopDet.method};
         setAmb(a);ambRef.current=a;
-        setInfo('loopback='+offsetMs.toFixed(1)+'ms');
+        setInfo('loopback='+offsetMs.toFixed(1)+'ms ['+loopDet.method+']');
         return a;});});}return a;}).then(function(a){if(!a)return null;
       var th=calcTh(a.cn);
       setStatus('pinging');rec.current.on=true;rec.current.buf=[];playSignal();
@@ -1413,7 +1463,7 @@ function App(){
             thermal.data.est!=null?h('span',{style:{fontSize:'9px',color:'#ff880088',marginLeft:'4px'}},thermal.data.est.toFixed(0)+'°C'):null)),
         h('div',{style:{padding:'6px 8px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
           h('div',{style:{fontSize:'8px',letterSpacing:'1.5px',color:'#556677',marginBottom:'2px'}},'LOOPBACK'),
-          h('div',{style:{fontSize:'12px',fontWeight:500,color:ds.loopbackMs?'#ff666688':'#334455'}},ds.loopbackMs?(ds.loopbackMs).toFixed(1)+'ms':'---')),
+          h('div',{style:{fontSize:'12px',fontWeight:500,color:ds.loopbackMs?(amb&&amb.loopbackMethod&&amb.loopbackMethod.indexOf('fallback')===0?'#ffcc0088':'#ff666688'):'#334455'}},ds.loopbackMs?(ds.loopbackMs).toFixed(1)+'ms':'---')),
         h('div',{style:{padding:'6px 8px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
           h('div',{style:{fontSize:'8px',letterSpacing:'1.5px',color:'#556677',marginBottom:'2px'}},'SAMPLES'),
           h('div',{style:{fontSize:'12px',fontWeight:500,color:'#88aacc'}},ds.count+'/'+CFG.rollingWindow)),
