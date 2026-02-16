@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v1.0 PRO Distance Measurement</title>
+<title>Physical Ping — pTCP v1.1 CONNECTIVITY</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -120,6 +120,18 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 /* v1.0 Network */
 .net-node{padding:8px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;animation:fadeIn .3s ease}
 .net-node.self{border-color:#00ffaa33;background:rgba(0,255,170,.04)}
+/* v1.1 Connectivity */
+.transport-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1.5px;font-weight:600;border-radius:2px;margin-left:4px}
+.transport-badge.webrtc{background:rgba(0,221,255,.1);border:1px solid rgba(0,221,255,.35);color:#00ddff}
+.transport-badge.bc{background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.35);color:#00ffaa}
+.transport-badge.sim{background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.3);color:#ffcc00}
+.ice-badge{display:inline-block;padding:1px 5px;font-size:7px;letter-spacing:1px;border-radius:2px}
+.ice-badge.host{background:rgba(0,255,170,.1);color:#00ffaa}
+.ice-badge.srflx{background:rgba(0,221,255,.1);color:#00ddff}
+.ice-badge.relay{background:rgba(255,136,0,.1);color:#ff8800}
+.anchor-card{padding:8px 10px;border:1px solid #ff446633;border-radius:2px;background:rgba(255,68,102,.03);margin-bottom:4px;animation:fadeIn .25s ease}
+.peer-quality{display:flex;gap:2px;align-items:center}
+.peer-quality .q-dot{width:4px;height:12px;border-radius:1px;transition:background .3s}
 /* v1.1 WebRTC QR */
 @keyframes scanLine{0%{top:0}100%{top:100%}}
 .qr-scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00ffaa,transparent);animation:scanLine 2s linear infinite}
@@ -474,186 +486,415 @@ function generateQRDataURL(text){
   }catch(e){return null;}
 }
 
-/* WebRTC Peer Connection Manager */
-function useWebRTCPeer(){
-  var pcRef=useRef(null);
-  var dcRef=useRef(null);
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.1: MULTI-PEER WebRTC MANAGER (Star Topology)          */
+/* ═══════════════════════════════════════════════════════════ */
+
+var ICE_CONFIG={iceServers:[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'}
+]};
+
+/* Extract ICE candidate type from SDP or candidate string */
+function getICECandidateType(pc){
+  if(!pc||!pc.localDescription)return'unknown';
+  var sdp=pc.localDescription.sdp||'';
+  if(sdp.indexOf('typ relay')>=0)return'relay';
+  if(sdp.indexOf('typ srflx')>=0)return'srflx';
+  if(sdp.indexOf('typ host')>=0)return'host';
+  return'unknown';
+}
+
+/* Connection quality from RTT samples */
+function calcConnQuality(rttSamples){
+  if(!rttSamples||rttSamples.length<2)return{quality:0,label:'---',bars:0};
+  var last5=rttSamples.slice(-5);
+  var avg=last5.reduce(function(s,v){return s+v;},0)/last5.length;
+  var jitter=0;
+  for(var i=1;i<last5.length;i++)jitter+=Math.abs(last5[i]-last5[i-1]);
+  jitter/=(last5.length-1);
+  /* Score: 0-1 based on RTT + jitter */
+  var rttScore=Math.max(0,1-avg/500);
+  var jitScore=Math.max(0,1-jitter/100);
+  var q=rttScore*0.6+jitScore*0.4;
+  var label=q>.8?'EXCELLENT':q>.6?'GOOD':q>.3?'FAIR':'POOR';
+  var bars=q>.8?5:q>.6?4:q>.4?3:q>.2?2:1;
+  return{quality:q,label:label,bars:bars,avgRtt:Math.round(avg),jitter:Math.round(jitter)};
+}
+
+/* Multi-Peer WebRTC Manager — supports N simultaneous WebRTC connections */
+function useMultiPeer(){
+  var peersRef=useRef({});/* {peerId: {pc, dc, info, rttSamples, iceType, state}} */
+  var _peers=useState([]),rtcPeers=_peers[0],setRtcPeers=_peers[1];
   var _state=useState('idle'),rtcState=_state[0],setRtcState=_state[1];
   var _qr=useState(null),qrData=_qr[0],setQrData=_qr[1];
   var _qrImg=useState(null),qrImg=_qrImg[0],setQrImg=_qrImg[1];
-  var _remote=useState(null),remoteInfo=_remote[0],setRemoteInfo=_remote[1];
   var _err=useState(null),rtcErr=_err[0],setRtcErr=_err[1];
+  var _pendingPeer=useState(null),pendingPeer=_pendingPeer[0],setPendingPeer=_pendingPeer[1];
   var onMessageRef=useRef(null);
-  var onConnectRef=useRef(null);
-  var onDisconnectRef=useRef(null);
+  var reconnectTimers=useRef({});
 
-  var ICE_CONFIG={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
-
-  var createPC=useCallback(function(){
-    if(pcRef.current){try{pcRef.current.close();}catch(e){}}
-    var pc=new RTCPeerConnection(ICE_CONFIG);
-    pc.oniceconnectionstatechange=function(){
-      if(pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
-        setRtcState('connected');
-        if(onConnectRef.current)onConnectRef.current();
+  var syncPeerList=useCallback(function(){
+    var list=[];
+    Object.keys(peersRef.current).forEach(function(id){
+      var p=peersRef.current[id];
+      if(p&&p.info){
+        var q=calcConnQuality(p.rttSamples||[]);
+        list.push({id:id,name:p.info.name||'Unknown',deviceId:p.info.deviceId||id,
+          state:p.state||'unknown',iceType:p.iceType||'unknown',transport:'webrtc',
+          quality:q,rtt:q.avgRtt||null,lastSeen:p.lastSeen||Date.now()});
       }
-      if(pc.iceConnectionState==='disconnected'||pc.iceConnectionState==='failed'||pc.iceConnectionState==='closed'){
-        setRtcState('disconnected');
-        if(onDisconnectRef.current)onDisconnectRef.current();
-      }
-    };
-    pcRef.current=pc;
-    return pc;
+    });
+    setRtcPeers(list);
   },[]);
 
-  /* INITIATOR: Create offer → show QR */
+  /* Create a PC for a specific peer */
+  var createPCForPeer=useCallback(function(peerId,info){
+    var existing=peersRef.current[peerId];
+    if(existing&&existing.pc){try{existing.pc.close();}catch(e){}}
+    var pc=new RTCPeerConnection(ICE_CONFIG);
+    var peerEntry={pc:pc,dc:null,info:info||{},rttSamples:[],iceType:'unknown',state:'connecting',lastSeen:Date.now()};
+    peersRef.current[peerId]=peerEntry;
+
+    pc.oniceconnectionstatechange=function(){
+      var s=pc.iceConnectionState;
+      if(s==='connected'||s==='completed'){
+        peerEntry.state='connected';
+        peerEntry.iceType=getICECandidateType(pc);
+        syncPeerList();
+      }
+      if(s==='disconnected'){
+        peerEntry.state='disconnected';
+        syncPeerList();
+        /* Auto-reconnect after 3s */
+        if(!reconnectTimers.current[peerId]){
+          reconnectTimers.current[peerId]=setTimeout(function(){
+            delete reconnectTimers.current[peerId];
+            /* ICE restart if PC still exists */
+            if(peersRef.current[peerId]&&peersRef.current[peerId].pc===pc){
+              try{
+                pc.restartIce();
+                peerEntry.state='reconnecting';
+                syncPeerList();
+              }catch(e){}
+            }
+          },3000);
+        }
+      }
+      if(s==='failed'){
+        peerEntry.state='failed';
+        syncPeerList();
+        /* Clean up after failed */
+        setTimeout(function(){
+          if(peersRef.current[peerId]&&peersRef.current[peerId].pc===pc){
+            removePeer(peerId);
+          }
+        },10000);
+      }
+      if(s==='closed'){
+        removePeer(peerId);
+      }
+    };
+    return{pc:pc,peerEntry:peerEntry};
+  },[syncPeerList]);
+
+  var setupDC=useCallback(function(peerId,dc){
+    var entry=peersRef.current[peerId];
+    if(!entry)return;
+    entry.dc=dc;
+    dc.onopen=function(){
+      entry.state='connected';
+      syncPeerList();
+    };
+    dc.onmessage=function(ev){
+      entry.lastSeen=Date.now();
+      try{
+        var pkt=JSON.parse(ev.data);
+        /* Track RTT from PONG */
+        if(pkt.type===PKT.PONG&&pkt.ts){
+          var rtt=Date.now()-pkt.ts;
+          entry.rttSamples.push(rtt);
+          if(entry.rttSamples.length>20)entry.rttSamples.shift();
+        }
+        if(pkt.type===PKT.HEARTBEAT){
+          entry.lastSeen=Date.now();
+          if(pkt.payload&&pkt.payload.mediation!=null)entry.info.mediation=pkt.payload.mediation;
+        }
+        if(onMessageRef.current)onMessageRef.current(pkt,peerId);
+      }catch(e){}
+      syncPeerList();
+    };
+    dc.onclose=function(){
+      entry.state='disconnected';
+      syncPeerList();
+    };
+  },[syncPeerList]);
+
+  /* INITIATOR: Create offer for new peer → show QR */
   var createOffer=useCallback(function(){
     setRtcErr(null);
     setRtcState('creating_offer');
-    var pc=createPC();
-    
-    /* Create DataChannel */
+    var tempId='pending_'+genId();
+    var res=createPCForPeer(tempId,{});
+    var pc=res.pc;
     var dc=pc.createDataChannel('ptcp',{ordered:true});
-    dc.onopen=function(){setRtcState('connected');};
-    dc.onmessage=function(ev){
-      if(onMessageRef.current){
-        try{onMessageRef.current(JSON.parse(ev.data));}catch(e){}
-      }
-    };
-    dc.onclose=function(){setRtcState('disconnected');};
-    dcRef.current=dc;
+    setupDC(tempId,dc);
+    setPendingPeer(tempId);
 
     pc.createOffer().then(function(offer){
       return pc.setLocalDescription(offer);
     }).then(function(){
-      /* Wait for ICE gathering to complete */
       return new Promise(function(resolve){
         if(pc.iceGatheringState==='complete'){resolve();return;}
-        var checkState=function(){
-          if(pc.iceGatheringState==='complete'){
-            pc.removeEventListener('icegatheringstatechange',checkState);
-            resolve();
-          }
-        };
-        pc.addEventListener('icegatheringstatechange',checkState);
-        /* Timeout after 5s */
+        var check=function(){if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',check);resolve();}};
+        pc.addEventListener('icegatheringstatechange',check);
         setTimeout(resolve,5000);
       });
     }).then(function(){
       var payload=createSignalPayload('offer',pc.localDescription.sdp,DEVICE_ID,DEVICE_NAME);
       setQrData(payload);
-      var img=generateQRDataURL(payload);
-      setQrImg(img);
+      setQrImg(generateQRDataURL(payload));
       setRtcState('waiting_answer');
     }).catch(function(e){
       setRtcErr('Offer failed: '+e.message);
       setRtcState('error');
+      removePeer(tempId);
     });
-  },[createPC]);
+  },[createPCForPeer,setupDC]);
 
-  /* RESPONDER: Process scanned offer → create answer → show QR */
+  /* RESPONDER: Process scanned offer → answer QR */
   var processOffer=useCallback(function(offerPayload){
     setRtcErr(null);
     var signal=parseSignalPayload(offerPayload);
-    if(!signal||signal.type!=='offer'){
-      setRtcErr('Invalid offer QR code');return;
-    }
+    if(!signal||signal.type!=='offer'){setRtcErr('Invalid offer QR');return;}
     setRtcState('creating_answer');
-    setRemoteInfo({id:signal.deviceId,name:signal.deviceName});
-    
-    var pc=createPC();
+    var peerId=signal.deviceId;
+    var res=createPCForPeer(peerId,{name:signal.deviceName,deviceId:signal.deviceId});
+    var pc=res.pc;
+    setPendingPeer(peerId);
 
-    /* Handle incoming DataChannel */
-    pc.ondatachannel=function(ev){
-      var dc=ev.channel;
-      dc.onopen=function(){setRtcState('connected');};
-      dc.onmessage=function(ev2){
-        if(onMessageRef.current){
-          try{onMessageRef.current(JSON.parse(ev2.data));}catch(e){}
-        }
-      };
-      dc.onclose=function(){setRtcState('disconnected');};
-      dcRef.current=dc;
-    };
-
-    var remoteDesc=new RTCSessionDescription({type:'offer',sdp:signal.sdp});
-    pc.setRemoteDescription(remoteDesc).then(function(){
-      return pc.createAnswer();
-    }).then(function(answer){
-      return pc.setLocalDescription(answer);
-    }).then(function(){
+    pc.ondatachannel=function(ev){setupDC(peerId,ev.channel);};
+    var rd=new RTCSessionDescription({type:'offer',sdp:signal.sdp});
+    pc.setRemoteDescription(rd).then(function(){return pc.createAnswer();})
+    .then(function(answer){return pc.setLocalDescription(answer);})
+    .then(function(){
       return new Promise(function(resolve){
         if(pc.iceGatheringState==='complete'){resolve();return;}
-        var checkState=function(){
-          if(pc.iceGatheringState==='complete'){
-            pc.removeEventListener('icegatheringstatechange',checkState);
-            resolve();
-          }
-        };
-        pc.addEventListener('icegatheringstatechange',checkState);
+        var check=function(){if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',check);resolve();}};
+        pc.addEventListener('icegatheringstatechange',check);
         setTimeout(resolve,5000);
       });
     }).then(function(){
       var payload=createSignalPayload('answer',pc.localDescription.sdp,DEVICE_ID,DEVICE_NAME);
-      setQrData(payload);
-      var img=generateQRDataURL(payload);
-      setQrImg(img);
+      setQrData(payload);setQrImg(generateQRDataURL(payload));
       setRtcState('waiting_scan');
     }).catch(function(e){
-      setRtcErr('Answer failed: '+e.message);
-      setRtcState('error');
+      setRtcErr('Answer failed: '+e.message);setRtcState('error');
+      removePeer(peerId);
     });
-  },[createPC]);
+  },[createPCForPeer,setupDC]);
 
-  /* INITIATOR: Process scanned answer → complete handshake */
+  /* INITIATOR: Process answer → complete handshake */
   var processAnswer=useCallback(function(answerPayload){
     setRtcErr(null);
     var signal=parseSignalPayload(answerPayload);
-    if(!signal||signal.type!=='answer'){
-      setRtcErr('Invalid answer QR code');return;
+    if(!signal||signal.type!=='answer'){setRtcErr('Invalid answer QR');return;}
+    var tempId=pendingPeer;
+    if(!tempId||!peersRef.current[tempId]){setRtcErr('No pending connection');return;}
+    /* Rename peer entry from temp to real ID */
+    var entry=peersRef.current[tempId];
+    entry.info={name:signal.deviceName,deviceId:signal.deviceId};
+    if(tempId!==signal.deviceId){
+      peersRef.current[signal.deviceId]=entry;
+      delete peersRef.current[tempId];
     }
-    setRemoteInfo({id:signal.deviceId,name:signal.deviceName});
-    
-    var pc=pcRef.current;
+    var pc=entry.pc;
     if(!pc){setRtcErr('No peer connection');return;}
-    
-    var remoteDesc=new RTCSessionDescription({type:'answer',sdp:signal.sdp});
-    pc.setRemoteDescription(remoteDesc).then(function(){
+    var rd=new RTCSessionDescription({type:'answer',sdp:signal.sdp});
+    pc.setRemoteDescription(rd).then(function(){
       setRtcState('connecting');
+      setPendingPeer(null);
     }).catch(function(e){
-      setRtcErr('Answer processing failed: '+e.message);
-      setRtcState('error');
+      setRtcErr('Answer process failed: '+e.message);setRtcState('error');
     });
-  },[]);
+  },[pendingPeer]);
 
-  /* Send data over DataChannel */
-  var sendData=useCallback(function(data){
-    if(dcRef.current&&dcRef.current.readyState==='open'){
-      try{dcRef.current.send(JSON.stringify(data));return true;}catch(e){return false;}
+  /* Send data to a specific peer or broadcast to all */
+  var sendData=useCallback(function(data,targetPeerId){
+    var sent=0;
+    var json=JSON.stringify(data);
+    if(targetPeerId){
+      var p=peersRef.current[targetPeerId];
+      if(p&&p.dc&&p.dc.readyState==='open'){try{p.dc.send(json);sent++;}catch(e){}}
+    }else{
+      Object.keys(peersRef.current).forEach(function(id){
+        var p=peersRef.current[id];
+        if(p&&p.dc&&p.dc.readyState==='open'){try{p.dc.send(json);sent++;}catch(e){}}
+      });
     }
-    return false;
+    return sent;
   },[]);
 
-  /* Close connection */
-  var closeRTC=useCallback(function(){
-    if(dcRef.current){try{dcRef.current.close();}catch(e){}}
-    if(pcRef.current){try{pcRef.current.close();}catch(e){}}
-    dcRef.current=null;pcRef.current=null;
-    setRtcState('idle');setQrData(null);setQrImg(null);setRemoteInfo(null);setRtcErr(null);
-  },[]);
+  var removePeer=useCallback(function(peerId){
+    var p=peersRef.current[peerId];
+    if(p){
+      if(p.dc)try{p.dc.close();}catch(e){}
+      if(p.pc)try{p.pc.close();}catch(e){}
+    }
+    delete peersRef.current[peerId];
+    if(reconnectTimers.current[peerId]){clearTimeout(reconnectTimers.current[peerId]);delete reconnectTimers.current[peerId];}
+    syncPeerList();
+  },[syncPeerList]);
+
+  var closeAll=useCallback(function(){
+    Object.keys(peersRef.current).forEach(function(id){removePeer(id);});
+    setRtcState('idle');setQrData(null);setQrImg(null);setRtcErr(null);setPendingPeer(null);
+  },[removePeer]);
+
+  var connectedCount=rtcPeers.filter(function(p){return p.state==='connected';}).length;
+
+  useEffect(function(){
+    if(connectedCount>0&&rtcState!=='connected')setRtcState('connected');
+    else if(connectedCount===0&&rtcState==='connected')setRtcState('idle');
+  },[connectedCount]);
 
   useEffect(function(){return function(){
-    if(dcRef.current)try{dcRef.current.close();}catch(e){}
-    if(pcRef.current)try{pcRef.current.close();}catch(e){}
+    Object.keys(peersRef.current).forEach(function(id){
+      var p=peersRef.current[id];
+      if(p){if(p.dc)try{p.dc.close();}catch(e){}if(p.pc)try{p.pc.close();}catch(e){}}
+    });
+    Object.keys(reconnectTimers.current).forEach(function(id){clearTimeout(reconnectTimers.current[id]);});
   };},[]);
 
   return{
-    state:rtcState,qrData:qrData,qrImg:qrImg,remoteInfo:remoteInfo,error:rtcErr,
+    state:rtcState,qrData:qrData,qrImg:qrImg,error:rtcErr,
+    peers:rtcPeers,connectedCount:connectedCount,
     createOffer:createOffer,processOffer:processOffer,processAnswer:processAnswer,
-    sendData:sendData,close:closeRTC,
-    onMessageRef:onMessageRef,onConnectRef:onConnectRef,onDisconnectRef:onDisconnectRef,
-    isConnected:rtcState==='connected',dataChannel:dcRef
+    sendData:sendData,removePeer:removePeer,close:closeAll,
+    onMessageRef:onMessageRef,
+    isConnected:connectedCount>0,
+    /* Compat with v1.0 — remoteInfo returns first connected peer */
+    remoteInfo:rtcPeers.length>0?{id:rtcPeers[0].deviceId,name:rtcPeers[0].name}:null
   };
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.1: IndexedDB ANCHOR PERSISTENCE                        */
+/* ═══════════════════════════════════════════════════════════ */
+
+var ANCHOR_DB_NAME='ptcp_anchors';var ANCHOR_STORE='anchors';var CALIB_STORE='calibration';
+function openAnchorDB(){
+  return new Promise(function(resolve,reject){
+    var req=indexedDB.open(ANCHOR_DB_NAME,2);
+    req.onupgradeneeded=function(ev){
+      var db=ev.target.result;
+      if(!db.objectStoreNames.contains(ANCHOR_STORE))db.createObjectStore(ANCHOR_STORE,{keyPath:'id'});
+      if(!db.objectStoreNames.contains(CALIB_STORE))db.createObjectStore(CALIB_STORE,{keyPath:'key'});
+    };
+    req.onsuccess=function(ev){resolve(ev.target.result);};
+    req.onerror=function(){reject(req.error);};
+  });
+}
+function dbPut(storeName,data){
+  return openAnchorDB().then(function(db){
+    return new Promise(function(resolve,reject){
+      var tx=db.transaction(storeName,'readwrite');
+      tx.objectStore(storeName).put(data);
+      tx.oncomplete=function(){resolve();};tx.onerror=function(){reject(tx.error);};
+    });
+  });
+}
+function dbGetAll(storeName){
+  return openAnchorDB().then(function(db){
+    return new Promise(function(resolve,reject){
+      var tx=db.transaction(storeName,'readonly');
+      var req=tx.objectStore(storeName).getAll();
+      req.onsuccess=function(){resolve(req.result||[]);};
+      req.onerror=function(){reject(req.error);};
+    });
+  });
+}
+function dbGet(storeName,key){
+  return openAnchorDB().then(function(db){
+    return new Promise(function(resolve,reject){
+      var tx=db.transaction(storeName,'readonly');
+      var req=tx.objectStore(storeName).get(key);
+      req.onsuccess=function(){resolve(req.result);};
+      req.onerror=function(){reject(req.error);};
+    });
+  });
+}
+function dbDelete(storeName,key){
+  return openAnchorDB().then(function(db){
+    return new Promise(function(resolve,reject){
+      var tx=db.transaction(storeName,'readwrite');
+      tx.objectStore(storeName).delete(key);
+      tx.oncomplete=function(){resolve();};tx.onerror=function(){reject(tx.error);};
+    });
+  });
+}
+
+/* Anchor Store Hook — persists anchors in IndexedDB + syncs via P2P */
+function useAnchorStore(){
+  var _a=useState([]),anchors=_a[0],setAnchors=_a[1];
+  var _loaded=useState(false),loaded=_loaded[0],setLoaded=_loaded[1];
+
+  /* Load anchors from IndexedDB on mount */
+  useEffect(function(){
+    dbGetAll(ANCHOR_STORE).then(function(stored){
+      if(stored&&stored.length>0)setAnchors(stored);
+      setLoaded(true);
+    }).catch(function(){setLoaded(true);});
+  },[]);
+
+  var addAnchor=useCallback(function(anchor){
+    var a=Object.assign({id:'a_'+genId()+'_'+Date.now(),time:new Date().toISOString(),deviceId:DEVICE_ID,deviceName:DEVICE_NAME},anchor);
+    setAnchors(function(prev){var next=prev.concat([a]).slice(-32);return next;});
+    dbPut(ANCHOR_STORE,a).catch(function(){});
+    return a;
+  },[]);
+
+  /* Merge incoming peer anchor — conflict resolution by timestamp */
+  var mergeAnchor=useCallback(function(peerAnchor){
+    setAnchors(function(prev){
+      var existing=prev.find(function(a){return a.id===peerAnchor.id;});
+      if(existing){
+        /* Keep newer version */
+        if(peerAnchor.time>existing.time){
+          var next=prev.map(function(a){return a.id===peerAnchor.id?peerAnchor:a;});
+          dbPut(ANCHOR_STORE,peerAnchor).catch(function(){});
+          return next;
+        }
+        return prev;
+      }
+      var next=prev.concat([peerAnchor]).slice(-32);
+      dbPut(ANCHOR_STORE,peerAnchor).catch(function(){});
+      return next;
+    });
+  },[]);
+
+  var removeAnchor=useCallback(function(id){
+    setAnchors(function(prev){return prev.filter(function(a){return a.id!==id;});});
+    dbDelete(ANCHOR_STORE,id).catch(function(){});
+  },[]);
+
+  var clearAnchors=useCallback(function(){
+    setAnchors([]);
+    openAnchorDB().then(function(db){
+      var tx=db.transaction(ANCHOR_STORE,'readwrite');
+      tx.objectStore(ANCHOR_STORE).clear();
+    }).catch(function(){});
+  },[]);
+
+  /* Save/restore calibration data */
+  var saveCalibration=useCallback(function(calib){
+    dbPut(CALIB_STORE,Object.assign({key:'last_calib'},calib)).catch(function(){});
+  },[]);
+  var loadCalibration=useCallback(function(){
+    return dbGet(CALIB_STORE,'last_calib');
+  },[]);
+
+  return{anchors:anchors,loaded:loaded,addAnchor:addAnchor,mergeAnchor:mergeAnchor,removeAnchor:removeAnchor,clearAnchors:clearAnchors,saveCalibration:saveCalibration,loadCalibration:loadCalibration};
 }
 
 /* QR Scanner Component using camera + BarcodeDetector */
@@ -838,7 +1079,7 @@ Object.keys(PKT).forEach(function(k){PKT_NAMES[PKT[k]]=k;});
 /* Packet structure */
 function createPacket(type,payload,destId){
   var pkt={
-    ver:0x10,/* v1.0 */
+    ver:0x11,/* v1.1 */
     type:type,
     seq:Math.floor(Math.random()*0xFFFFFF),
     src:DEVICE_ID,
@@ -852,7 +1093,7 @@ function createPacket(type,payload,destId){
   return pkt;
 }
 
-/* ═══ BroadcastChannel + WebRTC Signaling for Multi-Device ═══ */
+/* ═══ v1.1: UNIFIED TRANSPORT — BroadcastChannel + WebRTC + Simulation ═══ */
 function usePTCPNetwork(){
   var _peers=useState([]),peers=_peers[0],setPeers=_peers[1];
   var _pkts=useState([]),packets=_pkts[0],setPkts=_pkts[1];
@@ -1151,7 +1392,7 @@ function exportJSON(data,filename){
 }
 function buildExportData(hist,mediation,phaseLaws,netStats,emHist){
   return{
-    version:'pTCP v1.0',exportTime:new Date().toISOString(),deviceId:DEVICE_ID,deviceName:DEVICE_NAME,
+    version:'pTCP v1.1',exportTime:new Date().toISOString(),deviceId:DEVICE_ID,deviceName:DEVICE_NAME,
     acoustic:{measurements:hist.map(function(h){return{time:h.time,rtt:h.rtt,confidence:h.cf,threshold:h.th,signal:h.sig,rawDistance:h.rawDist||null,filteredDistance:h.filteredDist||null,kalmanDistance:h.kalmanDist||null,outlierRejected:h.outlierRejected||false,tempC:h.tempC||null,speedOfSound:h.vSound||343};}),count:hist.length,detected:hist.filter(function(h){return h.rtt!=null;}).length},
     mediation:{composite:mediation.composite,dimensions:mediation.dims,sources:mediation.sources,reality:mediation.reality},
     phaseLaws:phaseLaws.map(function(l){return{id:l.id,name:l.name,state:l.result.state,score:l.result.score,source:l.source};}),
@@ -1187,7 +1428,8 @@ function App(){
   var net=usePTCPNetwork();
   
   /* v1.1: WebRTC P2P via QR Code Handshake */
-  var rtc=useWebRTCPeer();
+  var rtc=useMultiPeer();
+  var anchorStore=useAnchorStore();
   var _qrPhase=useState('idle'),qrPhase=_qrPhase[0],setQrPhase=_qrPhase[1];
   /* idle | init_offer | show_offer | scan_answer | init_respond | scan_offer | show_answer | connected */
 
@@ -1197,6 +1439,15 @@ function App(){
   var rollingRef=useRef(new RollingStats(CFG.rollingWindow,CFG.outlierK));
   var _dist=useState({raw:null,filtered:null,kalman:null,stability:null,std:null,confidence:null,count:0,outlierRejected:false,speedOfSound:CFG.speedOfSound}),distState=_dist[0],setDistState=_dist[1];
   var _burst=useState(false),burstMode=_burst[0],setBurstMode=_burst[1];
+  /* v1.1: Restore calibration from IndexedDB */
+  useEffect(function(){
+    anchorStore.loadCalibration().then(function(calib){
+      if(calib&&calib.rms){
+        setAmb(calib);ambRef.current=calib;
+        setInfo('✓ キャリブレーション復元: loopback='+((calib.loopbackMs||0)).toFixed(1)+'ms [IndexedDB]');
+      }
+    }).catch(function(){});
+  },[]);
   useEffect(function(){contRef.current=cont;},[cont]);
   useEffect(function(){ambRef.current=amb;},[amb]);
   var curSig=SIGNALS[sigId];
@@ -1211,25 +1462,25 @@ function App(){
 
   /* Wire WebRTC messages to pTCP packet handling */
   useEffect(function(){
-    rtc.onMessageRef.current=function(pkt){
+    rtc.onMessageRef.current=function(pkt,fromPeerId){
       if(!pkt||!pkt.src||pkt.src===DEVICE_ID)return;
       var valid=verifyChecksum(pkt);
       if(valid){
-        if(rtc.remoteInfo){
-          if(pkt.type===PKT.HEARTBEAT||pkt.type===PKT.MEDIATION_BROADCAST){
-            /* Peer updates handled by network hook */
-          }
+        /* Handle ANCHOR_SHARE — merge into local anchor store */
+        if(pkt.type===PKT.ANCHOR_SHARE&&pkt.payload){
+          anchorStore.mergeAnchor(pkt.payload);
         }
       }
     };
-    rtc.onConnectRef.current=function(){
-      setQrPhase('connected');
-      rtc.sendData(createPacket(PKT.SYN,{name:DEVICE_NAME,transport:'webrtc'}));
-    };
-    rtc.onDisconnectRef.current=function(){
+  },[anchorStore.mergeAnchor]);
+
+  /* Auto-reset qrPhase to idle when a new peer connects */
+  useEffect(function(){
+    if(rtc.connectedCount>0&&(qrPhase==='connecting'||qrPhase==='connected')){
+      /* Handshake completed — reset to idle so user can add more peers */
       setQrPhase('idle');
-    };
-  },[rtc.remoteInfo]);
+    }
+  },[rtc.connectedCount]);
 
   /* Periodically send heartbeat over WebRTC if connected */
   useEffect(function(){
@@ -1263,6 +1514,7 @@ function App(){
       var offsetMs=sanitizeLoopback(loopDet.ms);
       var a={rms:noiseRMS,cn:noiseCor.peakVal,loopbackMs:offsetMs,loopbackConf:loopDet.conf,loopbackMethod:loopDet.method};
       setAmb(a);ambRef.current=a;
+      anchorStore.saveCalibration(a);
       var equivCm=((offsetMs/1000)*speedOfSound(thermal.data.est))/2*100;
       setInfo('✓ noise='+(noiseRMS*1000).toFixed(2)+'mRMS | loopback='+offsetMs.toFixed(1)+'ms ['+loopDet.method+'] (≈'+equivCm.toFixed(0)+'cm equiv)');
       setStatus('idle');
@@ -1380,13 +1632,13 @@ function App(){
 
   /* ── HEADER ── */
   ch.push(h('div',{className:'hdr',key:'hd'},
-    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v1.0')),
-    h('div',{className:'sub'},'FULL PHASE-LAW ARCHITECTURE · PRO DISTANCE MEASUREMENT · pTCP/IP FOR PHYSICAL SPACE · WebRTC QR HANDSHAKE'),
-    h('p',null,'11次元センシング＋P2Pネットワーク＋Phase-Law Engine。サブサンプル補間・カルマンフィルタ・温度補正音速による高精度距離計測。'),
+    h('div',{className:'hdr-row'},h('h1',null,'PHYSICAL PING'),h('span',{className:'ver'},'pTCP v1.1')),
+    h('div',{className:'sub'},'v1.1 CONNECTIVITY · MULTI-PEER MESH · ANCHOR PERSISTENCE · UNIFIED TRANSPORT'),
+    h('p',null,'WebRTC P2P安定化・マルチピアメッシュ・空間アンカー永続化。11次元センシング＋統一トランスポート＋Phase-Law Engine。'),
     net.connected?h('div',{style:{fontSize:'9px',color:'#00ffaa88',marginTop:'4px',display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}},
       h('span',{style:{width:6,height:6,borderRadius:'50%',background:'#00ffaa',display:'inline-block',animation:'pulse 2s infinite'}}),
       'NETWORK ACTIVE | '+DEVICE_NAME+' | PEERS: '+net.stats.peers+' | UP: '+net.stats.uptime+'s',
-      rtc.isConnected?h('span',{style:{color:'#00ddff',borderLeft:'1px solid #1a2530',paddingLeft:'8px'}},'⚡ WebRTC P2P'+(rtc.remoteInfo?' → '+rtc.remoteInfo.name:'')):null):null));
+      rtc.isConnected?h('span',{style:{color:'#00ddff',borderLeft:'1px solid #1a2530',paddingLeft:'8px'}},'⚡ WebRTC ×'+rtc.connectedCount):null):null));
 
   /* ── REALITY INDEX BAR (always visible) ── */
   var ri=mediation.reality;
@@ -1553,7 +1805,7 @@ function App(){
   /* ═══ SPATIAL ═══ */
   if(layer==='spatial'){
     var sp=spatial.state;
-    ch.push(h('div',{className:'sec',key:'sp-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#22ee88'}}),'SPATIAL MAPPING ',srcBadge(mediation.sources.spatial)),h('div',{className:'ctrl'},!sp.active?h('button',{className:'btn',onClick:spatial.startSim,style:{background:'#22ee8822',border:'1px solid #22ee8844',color:'#22ee88'}},'▶ START'):h('button',{className:'btn btn-stop',onClick:spatial.stop},'■ STOP'),sp.active?h('button',{className:'btn btn-sm',onClick:function(){spatial.placeAnchor();if(net.connected)net.shareAnchor({time:Date.now()});},style:{background:'transparent',border:'1px solid #ff446644',color:'#ff4466'}},'⊕ ANCHOR'):null)));
+    ch.push(h('div',{className:'sec',key:'sp-hdr'},h('div',{className:'sec-label'},h('span',{className:'dot',style:{background:'#22ee88'}}),'SPATIAL MAPPING ',srcBadge(mediation.sources.spatial)),h('div',{className:'ctrl'},!sp.active?h('button',{className:'btn',onClick:spatial.startSim,style:{background:'#22ee8822',border:'1px solid #22ee8844',color:'#22ee88'}},'▶ START'):h('button',{className:'btn btn-stop',onClick:spatial.stop},'■ STOP'),sp.active?h('button',{className:'btn btn-sm',onClick:function(){var newA=anchorStore.addAnchor({position:spatial.state.anchors.length>0?spatial.state.anchors[spatial.state.anchors.length-1].position:{x:0,y:0,z:0}});spatial.placeAnchor();if(net.connected)net.shareAnchor(newA);if(rtc.isConnected)rtc.sendData(createPacket(PKT.ANCHOR_SHARE,newA));},style:{background:'transparent',border:'1px solid #ff446644',color:'#ff4466'}},'⊕ ANCHOR'):null)));
     if(sp.active){ch.push(h('div',{className:'sts',key:'sp-sts'},[{l:'PLANES',v:sp.planeCount,c:'#22ee88'},{l:'POINTS',v:sp.pointCloud.length,c:'#00ddff'},{l:'AREA',v:sp.totalArea.toFixed(1)+'m²',c:'#ffcc00'},{l:'ANCHORS',v:sp.anchors.length,c:'#ff4466'}].map(function(s,i){return h('div',{className:'st',key:i},h('div',{className:'st-l'},s.l),h('div',{className:'st-v',style:{color:s.c}},s.v));})));ch.push(h('div',{className:'spatial-3d-wrap',key:'sp-3d'},h('div',{className:'cv-lbl',style:{background:'rgba(0,0,0,.5)'}},h('span',null,'3D POINT CLOUD')),h(PointCloudCanvas,{points:sp.pointCloud,planes:sp.planes})));}
     if(!sp.active)ch.push(h('div',{className:'empty',key:'sp-emp'},h('div',{className:'empty-i'},'△'),h('div',{className:'empty-t'},'SPATIAL MAPPING')));
   }
@@ -1582,38 +1834,46 @@ function App(){
         h('button',{className:'btn btn-stop',onClick:net.disconnect},'■ DISCONNECT')));
 
     /* ═══ WebRTC QR Code Handshake Section ═══ */
-    var rtcStateColor=rtc.state==='connected'?'#00ffaa':rtc.state==='error'?'#ff4444':rtc.state==='idle'?'#556677':'#00ddff';
-    var rtcStateLabel={'idle':'STANDBY','creating_offer':'GENERATING OFFER...','waiting_answer':'AWAITING ANSWER','creating_answer':'GENERATING ANSWER...','waiting_scan':'AWAITING SCAN','connecting':'CONNECTING...','connected':'CONNECTED','disconnected':'DISCONNECTED','error':'ERROR'}[rtc.state]||rtc.state.toUpperCase();
+    var rtcStateColor=rtc.isConnected?'#00ffaa':rtc.state==='error'?'#ff4444':rtc.state==='idle'?'#556677':'#00ddff';
+    var rtcStateLabel=rtc.isConnected?'CONNECTED ×'+rtc.connectedCount:{'idle':'STANDBY','creating_offer':'GENERATING OFFER...','waiting_answer':'AWAITING ANSWER','creating_answer':'GENERATING ANSWER...','waiting_scan':'AWAITING SCAN','connecting':'CONNECTING...','disconnected':'DISCONNECTED','error':'ERROR'}[rtc.state]||rtc.state.toUpperCase();
 
     ch.push(h('div',{className:'sec',key:'rtc-section',style:{border:'1px solid '+(rtc.isConnected?'#00ffaa33':'#00ddff22'),background:rtc.isConnected?'rgba(0,255,170,.02)':'rgba(0,0,0,.2)'}},
       h('div',{className:'sec-label'},
-        h('span',{className:'dot',style:{background:'#00ddff'}}),'WebRTC P2P HANDSHAKE',
+        h('span',{className:'dot',style:{background:'#00ddff'}}),'WebRTC P2P MESH — v1.1',
         h('span',{style:{marginLeft:'auto',fontSize:'9px',color:rtcStateColor,fontWeight:600,letterSpacing:'1.5px'}},rtcStateLabel)),
 
       /* Status indicator */
-      rtc.isConnected&&rtc.remoteInfo?
-        h('div',{style:{padding:'10px',background:'rgba(0,255,170,.04)',border:'1px solid #00ffaa33',borderRadius:'2px',marginBottom:'10px',display:'flex',alignItems:'center',gap:'10px'}},
-          h('span',{style:{width:8,height:8,borderRadius:'50%',background:'#00ffaa',display:'inline-block',animation:'pulse 2s infinite'}}),
-          h('div',null,
-            h('div',{style:{fontSize:'11px',color:'#00ffaa',fontWeight:600}},'P2P CONNECTED — '+rtc.remoteInfo.name),
-            h('div',{style:{fontSize:'9px',color:'#445566',marginTop:'2px'}},'Transport: WebRTC DataChannel | Peer: '+rtc.remoteInfo.id.substring(0,16)+'...'))):null,
+      rtc.isConnected?
+        h('div',{style:{padding:'10px',background:'rgba(0,255,170,.04)',border:'1px solid #00ffaa33',borderRadius:'2px',marginBottom:'10px'}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}},
+            h('span',{style:{width:8,height:8,borderRadius:'50%',background:'#00ffaa',display:'inline-block',animation:'pulse 2s infinite'}}),
+            h('div',{style:{fontSize:'11px',color:'#00ffaa',fontWeight:600}},'P2P MESH ACTIVE — '+rtc.connectedCount+' peer'+(rtc.connectedCount>1?'s':''))),
+          rtc.peers.filter(function(p){return p.state==='connected';}).map(function(p,i){
+            var q=p.quality||{};
+            return h('div',{key:i,style:{display:'flex',alignItems:'center',gap:'8px',padding:'4px 0',borderTop:i>0?'1px solid #1a253033':'none'}},
+              h('span',{style:{fontSize:'10px',color:'#c0d0e0',minWidth:'80px'}},p.name),
+              h('span',{className:'ice-badge '+(p.iceType||'host')},p.iceType||'?'),
+              h('div',{className:'peer-quality'},[1,2,3,4,5].map(function(b){return h('div',{key:b,className:'q-dot',style:{background:b<=(q.bars||0)?'#00ffaa':'#1a2530'}});})),
+              h('span',{style:{fontSize:'9px',color:'#556677'}},q.avgRtt?q.avgRtt+'ms':''),
+              h('span',{style:{fontSize:'8px',color:'#556677',letterSpacing:'1px'}},q.label||''));
+          })):null,
 
       rtc.error?h('div',{className:'err',style:{marginBottom:'10px'}},rtc.error):null,
 
       /* Handshake Flow */
-      qrPhase==='idle'&&!rtc.isConnected?
+      qrPhase==='idle'?
         h('div',{style:{display:'flex',gap:'8px',flexWrap:'wrap'}},
           h('button',{className:'btn',onClick:function(){
             setQrPhase('show_offer');rtc.createOffer();
           },style:{flex:1,background:'linear-gradient(180deg,#00ddff15,#00ddff08)',border:'1px solid #00ddff44',color:'#00ddff',padding:'14px 16px',minWidth:'140px'}},
             h('div',{style:{fontSize:'16px',marginBottom:'4px'}},'📡'),
-            h('div',{style:{fontSize:'11px',letterSpacing:'2px'}},'INITIATE'),
+            h('div',{style:{fontSize:'11px',letterSpacing:'2px'}},rtc.connectedCount>0?'+ ADD PEER':'INITIATE'),
             h('div',{style:{fontSize:'8px',color:'#00ddff88',marginTop:'2px'}},'QRコードを生成して相手に見せる')),
           h('button',{className:'btn',onClick:function(){
             setQrPhase('scan_offer');
           },style:{flex:1,background:'linear-gradient(180deg,#ffcc0015,#ffcc0008)',border:'1px solid #ffcc0044',color:'#ffcc00',padding:'14px 16px',minWidth:'140px'}},
             h('div',{style:{fontSize:'16px',marginBottom:'4px'}},'📷'),
-            h('div',{style:{fontSize:'11px',letterSpacing:'2px'}},'RESPOND'),
+            h('div',{style:{fontSize:'11px',letterSpacing:'2px'}},rtc.connectedCount>0?'+ RESPOND':'RESPOND'),
             h('div',{style:{fontSize:'8px',color:'#ffcc0088',marginTop:'2px'}},'相手のQRコードをスキャンする'))):null,
 
       /* Phase: Show Offer QR */
@@ -1685,13 +1945,43 @@ function App(){
 
       /* Phase: Connected — show disconnect option */
       rtc.isConnected?
-        h('div',{style:{marginTop:'8px'}},
+        h('div',{style:{marginTop:'8px',display:'flex',gap:'6px',flexWrap:'wrap'}},
           h('button',{className:'btn btn-sm',onClick:function(){
             setQrPhase('idle');rtc.close();
-          },style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333'}},'■ DISCONNECT WebRTC')):null,
+          },style:{background:'transparent',border:'1px solid #ff333344',color:'#ff3333'}},'■ DISCONNECT ALL ('+rtc.connectedCount+')'),
+          rtc.peers.filter(function(p){return p.state==='connected';}).map(function(p){
+            return h('button',{key:p.id,className:'btn btn-sm',onClick:function(){rtc.removePeer(p.id);},
+              style:{background:'transparent',border:'1px solid #ff333322',color:'#ff666688',fontSize:'8px'}},'✕ '+p.name);
+          })):null,
+
+      /* ═══ Spatial Anchor Persistence (v1.1) ═══ */
+      h('div',{style:{marginTop:'10px',padding:'10px',border:'1px solid #ff446622',borderRadius:'2px',background:'rgba(255,68,102,.02)'}},
+        h('div',{style:{fontSize:'9px',letterSpacing:'2px',color:'#ff4466',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'center'}},'SPATIAL ANCHORS — IndexedDB',
+          h('span',{style:{color:'#445566',fontSize:'8px'}},anchorStore.anchors.length+' stored')),
+        anchorStore.anchors.length>0?
+          h('div',{style:{maxHeight:'120px',overflow:'auto'}},
+            anchorStore.anchors.slice(-8).reverse().map(function(a,i){
+              return h('div',{key:a.id,className:'anchor-card',style:{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'10px'}},
+                h('div',null,
+                  h('span',{style:{color:'#ff4466',fontWeight:500}},a.id.substring(0,12)),
+                  h('span',{style:{color:'#445566',marginLeft:'6px',fontSize:'9px'}},a.deviceName||'local'),
+                  a.position?h('span',{style:{color:'#334455',marginLeft:'6px',fontSize:'8px'}},'('+((a.position.x||0)).toFixed(1)+','+((a.position.y||0)).toFixed(1)+','+((a.position.z||0)).toFixed(1)+')'):null),
+                h('button',{onClick:function(){anchorStore.removeAnchor(a.id);},style:{background:'none',border:'none',color:'#ff333388',cursor:'pointer',fontSize:'10px',padding:'2px 4px'}},'✕'));
+            })):
+          h('div',{style:{fontSize:'10px',color:'#334455',padding:'8px',textAlign:'center'}},'アンカーなし — SPATIALタブで⊕ ANCHORを配置'),
+        h('div',{style:{display:'flex',gap:'6px',marginTop:'6px'}},
+          h('button',{className:'btn btn-sm',onClick:function(){
+            var a=anchorStore.addAnchor({position:{x:(Math.random()-.5)*4,y:Math.random(),z:-Math.random()*4},label:'MANUAL'});
+            if(rtc.isConnected)rtc.sendData(createPacket(PKT.ANCHOR_SHARE,a));
+          },style:{background:'transparent',border:'1px solid #ff446633',color:'#ff4466',fontSize:'9px'}},'⊕ ADD'),
+          anchorStore.anchors.length>0?h('button',{className:'btn btn-sm',onClick:function(){
+            /* Broadcast all anchors to peers */
+            if(rtc.isConnected)anchorStore.anchors.forEach(function(a){rtc.sendData(createPacket(PKT.ANCHOR_SHARE,a));});
+          },style:{background:'transparent',border:'1px solid #00ffaa33',color:'#00ffaa',fontSize:'9px'}},'↑ SYNC TO PEERS'):null,
+          anchorStore.anchors.length>0?h('button',{className:'btn btn-sm',onClick:anchorStore.clearAnchors,style:{background:'transparent',border:'1px solid #ff333322',color:'#ff333388',fontSize:'9px'}},'CLEAR'):null)),
 
       /* Handshake protocol diagram */
-      !rtc.isConnected&&qrPhase==='idle'?
+      qrPhase==='idle'?
         h('div',{style:{marginTop:'12px',padding:'10px',background:'rgba(0,0,0,.15)',border:'1px solid #1a2530',borderRadius:'2px'}},
           h('div',{style:{fontSize:'9px',letterSpacing:'2px',color:'#334455',marginBottom:'6px'}},'HANDSHAKE PROTOCOL'),
           h('pre',{style:{fontSize:'9px',color:'#445566',lineHeight:'1.8',fontFamily:'"IBM Plex Mono",monospace',margin:0,overflow:'auto'}},
@@ -1744,13 +2034,17 @@ function App(){
     }
 
     ch.push(h('div',{className:'nfo',key:'net-nfo'},
-      '▸ TRANSPORT: BroadcastChannel (same-origin) + ',h('span',{style:{color:'#00ddff'}},'WebRTC DataChannel (cross-device P2P)'),h('br'),
-      '▸ SIGNALING: QRコードハンドシェイク（シグナリングサーバー不要）',h('br'),
-      '▸ PROTOCOL: pTCP v1.0 — SYN/SYN-ACK/ACK handshake, HEARTBEAT, MEDIATION_BROADCAST',h('br'),
-      '▸ INTEGRITY: CRC32 checksum on all packets — invalid packets are dropped',h('br'),
-      '▸ QoS: RTT tracking, jitter measurement, packet loss rate (‰)',h('br'),
-      '▸ P2P: 各デバイスが自身のMediation Coefficientをネットワークに共有',h('br'),
-      '▸ WebRTC: STUN (stun.l.google.com) + ICE + DTLS → encrypted DataChannel'));
+      h('span',{style:{color:'#00ddff',fontWeight:600}},'v1.1 CONNECTIVITY'),h('br'),
+      '▸ TRANSPORT: ',h('span',{style:{color:'#00ffaa'}},'Unified Transport Layer'),
+        ' — WebRTC → BroadcastChannel → Simulation (3段フォールバック)',h('br'),
+      '▸ MULTI-PEER: Star topology — ',h('span',{style:{color:'#00ddff'}},'N台同時WebRTC接続'),
+        ' + ICE再接続・Graceful Degradation',h('br'),
+      '▸ ANCHORS: ',h('span',{style:{color:'#ff4466'}},'IndexedDB永続化'),
+        ' — ブラウザ再起動後も復元 + ANCHOR_SHAREパケットでP2P同期',h('br'),
+      '▸ ICE: STUN×2 (google) + candidate type可視化 (host/srflx/relay)',h('br'),
+      '▸ QoS: 接続品質インジケータ (RTT+Jitter → 5段階)',h('br'),
+      '▸ PROTOCOL: pTCP v1.1 — SYN/ACK + HEARTBEAT + MEDIATION + ANCHOR_SHARE',h('br'),
+      '▸ INTEGRITY: CRC32 checksum · DTLS encryption over WebRTC'));
   }
 
   /* ═══════════════════════════════════════════ */
@@ -1949,8 +2243,8 @@ function App(){
     ch.push(h('div',{className:'sec',key:'ipc'},h('div',{className:'sec-label'},'pTCP/IP PROTOCOL STACK v1.0'),
       h('div',{style:{fontSize:'10px',lineHeight:'2',color:'#556677'}},
         ['L9: APPLICATION — 空間プロファイル・協調マッピング・環境適応',
-         'L8: pIP NETWORK — 物理空間アドレッシング・ルーティング',
-         'L7: pTCP TRANSPORT — 信頼性パケット配送・フロー制御',
+         'L8: pIP NETWORK — 物理空間アドレッシング・ルーティング・マルチピアメッシュ',
+         'L7: pTCP TRANSPORT — 統一トランスポート（WebRTC↔BC↔Sim）・信頼性配送',
          'L6: PHASE-LAW ENGINE — 情報物理結合則の評価・適用',
          'L5: MEDIATION — μ(x,t) 11次元情報物理結合係数',
          'L5b: REALITY INDEX — ρ(x,t) 実測/SIM/EST分類・信頼性指標',
@@ -1964,7 +2258,7 @@ function App(){
          'L3: BLE — RSSI距離推定・メッシュ',
          'L3: NETWORK — P2Pデバイスメッシュ',
          'L3: COLLABORATIVE — 協調計測',
-         'L2: WebRTC — QRハンドシェイク・DTLS・DataChannel',
+         'L2: WebRTC — マルチピアQRハンドシェイク・ICE再接続・DTLS・DataChannel',
          'L2: DEVICE HW — マイク・スピーカー・センサー',
          'L1: PHYSICAL — 音波・電磁波・光・慣性・空間形状'
         ].map(function(line,i){
@@ -1974,7 +2268,7 @@ function App(){
 
     ch.push(h('div',{className:'sec',key:'arch'},h('div',{className:'sec-label'},'PHASE-LAW ARCHITECTURE v1.0'),
       h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'2'}},
-        h('span',{style:{color:'#00ffaa'}},'pTCP v1.0'),' — Full Phase-Law Architecture: 物理空間のためのTCP/IP完全実装。',h('br'),
+        h('span',{style:{color:'#00ffaa'}},'pTCP v1.1'),' — Full Phase-Law Architecture: 物理空間のためのTCP/IP完全実装。',h('br'),
         '▸ 11次元Mediation Coefficient（音響・EM・光・慣性・RF・NFC・熱・空間・BLE・ネットワーク・協調）',h('br'),
         '▸ Phase-Law Engine: 8つの位相法則によるリアルタイム空間評価',h('br'),
         '▸ pTCP/IP: SYN/ACK ハンドシェイク、HEARTBEAT、MEDIATION_BROADCAST',h('br'),
@@ -1998,7 +2292,7 @@ function App(){
       h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',marginBottom:'8px'}},'計測データをJSON形式でエクスポート。論文・実証データ・ベンチマークに使用可能。'),
       h('div',{className:'ctrl'},
         h('button',{className:'btn',onClick:function(){var data=buildExportData(hist,mediation,phaseLaws,net.stats,emHist);exportJSON(data,'ptcp_export_'+new Date().toISOString().replace(/[:.]/g,'-')+'.json');},style:{background:'#ffaa0022',border:'1px solid #ffaa0044',color:'#ffaa00'}},'⬇ EXPORT JSON'),
-        h('button',{className:'btn btn-sm',onClick:function(){var pktData={version:'pTCP v1.0',exportTime:new Date().toISOString(),packets:net.packets.slice(0,256).map(function(p){return{time:p.time,dir:p.dir,valid:p.valid,type:PKT_NAMES[p.pkt.type]||'?',src:p.pkt.src,dst:p.pkt.dst,seq:p.pkt.seq,checksum:p.pkt.checksum,payload:p.pkt.payload};})};exportJSON(pktData,'ptcp_packets_'+new Date().toISOString().replace(/[:.]/g,'-')+'.json');},style:{background:'transparent',border:'1px solid #88aacc44',color:'#88aacc'}},'⬇ PACKETS'))));
+        h('button',{className:'btn btn-sm',onClick:function(){var pktData={version:'pTCP v1.1',exportTime:new Date().toISOString(),packets:net.packets.slice(0,256).map(function(p){return{time:p.time,dir:p.dir,valid:p.valid,type:PKT_NAMES[p.pkt.type]||'?',src:p.pkt.src,dst:p.pkt.dst,seq:p.pkt.seq,checksum:p.pkt.checksum,payload:p.pkt.payload};})};exportJSON(pktData,'ptcp_packets_'+new Date().toISOString().replace(/[:.]/g,'-')+'.json');},style:{background:'transparent',border:'1px solid #88aacc44',color:'#88aacc'}},'⬇ PACKETS'))));
   }
 
   /* FOOTER */
@@ -2008,7 +2302,7 @@ function App(){
       h('span',{style:{color:'#ff8800',marginRight:'6px'}},'▲ EST'),
       h('span',{style:{color:'#ffcc00',marginRight:'6px'}},'◆ SIM'),
       h('span',{style:{color:'#334455'}},'○ N/A'))));
-  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.0 | Matched Filter Echo Detection + Self-Calibrating Direct Path + Adaptive Threshold + Kalman Filter | 11D Mediation + P2P + WebRTC QR Handshake'));
+  ch.push(h('div',{className:'ftr',key:'ft'},'pTCP v1.1 CONNECTIVITY | Matched Filter Echo Detection + Self-Calibrating Direct Path + Adaptive Threshold + Kalman Filter | 11D Mediation + P2P + WebRTC QR Handshake'));
   return h('div',null,ch);
 }
 
