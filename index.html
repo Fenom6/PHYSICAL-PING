@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v1.2 VISUALIZATION</title>
+<title>Physical Ping — pTCP v1.3 PRECISION</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -166,6 +166,37 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .alert-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1.5px;font-weight:600;border-radius:2px;animation:pulse 2s infinite}
 .alert-badge.warn{background:rgba(255,204,0,.1);border:1px solid rgba(255,204,0,.3);color:#ffcc00}
 .alert-badge.crit{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);color:#ff4444}
+/* ═══ v1.3 PRECISION STYLES ═══ */
+.quality-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-bottom:10px}
+.quality-cell{padding:8px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2)}
+.quality-cell-h{font-size:8px;letter-spacing:1.5px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.quality-bar{height:5px;background:#0a0f14;border-radius:2px;overflow:hidden;margin:3px 0}
+.quality-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.quality-score{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.snr-gauge{display:flex;align-items:center;gap:6px;padding:6px 0;font-size:9px}
+.snr-gauge-track{flex:1;height:8px;background:#0a0f14;border-radius:4px;overflow:hidden;position:relative}
+.snr-gauge-fill{height:100%;border-radius:4px;transition:width .5s}
+.snr-label{min-width:40px;text-align:right;font-variant-numeric:tabular-nums}
+.crossval-panel{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:8px}
+.crossval-pair{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:9px;border-bottom:1px solid #0a0f14}
+.crossval-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1px;font-weight:600;border-radius:2px}
+.crossval-badge.agree{background:rgba(0,255,170,.1);border:1px solid rgba(0,255,170,.3);color:#00ffaa}
+.crossval-badge.warn{background:rgba(255,204,0,.1);border:1px solid rgba(255,204,0,.3);color:#ffcc00}
+.crossval-badge.conflict{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);color:#ff4444;animation:pulse 1.5s infinite}
+.migration-card{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:6px}
+.migration-card.done{border-color:#00ffaa33;background:rgba(0,255,170,.02)}
+.migration-card.partial{border-color:#ffcc0033;background:rgba(255,204,0,.02)}
+.migration-card.todo{border-color:#1a2530}
+.migration-label{font-size:8px;letter-spacing:1.5px;margin-bottom:4px;display:flex;justify-content:space-between}
+.migration-step{font-size:8px;color:#556677;padding:2px 0;padding-left:12px;position:relative}
+.migration-step::before{content:'›';position:absolute;left:0;color:#334455}
+.migration-step.done::before{content:'✓';color:#00ffaa}
+.multichirp-result{padding:8px;border:1px solid #1a2530;border-radius:2px;margin-bottom:4px;font-size:9px}
+.multichirp-band{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #0a0f14}
+.em-fp-canvas{border:1px solid #1a2530;border-radius:2px;display:block;width:100%;height:60px;background:#050810;margin-bottom:6px}
+.path-loss-eq{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#00ddff;padding:6px;background:rgba(0,221,255,.05);border:1px solid #00ddff22;border-radius:2px;text-align:center;margin-bottom:8px}
+.noise-floor-bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:9px}
+.precision-badge{display:inline-block;padding:2px 5px;font-size:7px;letter-spacing:1px;border-radius:2px;border:1px solid #00ffaa33;color:#00ffaa;background:rgba(0,255,170,.05)}
 @media(max-width:600px){
   .log-h,.log-r{grid-template-columns:50px 40px 52px 54px 48px 50px 1fr;font-size:10px;padding:4px 6px}
   .st-v{font-size:14px}.hdr h1{font-size:16px;letter-spacing:2px}
@@ -173,6 +204,7 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
   .layer-tab{padding:8px 3px;font-size:7px;letter-spacing:.5px;min-width:36px}
   .pkt-row{grid-template-columns:46px 28px 38px 50px 30px 22px 1fr;font-size:9px}
   .dash-stat-v{font-size:18px}
+  .quality-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -207,6 +239,404 @@ var SIGNALS={
 var SIG_ORDER=['chirp_pro','chirp_mid','chirp_low','chirp_high','chirp_wide','pulse_2k','click'];
 function genSignal(sig,sr){var amp=CFG.sigAmplitude||.85;var N=Math.floor(sr*sig.dur),b=new Float32Array(N);if(sig.type==='chirp')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*(sig.f1*t+(sig.f2-sig.f1)*t*t/(2*sig.dur)))*amp*(1-Math.cos(2*Math.PI*i/(N-1)));}else if(sig.type==='tone')for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*sig.freq*t)*amp*(1-Math.cos(2*Math.PI*i/(N-1)));}else{var fc=2500;for(var i=0;i<N;i++){var t=i/sr;b[i]=Math.sin(2*Math.PI*fc*t*(1+.5*t/sig.dur))*Math.exp(-Math.pow((i-N/2)/(N/5),2))*amp*2;}}return b;}
 var CFG={sr:44100,listenMs:800,bufSize:256,blanking:2,maxThresh:.45,minConf:.003,histMax:128,burstCount:3,burstGap:80,kalmanQ:.08,kalmanR:2.5,rollingWindow:12,outlierK:2.2,speedOfSound:343.0,loopbackMarginMs:5,sigAmplitude:.85,maxLoopbackMs:20,defaultLoopbackMs:4,tsMaxPoints:1000};
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: MULTI-CHIRP BAND DEFINITIONS                        */
+/* ═══════════════════════════════════════════════════════════ */
+var CHIRP_BANDS=[
+  {id:'low', name:'LOW',  f1:500,  f2:2000, dur:.035, color:'#ff8800', desc:'500→2kHz / 35ms'},
+  {id:'mid', name:'MID',  f1:2000, f2:6000, dur:.025, color:'#00ffaa', desc:'2→6kHz / 25ms'},
+  {id:'high',name:'HIGH', f1:6000, f2:12000,dur:.015, color:'#cc66ff', desc:'6→12kHz / 15ms'}
+];
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: NOISE FLOOR ESTIMATION                              */
+/* ═══════════════════════════════════════════════════════════ */
+function estimateNoiseFloor(buf){
+  /* RMS of entire buffer */
+  var sum=0;for(var i=0;i<buf.length;i++)sum+=buf[i]*buf[i];
+  var rms=Math.sqrt(sum/buf.length);
+  /* Percentile-based noise estimate (10th percentile of absolute values) */
+  var abs=new Float32Array(buf.length);for(var i=0;i<buf.length;i++)abs[i]=Math.abs(buf[i]);
+  var sorted=Array.from(abs).sort(function(a,b){return a-b;});
+  var p10=sorted[Math.floor(sorted.length*0.1)];
+  return{rms:rms,noiseFloor:p10,dB:p10>0?20*Math.log10(p10):-80};
+}
+function computeSNR(signalPeakVal,noiseFloor){
+  if(!noiseFloor||noiseFloor<=0)return 40;/* fallback */
+  var ratio=signalPeakVal/noiseFloor;
+  return 20*Math.log10(Math.max(ratio,1));
+}
+function adaptiveThreshold(noiseFloor,baseConf){
+  /* Scale confidence threshold based on ambient noise */
+  var noiseFactor=Math.min(1,noiseFloor/0.01);/* normalize */
+  return Math.max(baseConf,baseConf+noiseFactor*0.02);
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: MULTI-CHIRP HOOK                                    */
+/* ═══════════════════════════════════════════════════════════ */
+function useMultiChirp(){
+  var _r=useState(null),results=_r[0],setResults=_r[1];
+  var _m=useState(false),measuring=_m[0],setMeasuring=_m[1];
+  var _n=useState(null),noiseData=_n[0],setNoiseData=_n[1];
+  var _p=useState(0),progress=_p[0],setProgress=_p[1];
+  var audioCtxRef=useRef(null);
+
+  var measureBand=useCallback(function(band,loopbackMs,audioCtx){
+    return new Promise(function(resolve){
+      var sig={id:band.id,type:'chirp',f1:band.f1,f2:band.f2,dur:band.dur};
+      var sr=audioCtx.sampleRate;
+      var refBuf=genSignal(sig,sr);
+      navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(stream){
+        var src=audioCtx.createMediaStreamSource(stream);
+        var proc=audioCtx.createScriptProcessor(4096,1,1);
+        var chunks=[];
+        proc.onaudioprocess=function(ev){chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));};
+        src.connect(proc);proc.connect(audioCtx.destination);
+        /* Play chirp */
+        var abuf=audioCtx.createBuffer(1,refBuf.length,sr);abuf.getChannelData(0).set(refBuf);
+        var sn=audioCtx.createBufferSource();sn.buffer=abuf;sn.connect(audioCtx.destination);sn.start();
+        /* Record for listenMs */
+        setTimeout(function(){
+          try{proc.disconnect();src.disconnect();stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+          var rec=flat(chunks);
+          var nf=estimateNoiseFloor(rec);
+          var blankMs=sanitizeLoopback(loopbackMs)+CFG.loopbackMarginMs;
+          var xc=xcorr(rec,refBuf,sr,blankMs);
+          var snr=computeSNR(xc.peakVal,nf.noiseFloor);
+          var th=adaptiveThreshold(nf.noiseFloor,CFG.minConf);
+          var distM=null;
+          if(xc.peakVal>=th){
+            distM=Math.max(0,(xc.refinedLag/sr)*CFG.speedOfSound);
+          }
+          resolve({band:band,distM:distM,conf:xc.peakVal,snr:snr,noiseFloor:nf,valid:xc.peakVal>=th,corr:xc.corr,peakVal:xc.peakVal});
+        },CFG.listenMs);
+      }).catch(function(e){resolve({band:band,distM:null,conf:0,snr:0,noiseFloor:{rms:0,noiseFloor:0,dB:-80},valid:false,error:e.message});});
+    });
+  },[]);
+
+  var runMultiChirp=useCallback(function(loopbackMs){
+    if(measuring)return Promise.resolve(null);
+    setMeasuring(true);setResults(null);setProgress(0);
+    var ac=audioCtxRef.current||new(window.AudioContext||window.webkitAudioContext)({sampleRate:CFG.sr});
+    audioCtxRef.current=ac;
+    if(ac.state==='suspended')ac.resume();
+    /* Measure noise floor first */
+    return new Promise(function(resolve){
+      navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(stream){
+        var src=ac.createMediaStreamSource(stream);var proc=ac.createScriptProcessor(4096,1,1);var chunks=[];
+        proc.onaudioprocess=function(ev){chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));};
+        src.connect(proc);proc.connect(ac.destination);
+        setTimeout(function(){
+          try{proc.disconnect();src.disconnect();stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+          var rec=flat(chunks);
+          var nf=estimateNoiseFloor(rec);
+          setNoiseData(nf);
+          /* Now measure each band sequentially with gap */
+          var bandResults=[];
+          var doNext=function(idx){
+            if(idx>=CHIRP_BANDS.length){
+              /* Aggregate */
+              var validResults=bandResults.filter(function(r){return r.valid&&r.distM!=null;});
+              var finalDist=null,finalConf=0;
+              if(validResults.length>0){
+                /* Confidence-weighted average */
+                var wSum=0,dSum=0;
+                validResults.forEach(function(r){wSum+=r.conf;dSum+=r.distM*r.conf;});
+                finalDist=dSum/wSum;finalConf=wSum/validResults.length;
+              }
+              var agg={bands:bandResults,distM:finalDist,conf:finalConf,noiseFloor:nf,validCount:validResults.length,agreement:computeBandAgreement(validResults)};
+              setResults(agg);setMeasuring(false);setProgress(0);
+              resolve(agg);
+            }else{
+              setProgress(Math.round((idx/CHIRP_BANDS.length)*100));
+              setTimeout(function(){
+                measureBand(CHIRP_BANDS[idx],loopbackMs,ac).then(function(r){
+                  bandResults.push(r);doNext(idx+1);
+                });
+              },idx===0?0:150);/* 150ms gap between bands */
+            }
+          };
+          doNext(0);
+        },100);/* 100ms noise floor sample */
+      }).catch(function(e){setMeasuring(false);resolve(null);});
+    });
+  },[measuring,measureBand]);
+
+  return{results:results,measuring:measuring,noiseData:noiseData,progress:progress,runMultiChirp:runMultiChirp};
+}
+
+function computeBandAgreement(validResults){
+  if(validResults.length<2)return{score:1,stdDev:0,maxDiff:0};
+  var dists=validResults.map(function(r){return r.distM;});
+  var mean=dists.reduce(function(s,v){return s+v;},0)/dists.length;
+  var variance=dists.reduce(function(s,v){return s+(v-mean)*(v-mean);},0)/dists.length;
+  var stdDev=Math.sqrt(variance);
+  var maxDiff=Math.max.apply(null,dists)-Math.min.apply(null,dists);
+  /* Score: 1 = perfect agreement, 0 = >20cm disagreement */
+  var score=Math.max(0,1-maxDiff/0.20);
+  return{score:score,stdDev:stdDev,maxDiff:maxDiff,mean:mean};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: EM FIELD FINGERPRINT                                */
+/* ═══════════════════════════════════════════════════════════ */
+function useEMFingerprint(){
+  var _fp=useState(null),fingerprint=_fp[0],setFingerprint=_fp[1];
+  var _rec=useState(false),recording=_rec[0],setRecording=_rec[1];
+  var _sim=useState(null),similarity=_sim[0],setSimilarity=_sim[1];
+  var samplesRef=useRef([]);
+  var timerRef=useRef(null);
+
+  var startCapture=useCallback(function(magGetter){
+    if(recording)return;
+    setRecording(true);samplesRef.current=[];
+    timerRef.current=setInterval(function(){
+      var v=magGetter();
+      if(v)samplesRef.current.push({x:v.x,y:v.y,z:v.z,mag:v.mag,ts:Date.now()});
+      if(samplesRef.current.length>=30){
+        clearInterval(timerRef.current);
+        var fp=buildFingerprint(samplesRef.current);
+        setFingerprint(fp);setRecording(false);
+        dbPut(CALIB_STORE,Object.assign({key:'em_fingerprint'},fp));
+      }
+    },100);
+  },[recording]);
+
+  var stopCapture=useCallback(function(){
+    if(timerRef.current)clearInterval(timerRef.current);
+    setRecording(false);
+  },[]);
+
+  var compare=useCallback(function(currentMag){
+    if(!fingerprint||!currentMag)return;
+    var sim=fingerprintSimilarity(fingerprint,currentMag);
+    setSimilarity(sim);
+    return sim;
+  },[fingerprint]);
+
+  /* Load saved fingerprint on mount */
+  useEffect(function(){
+    dbGet(CALIB_STORE,'em_fingerprint').then(function(fp){if(fp)setFingerprint(fp);}).catch(function(){});
+    return function(){if(timerRef.current)clearInterval(timerRef.current);};
+  },[]);
+
+  return{fingerprint:fingerprint,recording:recording,similarity:similarity,startCapture:startCapture,stopCapture:stopCapture,compare:compare,sampleCount:samplesRef.current.length};
+}
+
+function buildFingerprint(samples){
+  var n=samples.length;
+  var mx=samples.reduce(function(s,v){return s+v.x;},0)/n;
+  var my=samples.reduce(function(s,v){return s+v.y;},0)/n;
+  var mz=samples.reduce(function(s,v){return s+v.z;},0)/n;
+  var mm=samples.reduce(function(s,v){return s+v.mag;},0)/n;
+  /* Variance */
+  var vx=samples.reduce(function(s,v){return s+(v.x-mx)*(v.x-mx);},0)/n;
+  var vy=samples.reduce(function(s,v){return s+(v.y-my)*(v.y-my);},0)/n;
+  var vz=samples.reduce(function(s,v){return s+(v.z-mz)*(v.z-mz);},0)/n;
+  return{mean:{x:mx,y:my,z:mz,mag:mm},variance:{x:vx,y:vy,z:vz},samples:samples,ts:Date.now(),n:n};
+}
+
+function fingerprintSimilarity(fp,currentMag){
+  if(!fp||!fp.mean)return 0;
+  /* Euclidean distance in normalized XYZ space */
+  var dx=(currentMag.x-fp.mean.x);var dy=(currentMag.y-fp.mean.y);var dz=(currentMag.z-fp.mean.z);
+  var dist=Math.sqrt(dx*dx+dy*dy+dz*dz);
+  /* Normalize by expected variation (3 sigma of stored fingerprint) */
+  var sigma=Math.sqrt(fp.variance.x+fp.variance.y+fp.variance.z)*3||5;
+  return Math.max(0,Math.min(1,1-dist/Math.max(sigma,5)));
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: BLE PATH-LOSS CALIBRATION                          */
+/* ═══════════════════════════════════════════════════════════ */
+function useBLEPathLoss(){
+  var _n=useState(2.0),pathLossN=_n[0],setN=_n[1];/* default free-space exponent */
+  var _r0=useState(-59),rssiAt1m=_r0[0],setRssi0=_r0[1];/* RSSI at 1m reference */
+  var _calib=useState(null),calibration=_calib[0],setCalib=_calib[1];
+
+  var calibrate=useCallback(function(rssiSamples,knownDistM){
+    /* rssiSamples: array of RSSI dBm values at knownDistM */
+    if(!rssiSamples||!rssiSamples.length||!knownDistM)return;
+    var avgRSSI=rssiSamples.reduce(function(s,v){return s+v;},0)/rssiSamples.length;
+    /* RSSI_0 = avgRSSI + 10n*log10(d/1) but we don't know n yet */
+    /* Use reference: RSSI_0 = RSSI_measured + 10*n*log10(d) with n=2 initial */
+    var rssi0=avgRSSI+10*pathLossN*Math.log10(Math.max(knownDistM,0.1));
+    setRssi0(rssi0);
+    setCalib({rssiAt1m:rssi0,n:pathLossN,knownDist:knownDistM,avgRSSI:avgRSSI,ts:Date.now()});
+    dbPut(CALIB_STORE,{key:'ble_pathloss',rssiAt1m:rssi0,n:pathLossN,ts:Date.now()});
+  },[pathLossN]);
+
+  var rssiToDistance=useCallback(function(rssi){
+    /* d = 10^((RSSI_0 - RSSI) / (10*n)) */
+    return Math.pow(10,(rssiAt1m-rssi)/(10*pathLossN));
+  },[rssiAt1m,pathLossN]);
+
+  /* Load saved calibration */
+  useEffect(function(){
+    dbGet(CALIB_STORE,'ble_pathloss').then(function(c){
+      if(c){setRssi0(c.rssiAt1m);setN(c.n||2.0);setCalib(c);}
+    }).catch(function(){});
+  },[]);
+
+  return{pathLossN:pathLossN,setN:setN,rssiAt1m:rssiAt1m,calibration:calibration,calibrate:calibrate,rssiToDistance:rssiToDistance};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: CROSS-DIMENSION VALIDATOR                           */
+/* ═══════════════════════════════════════════════════════════ */
+function crossValidate(acousticDistM,bleAvgRSSI,blePathLoss){
+  var pairs=[];
+  /* Acoustic vs BLE */
+  if(acousticDistM!=null&&bleAvgRSSI&&blePathLoss){
+    var bleDist=blePathLoss.rssiToDistance(bleAvgRSSI);
+    var diff=Math.abs(acousticDistM-bleDist);
+    var relDiff=diff/Math.max(acousticDistM,0.1);
+    var agree=relDiff<0.25;/* within 25% */
+    var warn=relDiff>=0.25&&relDiff<0.5;
+    pairs.push({
+      dimA:'ACOUS',dimB:'BLE',
+      valA:acousticDistM.toFixed(2)+'m',valB:bleDist.toFixed(2)+'m',
+      diff:diff.toFixed(2)+'m',relDiff:(relDiff*100).toFixed(0)+'%',
+      status:agree?'agree':warn?'warn':'conflict',
+      score:Math.max(0,1-relDiff)
+    });
+  }
+  return{pairs:pairs,overallScore:pairs.length>0?pairs.reduce(function(s,p){return s+p.score;},0)/pairs.length:1,hasConflicts:pairs.some(function(p){return p.status==='conflict';})};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: QUALITY SCORE SYSTEM                                */
+/* ═══════════════════════════════════════════════════════════ */
+var QUALITY_FRESHNESS_MS=5000;/* within 5s = fresh */
+function computeQualityScores(mediation,multiChirpResults,noiseData,emFp){
+  var now=Date.now();var scores={};
+  DIM_KEYS.forEach(function(k,i){
+    var src=mediation.sources[k]||'na';
+    var val=mediation.dims[k]||0;
+    /* Freshness score: real=1, est=0.6, sim=0.2, na=0 */
+    var freshness=src==='real'?1:src==='est'?0.6:src==='sim'?0.2:0;
+    /* Signal quality */
+    var signalQ=val;
+    /* Dimension-specific bonuses */
+    var bonus=0;
+    if(k==='acoustic'&&multiChirpResults){
+      var mc=multiChirpResults;
+      if(mc.validCount===3)bonus=0.3;
+      else if(mc.validCount===2)bonus=0.15;
+      if(mc.agreement&&mc.agreement.score>0.8)bonus+=0.1;
+      signalQ=mc.conf||val;
+    }
+    if(k==='emField'&&emFp&&emFp.similarity!=null){
+      bonus=emFp.similarity*0.3;
+    }
+    /* Noise penalty for acoustic */
+    var noisePenalty=0;
+    if(k==='acoustic'&&noiseData){
+      noisePenalty=Math.min(0.3,noiseData.rms*10);
+    }
+    var score=Math.max(0,Math.min(1,(freshness*0.5+signalQ*0.4+bonus)*Math.max(0,1-noisePenalty)));
+    scores[k]={src:src,freshness:freshness,signalQ:signalQ,bonus:bonus,noisePenalty:noisePenalty,score:score};
+  });
+  return scores;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: SIM→REAL MIGRATION GUIDE                           */
+/* ═══════════════════════════════════════════════════════════ */
+var MIGRATION_GUIDE={
+  acoustic:{label:'ACOUSTIC',steps:[{text:'Request microphone permission',check:function(s){return s==='real'||s==='est';}},{text:'Press PING to fire chirp',check:function(s){return s==='real';}},{text:'Run CALIBRATE for loopback',check:function(s){return s==='real';}},{text:'Try MULTI-CHIRP for accuracy',check:function(){return false;}}]},
+  emField:{label:'EM FIELD',steps:[{text:'Grant DeviceOrientation permission',check:function(s){return s!=='sim'&&s!=='na';}},{text:'Enable magnetometer (Generic Sensor API)',check:function(s){return s==='real';}},{text:'Capture EM fingerprint',check:function(){return false;}}]},
+  photonic:{label:'PHOTONIC',steps:[{text:'AmbientLightSensor API (Chrome 56+)',check:function(s){return s==='real';}},{text:'Grant "sensors" permission',check:function(s){return s!=='sim';}},{text:'Indirect: use time-of-day model (EST)',check:function(s){return s==='est';}}]},
+  kinetic:{label:'KINETIC',steps:[{text:'Grant DeviceMotion permission',check:function(s){return s==='real';}},{text:'Move device to calibrate baseline',check:function(s){return s==='real';}}]},
+  rfDensity:{label:'RF DENSITY',steps:[{text:'Web NFC API for NFC field',check:function(s){return s==='real';}},{text:'WiFi RTT (Android Chrome, needs flag)',check:function(){return false;}},{text:'BLE scan gives approximate RF density',check:function(s){return s!=='sim';}}]},
+  nfcField:{label:'NFC FIELD',steps:[{text:'Web NFC API (Chrome Android only)',check:function(s){return s==='real';}},{text:'Tap NFC tag to measure field strength',check:function(){return false;}}]},
+  thermal:{label:'THERMAL',steps:[{text:'CPU load-based thermal estimation (EST)',check:function(s){return s==='est'||s==='real';}},{text:'External BLE thermometer via WebBluetooth',check:function(s){return s==='real';}}]},
+  spatial:{label:'SPATIAL',steps:[{text:'Grant Geolocation permission',check:function(s){return s==='real';}},{text:'Enable high accuracy GPS',check:function(s){return s==='real';}},{text:'Higher accuracy: acoustic trilateration',check:function(){return false;}}]},
+  bleMesh:{label:'BLE MESH',steps:[{text:'Web Bluetooth API (Chrome only)',check:function(s){return s!=='sim';}},{text:'Scan for nearby BLE devices',check:function(s){return s!=='sim';}},{text:'Calibrate path-loss model',check:function(){return false;}}]},
+  network:{label:'NETWORK',steps:[{text:'Connect pTCP mesh (BroadcastChannel)',check:function(s){return s==='real';}},{text:'WebRTC P2P for cross-device',check:function(s){return s==='real';}}]},
+  collaborative:{label:'COLLAB',steps:[{text:'Connect ≥1 peer via mesh/WebRTC',check:function(s){return s==='real';}}]}
+};
+function getMigrationStatus(key,source){var m=MIGRATION_GUIDE[key];if(!m)return'todo';if(source==='real')return'done';if(source==='est')return'partial';return'todo';}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.3: CANVAS COMPONENTS                                   */
+/* ═══════════════════════════════════════════════════════════ */
+function EMFingerprintCanvas(props){
+  var ref=useRef(null);var fp=props.fingerprint;
+  useEffect(function(){
+    var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    var W=cv.offsetWidth*dpr,H=60*dpr;cv.width=W;cv.height=H;cv.style.height='60px';
+    ctx.fillStyle='#050810';ctx.fillRect(0,0,W,H);
+    if(!fp||!fp.samples||!fp.samples.length){
+      ctx.fillStyle='#334455';ctx.font=(9*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
+      ctx.fillText('EM FINGERPRINT NOT CAPTURED',W/2,H/2);return;
+    }
+    var n=fp.samples.length,cols=['#cc66ff','#00ddff','#ffcc00'];
+    var keys=['x','y','z'];
+    keys.forEach(function(k,ki){
+      var vals=fp.samples.map(function(s){return s[k];});
+      var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rng=mx-mn||1;
+      ctx.strokeStyle=cols[ki]+'88';ctx.lineWidth=1.5;ctx.beginPath();
+      for(var i=0;i<n;i++){var x=i/n*W,y=H-((vals[i]-mn)/rng)*H;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+      ctx.stroke();
+    });
+    /* Similarity indicator */
+    if(props.similarity!=null){
+      var pct=props.similarity;
+      ctx.fillStyle=(pct>.7?'#00ffaa':pct>.4?'#ffcc00':'#ff4444')+'33';
+      ctx.fillRect(0,0,W*pct,H);
+    }
+  },[fp,props.similarity]);
+  return h('canvas',{ref:ref,className:'em-fp-canvas',style:{width:'100%',height:'60px'}});
+}
+
+function MultiChirpCanvas(props){
+  var ref=useRef(null);var results=props.results;
+  useEffect(function(){
+    var cv=ref.current;if(!cv)return;var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    var W=cv.offsetWidth*dpr,H=80*dpr;cv.width=W;cv.height=H;cv.style.height='80px';
+    ctx.fillStyle='#050810';ctx.fillRect(0,0,W,H);
+    if(!results||!results.bands){
+      ctx.fillStyle='#334455';ctx.font=(9*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
+      ctx.fillText('RUN MULTI-CHIRP TO ANALYZE',W/2,H/2);return;
+    }
+    var n=results.bands.length,cW=W/n;
+    results.bands.forEach(function(b,i){
+      var x=i*cW,h2=H*0.8;
+      var height=b.valid?Math.max(h2*0.1,h2*b.conf):h2*0.05;
+      var y=H-height;
+      ctx.fillStyle=(b.band.color||'#00ffaa')+(b.valid?'66':'22');
+      ctx.fillRect(x+4*dpr,y,cW-8*dpr,height);
+      ctx.fillStyle=b.valid?'#00ffaa':'#556677';
+      ctx.font='bold '+(8*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
+      ctx.fillText(b.band.name,x+cW/2,H-2*dpr);
+      ctx.fillStyle=b.valid?'#ccddeef0':'#556677';
+      ctx.font=(7*dpr)+'px IBM Plex Mono';
+      ctx.fillText(b.valid&&b.distM!=null?b.distM.toFixed(2)+'m':'N/A',x+cW/2,y-4*dpr);
+    });
+    /* Agreement line */
+    if(results.agreement&&results.agreement.mean!=null&&results.bands.some(function(b){return b.valid&&b.distM!=null;})){
+      var maxD=Math.max.apply(null,results.bands.filter(function(b){return b.valid&&b.distM!=null;}).map(function(b){return b.distM;}))||1;
+      var my=H*0.8*(1-results.agreement.mean/maxD);
+      ctx.strokeStyle='#ffffff44';ctx.lineWidth=1.5*dpr;ctx.setLineDash([4*dpr,3*dpr]);
+      ctx.beginPath();ctx.moveTo(0,my);ctx.lineTo(W,my);ctx.stroke();ctx.setLineDash([]);
+    }
+  },[results]);
+  return h('canvas',{ref:ref,style:{width:'100%',height:'80px',display:'block',border:'1px solid #1a2530',borderRadius:'2px',background:'#050810'}});
+}
+
+function NoiseFloorGauge(props){
+  var nd=props.noiseData;if(!nd)return null;
+  var dB=nd.dB||(-80);var pct=Math.max(0,Math.min(1,(dB+80)/60));/* -80dB=0%, -20dB=100% */
+  var color=pct<0.3?'#00ffaa':pct<0.6?'#ffcc00':'#ff4444';
+  return h('div',{className:'noise-floor-bar'},
+    h('span',{style:{color:'#556677',minWidth:'70px'}},'NOISE FLOOR'),
+    h('div',{className:'snr-gauge-track'},
+      h('div',{className:'snr-gauge-fill',style:{width:(pct*100)+'%',background:color}})),
+    h('span',{className:'snr-label',style:{color:color}},dB.toFixed(0)+'dB'));
+}
 
 function parabolicPeak(corr,idx){if(idx<=0||idx>=corr.length-1)return{lag:idx,val:corr[idx]};var a=corr[idx-1],b=corr[idx],c=corr[idx+1];var d=a-2*b+c;if(Math.abs(d)<1e-12)return{lag:idx,val:b};var delta=0.5*(a-c)/d;delta=Math.max(-0.5,Math.min(0.5,delta));return{lag:idx+delta,val:b-0.25*(a-c)*delta};}
 function findFirstPeakIdx(corr,threshold,startIdx){startIdx=Math.max(startIdx||0,1);for(var i=startIdx;i<corr.length-1;i++)if(corr[i]>=threshold&&corr[i]>corr[i-1]&&corr[i]>=corr[i+1])return i;return-1;}
@@ -744,7 +1174,14 @@ function evaluatePhaseLaws(med){
     {id:'PL-007',name:'Network Connectivity',check:function(){
       var v=d.network;return{score:v,state:v>.5?'CONNECTED':v>.2?'PARTIAL':'ISOLATED'};}},
     {id:'PL-008',name:'Thermal-Photonic Coupling',check:function(){
-      var v=(d.thermal*.5+d.photonic*.5);return{score:v,state:state(v)};}}
+      var v=(d.thermal*.5+d.photonic*.5);return{score:v,state:state(v)};}},
+    {id:'PL-009',name:'Cross-Modal Coherence',check:function(){
+      /* NEW v1.3: how consistent are cross-dimension estimates? */
+      var realDims=DIM_KEYS.filter(function(k){return s[k]==='real';});
+      var coherence=realDims.length>0?(realDims.reduce(function(sum,k){return sum+d[k];},0)/realDims.length):0;
+      var spread=realDims.length>1?Math.sqrt(realDims.reduce(function(ss,k){return ss+(d[k]-coherence)*(d[k]-coherence);},0)/realDims.length):0;
+      var v=Math.max(0,coherence*(1-spread));
+      return{score:v,state:state(v)};}}
   ];
   return laws.map(function(l){return{id:l.id,name:l.name,result:l.check()};});
 }
@@ -825,7 +1262,7 @@ function SpecCanvas(props){
 /* ═══════════════════════════════════════════════════════════ */
 function App(){
   /* Layers / Tabs */
-  var LAYERS=['measure','spectrum','peers','heatmap','timeline','dashboard','profiles','network'];
+  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network'];
   var _lay=useState('measure'),layer=_lay[0],setLayer=_lay[1];
 
   /* Audio state */
@@ -863,6 +1300,14 @@ function App(){
   var net=usePTCPNetwork();var mp=useMultiPeer();
   var anchors=useAnchorStore();
 
+  /* v1.3: PRECISION hooks */
+  var multiChirp=useMultiChirp();
+  var emFp=useEMFingerprint();
+  var blePathLoss=useBLEPathLoss();
+  var _qualScores=useState(null),qualScores=_qualScores[0],setQualScores=_qualScores[1];
+  var _crossVal=useState(null),crossVal=_crossVal[0],setCrossVal=_crossVal[1];
+  var _bleCalibDist=useState(1.0),bleCalibDist=_bleCalibDist[0],setBleCalibDist=_bleCalibDist[1];
+
   /* Mediation state */
   var _med=useState({composite:0,dims:{},sources:{},weights:{},reality:{realCount:0,simCount:0,estCount:0,naCount:0,total:11,index:0}});
   var mediation=_med[0],setMediation=_med[1];
@@ -878,6 +1323,8 @@ function App(){
       setPhaseLaws(laws);
       /* v1.2: record to time series */
       timeSeries.addSnapshot(m,laws);
+      /* v1.3: quality scores — computed from current mediation + state */
+      setQualScores(computeQualityScores(m,null,null,null));
       /* Broadcast to peers */
       if(net.connected)net.broadcastMediation({composite:m.composite,dims:m.dims,reality:m.reality});
     },2000);
@@ -897,6 +1344,21 @@ function App(){
       if(c&&c.loopbackMs)setLoopback({ms:c.loopbackMs,conf:c.loopbackConf||0,method:c.loopbackMethod||'saved'});
     });
   },[]);
+
+  /* v1.3: Update quality scores when multiChirp or emFp change */
+  useEffect(function(){
+    if(mediation&&mediation.sources){
+      var qs=computeQualityScores(mediation,multiChirp.results,multiChirp.noiseData,emFp);
+      setQualScores(qs);
+    }
+  },[multiChirp.results,multiChirp.noiseData,emFp.fingerprint,emFp.similarity]);
+
+  /* v1.3: Cross-validation whenever result or BLE changes */
+  useEffect(function(){
+    if(result&&result.distM!=null&&ble.state.avgRSSI&&ble.state.avgRSSI<0){
+      setCrossVal(crossValidate(result.distM,ble.state.avgRSSI,blePathLoss));
+    }
+  },[result,ble.state.avgRSSI,blePathLoss.rssiAt1m,blePathLoss.pathLossN]);
 
   /* PING function */
   var doPing=useCallback(function(){
@@ -990,7 +1452,7 @@ function App(){
     /* Header */
     h('div',{className:'hdr'},
       h('div',{className:'hdr-title'},'PHYSICAL PING'),
-      h('div',{className:'hdr-ver'},'pTCP/IP v1.2 VISUALIZATION'),
+      h('div',{className:'hdr-ver'},'pTCP/IP v1.3 PRECISION'),
       h('div',{className:'hdr-sub'},net.deviceName)
     ),
 
@@ -1081,6 +1543,173 @@ function App(){
             h('span',{style:{color:'#556677'}},fT(new Date(r.ts))),
             h('span',{style:{color:'#00ffaa'}},r.distM!=null?r.distM.toFixed(3)+'m':'---'),
             h('span',{style:{color:'#556677'}},'conf '+(r.conf*100).toFixed(0)+'%'));
+        })
+      )
+    ),
+
+    /* ═══ PRECISION TAB (v1.3) ═══ */
+    layer==='precision'&&h('div',null,
+
+      /* MULTI-CHIRP ACOUSTIC */
+      h('div',{className:'card',style:{padding:'8px',marginBottom:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('span',null,'MULTI-CHIRP ACOUSTIC'),
+          multiChirp.measuring&&h('span',{style:{color:'#ffcc00',animation:'pulse 1s infinite'}},multiChirp.progress+'% ▶')
+        ),
+        /* Band buttons */
+        h('div',{style:{display:'flex',gap:'4px',marginBottom:'6px'}},
+          CHIRP_BANDS.map(function(b){
+            var br=multiChirp.results&&multiChirp.results.bands&&multiChirp.results.bands.find(function(r){return r.band.id===b.id;});
+            return h('div',{key:b.id,style:{flex:1,padding:'6px 4px',border:'1px solid '+(b.color+'33'),borderRadius:'2px',textAlign:'center',fontSize:'8px',background:br&&br.valid?b.color+'11':'transparent'}},
+              h('div',{style:{color:b.color,fontWeight:'bold'}},b.name),
+              h('div',{style:{color:'#445566',fontSize:'7px'}},b.desc),
+              br&&h('div',{style:{color:br.valid?'#00ffaa':'#ff4444',marginTop:'2px',fontWeight:'bold'}},br.valid&&br.distM!=null?br.distM.toFixed(3)+'m':'NO SIG'));
+          })
+        ),
+        h(MultiChirpCanvas,{results:multiChirp.results}),
+        /* Aggregate result */
+        multiChirp.results&&h('div',{style:{marginTop:'6px',padding:'6px',background:'rgba(0,0,0,.2)',borderRadius:'2px'}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:'9px',marginBottom:'4px'}},
+            h('span',{style:{color:'#556677'}},'AGGREGATE DISTANCE'),
+            h('span',{style:{color:'#00ffaa',fontSize:'14px',fontWeight:'bold'}},
+              multiChirp.results.distM!=null?multiChirp.results.distM.toFixed(4)+' m':'N/A')),
+          multiChirp.results.agreement&&multiChirp.results.agreement.stdDev!=null&&
+            h('div',{style:{fontSize:'8px',color:'#445566'}},
+              'Std Dev: ±'+multiChirp.results.agreement.stdDev.toFixed(4)+'m | ',
+              'Bands OK: '+multiChirp.results.validCount+'/'+CHIRP_BANDS.length+' | ',
+              'Agreement: '+(multiChirp.results.agreement.score*100).toFixed(0)+'%')
+        ),
+        /* Noise floor */
+        h(NoiseFloorGauge,{noiseData:multiChirp.noiseData}),
+        /* Run button */
+        h('button',{className:'btn',onClick:function(){multiChirp.runMultiChirp(loopback.ms);},
+          disabled:multiChirp.measuring,
+          style:{width:'100%',marginTop:'6px',padding:'10px',background:'#cc66ff15',border:'1px solid #cc66ff44',color:multiChirp.measuring?'#556677':'#cc66ff',fontSize:'11px'}},
+          multiChirp.measuring?'MEASURING '+multiChirp.progress+'%...':'MULTI-CHIRP PING')
+      ),
+
+      /* PER-DIMENSION QUALITY SCORES */
+      h('div',{className:'card',style:{padding:'8px',marginBottom:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px'}},'DIMENSION QUALITY SCORES'),
+        qualScores&&h('div',{className:'quality-grid'},
+          DIM_KEYS.map(function(k,i){
+            var q=qualScores[k]||{score:0,src:'na'};
+            var qColor=q.score>.7?'#00ffaa':q.score>.4?'#ffcc00':'#ff4444';
+            return h('div',{key:k,className:'quality-cell'},
+              h('div',{className:'quality-cell-h'},
+                h('span',{style:{color:DIM_COLORS[i]}},DIM_LABELS[i]),
+                h('span',{className:'src-badge '+q.src},q.src.toUpperCase())),
+              h('div',{className:'quality-score',style:{color:qColor}},(q.score*100).toFixed(0),'%'),
+              h('div',{className:'quality-bar'},
+                h('div',{className:'quality-bar-fill',style:{width:(q.score*100)+'%',background:qColor}})),
+              h('div',{style:{fontSize:'7px',color:'#445566'}},
+                'Fresh: '+(q.freshness*100).toFixed(0)+'%  ',
+                'Sig: '+(q.signalQ*100).toFixed(0)+'%'));
+          })
+        ),
+        !qualScores&&h('div',{style:{fontSize:'9px',color:'#334455',textAlign:'center',padding:'10px'}},'Quality scores appear after first measurement')
+      ),
+
+      /* CROSS-DIMENSION VALIDATION */
+      h('div',{className:'card',style:{padding:'8px',marginBottom:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px',display:'flex',justifyContent:'space-between'}},
+          h('span',null,'CROSS-DIMENSION VALIDATOR'),
+          crossVal&&crossVal.hasConflicts&&h('span',{className:'crossval-badge conflict'},'CONFLICT')),
+        crossVal&&crossVal.pairs.length>0?
+          h('div',null,
+            crossVal.pairs.map(function(p,i){
+              return h('div',{key:i,className:'crossval-pair'},
+                h('span',{style:{color:'#8899aa'}},p.dimA,' ↔ ',p.dimB),
+                h('span',{style:{color:'#556677'}},p.valA,' / ',p.valB),
+                h('span',{style:{color:'#445566'}},p.diff,' (',p.relDiff+')'),
+                h('span',{className:'crossval-badge '+p.status},p.status.toUpperCase()));
+            }),
+            h('div',{style:{fontSize:'8px',color:'#556677',marginTop:'6px'}},
+              'Overall coherence: ',h('span',{style:{color:(crossVal.overallScore>.7?'#00ffaa':'#ffcc00')}},(crossVal.overallScore*100).toFixed(0)+'%'))
+          ):
+          h('div',{style:{fontSize:'9px',color:'#334455',padding:'8px',textAlign:'center'}},
+            'Run acoustic PING + BLE scan to enable cross-validation')
+      ),
+
+      /* BLE PATH-LOSS CALIBRATION */
+      h('div',{className:'card',style:{padding:'8px',marginBottom:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px'}},'BLE PATH-LOSS MODEL'),
+        h('div',{className:'path-loss-eq'},
+          'RSSI = RSSI₀ − 10 × ',h('span',{style:{color:'#ff8800'}},blePathLoss.pathLossN.toFixed(1)),' × log₁₀(d/1m)'),
+        h('div',{style:{fontSize:'8px',color:'#556677',marginBottom:'8px'}},
+          'RSSI₀ @ 1m: ',h('span',{style:{color:'#00ddff'}},blePathLoss.rssiAt1m.toFixed(1)+'dBm'),
+          ' | n=',h('span',{style:{color:'#ff8800'}},blePathLoss.pathLossN.toFixed(1)),
+          ' (',blePathLoss.pathLossN<2.2?'free-space':blePathLoss.pathLossN<3.0?'indoor-soft':'indoor-hard',')'),
+        h('div',{style:{display:'flex',gap:'6px',alignItems:'center',marginBottom:'6px'}},
+          h('div',{style:{fontSize:'8px',color:'#556677'}},h('span',null,'n coefficient: ')),
+          h('input',{type:'range',min:'1.5',max:'5',step:'0.1',value:blePathLoss.pathLossN,
+            onChange:function(e){blePathLoss.setN(parseFloat(e.target.value));},
+            style:{flex:1,accentColor:'#ff8800'}}),
+          h('span',{style:{fontSize:'9px',color:'#ff8800',minWidth:'24px'}},blePathLoss.pathLossN.toFixed(1))
+        ),
+        h('div',{style:{display:'flex',gap:'6px',alignItems:'center'}},
+          h('div',{style:{fontSize:'8px',color:'#556677',minWidth:'80px'}},'Known dist (m):'),
+          h('input',{type:'number',min:'0.5',max:'20',step:'0.1',value:bleCalibDist,
+            onChange:function(e){setBleCalibDist(parseFloat(e.target.value));},
+            style:{width:'60px',background:'#0a0f14',border:'1px solid #1a2530',color:'#ccddeef0',fontFamily:'IBM Plex Mono',fontSize:'10px',padding:'4px',borderRadius:'2px'}}),
+          h('button',{className:'btn btn-sm',
+            onClick:function(){
+              var rssiSamples=ble.state.devices.map(function(d){return d.rssi;}).filter(function(r){return r;});
+              if(rssiSamples.length>0)blePathLoss.calibrate(rssiSamples,bleCalibDist);
+            },
+            style:{background:'#ff880015',border:'1px solid #ff880044',color:'#ff8800',fontSize:'8px',padding:'4px 8px'}},
+            'CALIBRATE n')
+        ),
+        blePathLoss.calibration&&h('div',{style:{fontSize:'8px',color:'#556677',marginTop:'4px'}},
+          'Last calibrated: ',new Date(blePathLoss.calibration.ts).toLocaleTimeString(),
+          ' @ ',blePathLoss.calibration.knownDist,'m')
+      ),
+
+      /* EM FINGERPRINT */
+      h('div',{className:'card',style:{padding:'8px',marginBottom:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('span',null,'EM FIELD FINGERPRINT'),
+          emFp.recording&&h('span',{style:{color:'#cc66ff',animation:'pulse 1s infinite'}},'REC ●')),
+        h(EMFingerprintCanvas,{fingerprint:emFp.fingerprint,similarity:emFp.similarity!=null?emFp.similarity.score||emFp.similarity:null}),
+        emFp.fingerprint&&h('div',{style:{fontSize:'8px',color:'#556677',marginBottom:'6px'}},
+          'Captured: '+emFp.fingerprint.n+' samples | ',
+          new Date(emFp.fingerprint.ts).toLocaleString(),
+          emFp.similarity!=null&&h('span',{style:{color:emFp.similarity>.7?'#00ffaa':emFp.similarity>.4?'#ffcc00':'#ff4444'}},
+            ' | Match: '+(emFp.similarity*100).toFixed(0)+'%')),
+        h('div',{style:{display:'flex',gap:'6px'}},
+          h('button',{className:'btn btn-sm',
+            onClick:function(){if(!emFp.recording)emFp.startCapture(function(){return mag;});else emFp.stopCapture();},
+            disabled:!mag.available,
+            style:{flex:1,background:'#cc66ff15',border:'1px solid #cc66ff44',color:mag.available?'#cc66ff':'#556677',padding:'8px',fontSize:'9px'}},
+            emFp.recording?('CAPTURING… '+emFp.sampleCount+'/30'):
+            emFp.fingerprint?'RE-CAPTURE EM FP':'CAPTURE EM FINGERPRINT'),
+          emFp.fingerprint&&h('button',{className:'btn btn-sm',
+            onClick:function(){dbPut(CALIB_STORE,Object.assign({key:'em_fingerprint'},emFp.fingerprint));},
+            style:{background:'#00ddff11',border:'1px solid #00ddff33',color:'#00ddff',padding:'8px',fontSize:'9px'}},
+            'SAVE')
+        ),
+        !mag.available&&h('div',{style:{fontSize:'8px',color:'#ff8800',marginTop:'4px'}},'⚠ Magnetometer not available on this device')
+      ),
+
+      /* SIM → REAL MIGRATION GUIDE */
+      h('div',{className:'card',style:{padding:'8px',marginBottom:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px',display:'flex',justifyContent:'space-between'}},
+          h('span',null,'SIM → REAL MIGRATION GUIDE'),
+          mediation.reality&&h('span',{style:{color:'#00ffaa'}},'ρ = '+(mediation.reality.index*100).toFixed(0)+'%')),
+        DIM_KEYS.map(function(k,i){
+          var src=mediation.sources[k]||'na';
+          var status=getMigrationStatus(k,src);
+          var m=MIGRATION_GUIDE[k];if(!m)return null;
+          return h('div',{key:k,className:'migration-card '+status},
+            h('div',{className:'migration-label'},
+              h('span',{style:{color:DIM_COLORS[i]}},m.label),
+              h('span',{style:{color:status==='done'?'#00ffaa':status==='partial'?'#ffcc00':'#556677'}},
+                status==='done'?'✓ REAL':status==='partial'?'◎ EST':'○ SIM')),
+            m.steps.map(function(step,si){
+              var done=step.check(src);
+              return h('div',{key:si,className:'migration-step '+(done?'done':'')},step.text);
+            })
+          );
         })
       )
     ),
@@ -1349,9 +1978,9 @@ function App(){
 
     /* Footer */
     h('div',{style:{textAlign:'center',padding:'12px',fontSize:'8px',color:'#334455',borderTop:'1px solid #0a0f14',marginTop:'12px'}},
-      'PHYSICAL PING — pTCP/IP v1.2 VISUALIZATION',
+      'PHYSICAL PING — pTCP/IP v1.3 PRECISION',
       h('br'),
-      '11D Mediation Coefficient μ(x,t) + Phase-Law Engine + P2P Mesh')
+      '11D Mediation + Multi-Chirp + Cross-Validation + EM Fingerprint + Path-Loss Cal')
   );
 }
 
