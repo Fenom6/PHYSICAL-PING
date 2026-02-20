@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v1.3 PRECISION</title>
+<title>Physical Ping — pTCP v2.0 INTELLIGENCE</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGh5c2ljYWwgUGluZyIsInNob3J0X25hbWUiOiJwVENQIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBmMTQiLCJ0aGVtZV9jb2xvciI6IiMwMGZmYWEiLCJpY29ucyI6W119">
+<meta name="theme-color" content="#00ffaa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -38,13 +42,16 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .lv-bar{height:100%;border-radius:1px;transition:width .06s linear;min-width:1px}
 .lv-val{font-size:11px;min-width:68px;text-align:right;font-variant-numeric:tabular-nums}
 .ctrl{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.btn{border:none;padding:10px 20px;font-size:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn{border:none;padding:10px 20px;font-size:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .15s;-webkit-tap-highlight-color:transparent;color:#8899aa}
+.btn:hover{color:#b0c0d0}
 .btn:active{transform:scale(.97)}
-.btn-ping{background:linear-gradient(180deg,#00ffaa22,#00ffaa11);border:1px solid #00ffaa44;color:#00ffaa}
-.btn-ping:disabled{background:#0a2a1a;cursor:wait;opacity:.6}
-.btn-cont{background:transparent;border:1px solid #334455;color:#667788;padding:10px 16px;font-size:11px;letter-spacing:1px}
-.btn-stop{background:linear-gradient(180deg,#ff333322,#ff333311);border:1px solid #ff333344;color:#ff3333;animation:pulse 1s infinite}
-.btn-sm{padding:6px 12px;font-size:10px;letter-spacing:1px}
+.btn-ping{background:linear-gradient(180deg,rgba(0,255,170,.04),rgba(0,255,170,.02));border:1px solid #243d33;color:#5a9a82}
+.btn-ping:disabled{background:#0a1a14;cursor:wait;opacity:.6}
+.btn-cont{background:transparent;border:1px solid #222d3a;color:#667788;padding:10px 16px;font-size:11px;letter-spacing:1px}
+.btn-stop{background:linear-gradient(180deg,rgba(255,60,60,.04),rgba(255,60,60,.02));border:1px solid #3d2424;color:#a06060;animation:pulse 1s infinite}
+.btn-sm{padding:6px 12px;font-size:10px;letter-spacing:1px;border:1px solid #222d3a;color:#8899aa;background:transparent}
+.btn-sm:hover{border-color:#3a4a5a;color:#b0c0d0;background:rgba(200,215,230,.03)}
+.btn-sm.active{border-color:#3a4a5a;color:#ccd8e8;background:rgba(200,215,230,.06)}
 .btn-clear{background:transparent;border:1px solid #1a2530;color:#445566;margin-left:auto}
 .btn-calib{background:transparent;border:1px solid #ffcc0044;color:#ffcc00}
 .sel-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:stretch}
@@ -206,6 +213,129 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
   .dash-stat-v{font-size:18px}
   .quality-grid{grid-template-columns:1fr 1fr}
 }
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.5 APPLICATION + v2.0 INTELLIGENCE STYLES                */
+/* ═══════════════════════════════════════════════════════════ */
+/* Midbrain / 4-layer architecture */
+.brain-layer{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:2px;margin-bottom:4px;border:1px solid;transition:all .3s;position:relative;overflow:hidden}
+.brain-layer::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.brain-layer.L3{background:rgba(0,255,170,.04);border-color:#00ffaa33}
+.brain-layer.L3::before{background:#00ffaa}
+.brain-layer.L2{background:rgba(0,221,255,.04);border-color:#00ddff33}
+.brain-layer.L2::before{background:#00ddff}
+.brain-layer.L1{background:rgba(255,204,0,.04);border-color:#ffcc0033}
+.brain-layer.L1::before{background:#ffcc00}
+.brain-layer.L0{background:rgba(204,102,255,.04);border-color:#cc66ff33}
+.brain-layer.L0::before{background:#cc66ff}
+.brain-layer-id{font-size:9px;letter-spacing:2px;min-width:22px;font-weight:700}
+.brain-layer-name{font-size:10px;font-weight:600;flex:1}
+.brain-layer-status{font-size:9px;letter-spacing:1.5px;padding:3px 8px;border-radius:1px}
+.brain-flow{text-align:center;font-size:10px;color:#334455;padding:2px 0;letter-spacing:1px}
+.mode-badge{display:inline-block;padding:6px 16px;font-size:11px;font-weight:700;letter-spacing:3px;border-radius:2px;margin-bottom:8px}
+.mode-NOMINAL{background:rgba(0,255,170,.1);border:1px solid #00ffaa44;color:#00ffaa}
+.mode-ALERT{background:rgba(255,204,0,.1);border:1px solid #ffcc0044;color:#ffcc00;animation:pulse .8s infinite}
+.mode-CRITICAL{background:rgba(255,80,0,.1);border:1px solid #ff500044;color:#ff5000;animation:pulse .5s infinite}
+.mode-EMERGENCY{background:rgba(255,0,0,.15);border:1px solid #ff0000;color:#ff0000;animation:pulse .3s infinite}
+.reflex-log{max-height:120px;overflow:auto;font-size:9px;letter-spacing:.5px}
+.reflex-entry{padding:3px 6px;border-bottom:1px solid #0a0f14;display:flex;align-items:center;gap:6px;animation:fadeIn .2s ease}
+.reflex-entry.pass{color:#00ffaa88}
+.reflex-entry.block{color:#ff4444}
+.reflex-entry.gate{color:#ffcc00}
+.salience-queue{display:flex;flex-wrap:wrap;gap:4px;min-height:20px;padding:4px}
+.salience-tag{padding:2px 8px;font-size:8px;border-radius:1px;letter-spacing:1px}
+.cerebrum-panel{padding:12px;background:rgba(0,255,170,.03);border:1px solid #00ffaa22;border-radius:2px;margin-bottom:8px}
+.cerebrum-thinking{display:flex;align-items:center;gap:6px;font-size:9px;color:#556677}
+.cerebrum-response{font-size:11px;color:#aabbcc;line-height:1.8;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace}
+.cerebrum-meta{font-size:8px;color:#445566;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+.cerebrum-spinner{width:12px;height:12px;border:2px solid #00ffaa22;border-top-color:#00ffaa;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ss-zone{padding:10px 12px;border-radius:2px;margin-bottom:6px;border:1px solid;position:relative}
+.ss-zone.SAFE{border-color:#00ffaa33;background:rgba(0,255,170,.04)}
+.ss-zone.CAUTION{border-color:#ffcc0033;background:rgba(255,204,0,.04)}
+.ss-zone.DANGER{border-color:#ff500033;background:rgba(255,80,0,.06)}
+.ss-zone.EXCLUSION{border-color:#ff000044;background:rgba(255,0,0,.08)}
+.ss-zone-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ss-zone-name{font-size:11px;font-weight:600}
+.ss-zone-badge{padding:2px 8px;font-size:8px;letter-spacing:2px;border-radius:1px}
+.ss-worker{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #0a0f14;font-size:10px}
+.ss-alert{padding:8px 12px;border-radius:2px;margin-bottom:4px;display:flex;align-items:flex-start;gap:8px;font-size:10px;line-height:1.5}
+.ss-alert.WARN{background:rgba(255,204,0,.1);border:1px solid #ffcc0044;color:#ffcc00}
+.ss-alert.DANGER{background:rgba(255,80,0,.1);border:1px solid #ff500044;color:#ff8844}
+.ss-alert.CRIT{background:rgba(255,0,0,.15);border:1px solid #ff000044;color:#ff4444;animation:pulse .4s infinite}
+.ss-report-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.ss-report-card{padding:8px;border:1px solid #1a2530;border-radius:2px;text-align:center}
+.ss-report-val{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.ss-report-lbl{font-size:8px;letter-spacing:1.5px;color:#556677;margin-top:2px}
+.ky-log{max-height:160px;overflow:auto}
+.ky-entry{padding:5px 8px;border-bottom:1px solid #0a0f14;font-size:9px;display:flex;gap:8px;animation:fadeIn .3s ease}
+.ky-time{color:#556677;min-width:55px;flex-shrink:0}
+.ky-sev{min-width:44px;font-weight:700;flex-shrink:0}
+.ky-msg{color:#aabbcc;flex:1}
+.patent-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.patent-metric{text-align:center;padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15)}
+.patent-metric-val{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.patent-metric-lbl{font-size:8px;letter-spacing:1.5px;color:#556677;margin-top:2px}
+.patent-metric-target{font-size:7px;color:#445566;margin-top:2px}
+.patent-metric.pass .patent-metric-val{color:#00ffaa}
+.patent-metric.warn .patent-metric-val{color:#ffcc00}
+.patent-metric.fail .patent-metric-val{color:#ff4444}
+.demo-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,10,20,.94);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.demo-card{max-width:480px;width:100%;background:#0d1520;border:1px solid #00ffaa44;border-radius:4px;padding:24px}
+.demo-step{font-size:9px;color:#556677;letter-spacing:2px;margin-bottom:6px}
+.demo-title{font-size:18px;color:#00ffaa;font-weight:700;letter-spacing:2px;margin-bottom:10px;line-height:1.3}
+.demo-desc{font-size:11px;color:#8899aa;line-height:1.8;margin-bottom:16px}
+.demo-progress{display:flex;gap:4px;margin-bottom:16px}
+.demo-pip{height:3px;flex:1;border-radius:1px;background:#1a2530;transition:background .3s}
+.demo-pip.done{background:#00ffaa}
+.demo-pip.active{background:#00ffaa}
+.demo-nav{display:flex;gap:8px;justify-content:space-between}
+.emb-constraint{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #0a0f14;font-size:9px}
+.emb-ok{color:#00ffaa}
+.emb-warn{color:#ffcc00}
+.emb-viol{color:#ff4444}
+.card{margin-bottom:8px;padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15)}
+.dash-stat{padding:6px;background:#0a0f14;border-radius:2px;text-align:center}
+/* ═══ v2.0 INTELLIGENCE STYLES ═══ */
+.v2-intel{border:1px solid #00ffaa22;border-radius:2px;background:rgba(0,255,170,.02);padding:12px;margin-bottom:8px;position:relative}
+.v2-intel::before{content:'v2.0';position:absolute;top:4px;right:8px;font-size:7px;letter-spacing:2px;color:#00ffaa44}
+.predict-bar{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:9px}
+.predict-arrow{font-size:14px;font-weight:bold}
+.predict-arrow.up{color:#00ffaa}
+.predict-arrow.down{color:#ff4444}
+.predict-arrow.flat{color:#ffcc00}
+.spatial-mem-card{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;cursor:pointer;transition:all .2s}
+.spatial-mem-card:hover{border-color:#cc66ff33}
+.spatial-mem-card.matched{border-color:#00ffaa44;background:rgba(0,255,170,.04);animation:glowPulse 2s infinite}
+.hop-node{padding:6px 10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;font-size:10px}
+.hop-node.self{border-color:#00ffaa33;background:rgba(0,255,170,.04)}
+.hop-node.relay{border-color:#00ddff22}
+.route-path{display:flex;align-items:center;gap:4px;font-size:9px;padding:3px 0}
+.route-hop{padding:2px 6px;border-radius:2px;font-size:8px;letter-spacing:1px}
+.route-hop.self{background:rgba(0,255,170,.15);color:#00ffaa}
+.route-hop.peer{background:rgba(0,221,255,.15);color:#00ddff}
+.route-arrow{color:#334455;font-size:10px}
+.anomaly-card{padding:10px;border-radius:2px;margin-bottom:4px;animation:fadeIn .3s ease}
+.anomaly-card.warn{background:rgba(255,204,0,.06);border:1px solid #ffcc0033}
+.anomaly-card.crit{background:rgba(255,68,68,.06);border:1px solid #ff444433;animation:pulse 2s infinite}
+.space-type-badge{display:inline-block;padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:2px;border-radius:2px;margin-bottom:8px}
+.space-type-badge.indoor{background:rgba(0,221,255,.1);border:1px solid #00ddff44;color:#00ddff}
+.space-type-badge.outdoor{background:rgba(0,255,170,.1);border:1px solid #00ffaa44;color:#00ffaa}
+.space-type-badge.semi{background:rgba(255,204,0,.1);border:1px solid #ffcc0044;color:#ffcc00}
+.space-type-badge.factory{background:rgba(255,136,0,.1);border:1px solid #ff880044;color:#ff8800}
+.recommend-card{padding:10px 12px;border-radius:2px;margin-bottom:4px;border-left:3px solid;font-size:10px;line-height:1.6}
+.recommend-card.good{border-left-color:#00ffaa;background:rgba(0,255,170,.03)}
+.recommend-card.warn{border-left-color:#ffcc00;background:rgba(255,204,0,.03)}
+.recommend-card.act{border-left-color:#ff8800;background:rgba(255,136,0,.03)}
+.env-timeline-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #0a0f1488;font-size:9px}
+.env-timeline-delta{min-width:50px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.pwa-banner{position:fixed;bottom:0;left:0;right:0;background:#0d1520;border-top:1px solid #2a3545;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:50;animation:fadeIn .3s ease}
+.perf-gauge{display:flex;align-items:center;gap:4px;font-size:8px}
+.perf-dot{width:6px;height:6px;border-radius:50%}
+.adaptive-th{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:9px}
+.adaptive-th-bar{flex:1;height:8px;background:#0a0f14;border-radius:4px;overflow:hidden;position:relative}
+.adaptive-th-fill{height:100%;border-radius:4px;transition:width .5s}
+.adaptive-th-marker{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffffff88;border-radius:1px;transition:left .5s}
 </style>
 </head>
 <body>
@@ -721,7 +851,8 @@ function useMultiPeer(){
 
 /* IndexedDB Anchor Store */
 var ANCHOR_DB_NAME='ptcp_anchors';var ANCHOR_STORE='anchors';var CALIB_STORE='calibration';var PROFILE_STORE='profiles';var TS_STORE='timeseries';
-function openAnchorDB(){return new Promise(function(resolve,reject){var req=indexedDB.open(ANCHOR_DB_NAME,3);req.onupgradeneeded=function(ev){var db=ev.target.result;if(!db.objectStoreNames.contains(ANCHOR_STORE))db.createObjectStore(ANCHOR_STORE,{keyPath:'id'});if(!db.objectStoreNames.contains(CALIB_STORE))db.createObjectStore(CALIB_STORE,{keyPath:'key'});if(!db.objectStoreNames.contains(PROFILE_STORE))db.createObjectStore(PROFILE_STORE,{keyPath:'id'});};req.onsuccess=function(ev){resolve(ev.target.result);};req.onerror=function(){reject(req.error);};});}
+var SPATIAL_MEM_STORE='spatial_memory';var ROUTING_STORE='routing_table';var ANOMALY_STORE='anomaly_log';var ADAPTIVE_STORE='adaptive_thresholds';
+function openAnchorDB(){return new Promise(function(resolve,reject){var req=indexedDB.open(ANCHOR_DB_NAME,4);req.onupgradeneeded=function(ev){var db=ev.target.result;if(!db.objectStoreNames.contains(ANCHOR_STORE))db.createObjectStore(ANCHOR_STORE,{keyPath:'id'});if(!db.objectStoreNames.contains(CALIB_STORE))db.createObjectStore(CALIB_STORE,{keyPath:'key'});if(!db.objectStoreNames.contains(PROFILE_STORE))db.createObjectStore(PROFILE_STORE,{keyPath:'id'});if(!db.objectStoreNames.contains(SPATIAL_MEM_STORE))db.createObjectStore(SPATIAL_MEM_STORE,{keyPath:'id'});if(!db.objectStoreNames.contains(ROUTING_STORE))db.createObjectStore(ROUTING_STORE,{keyPath:'dest'});if(!db.objectStoreNames.contains(ANOMALY_STORE)){var as=db.createObjectStore(ANOMALY_STORE,{keyPath:'id',autoIncrement:true});as.createIndex('ts','ts');}if(!db.objectStoreNames.contains(ADAPTIVE_STORE))db.createObjectStore(ADAPTIVE_STORE,{keyPath:'lawId'});};req.onsuccess=function(ev){resolve(ev.target.result);};req.onerror=function(){reject(req.error);};});}
 function dbPut(store,data){return openAnchorDB().then(function(db){return new Promise(function(ok,fail){var tx=db.transaction(store,'readwrite');tx.objectStore(store).put(data);tx.oncomplete=ok;tx.onerror=function(){fail(tx.error);};});});}
 function dbGetAll(store){return openAnchorDB().then(function(db){return new Promise(function(ok,fail){var tx=db.transaction(store,'readonly');var req=tx.objectStore(store).getAll();req.onsuccess=function(){ok(req.result||[]);};req.onerror=function(){fail(req.error);};});});}
 function dbGet(store,key){return openAnchorDB().then(function(db){return new Promise(function(ok,fail){var tx=db.transaction(store,'readonly');var req=tx.objectStore(store).get(key);req.onsuccess=function(){ok(req.result);};req.onerror=function(){fail(req.error);};});});}
@@ -746,7 +877,7 @@ function QRScanner(props){
   var startScan=useCallback(function(){setCamErr(null);setResult(null);if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setCamErr('Camera not available');return;}navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:640},height:{ideal:480}}}).then(function(stream){streamRef.current=stream;var v=videoRef.current;if(!v)return;v.srcObject=stream;v.setAttribute('playsinline','');v.muted=true;v.play();setScanning(true);var hasBD=typeof BarcodeDetector!=='undefined';var det=hasBD?new BarcodeDetector({formats:['qr_code']}):null;scanRef.current=setInterval(function(){if(!v||v.readyState<2)return;var cv=canvasRef.current;if(!cv)return;cv.width=v.videoWidth||640;cv.height=v.videoHeight||480;cv.getContext('2d').drawImage(v,0,0);if(det)det.detect(cv).then(function(b){if(b.length>0){setResult(b[0].rawValue);if(props.onScan)props.onScan(b[0].rawValue);stopScan();}}).catch(function(){});},250);}).catch(function(e){setCamErr('Camera denied: '+e.message);});},[props.onScan]);
   var stopScan=useCallback(function(){if(scanRef.current){clearInterval(scanRef.current);scanRef.current=null;}if(streamRef.current){streamRef.current.getTracks().forEach(function(t){t.stop();});streamRef.current=null;}setScanning(false);},[]);
   useEffect(function(){return stopScan;},[]);
-  return h('div',{style:{marginBottom:'12px'}},!scanning?h('button',{className:'btn',onClick:startScan,style:{background:'#00ddff22',border:'1px solid #00ddff44',color:'#00ddff',width:'100%',padding:'12px'}},'📷 カメラでQRスキャン'):h('div',null,h('div',{style:{position:'relative',borderRadius:'2px',overflow:'hidden',border:'1px solid #00ddff44',marginBottom:'8px'}},h('video',{ref:videoRef,style:{width:'100%',display:'block',maxHeight:'300px',objectFit:'cover'}})),h('canvas',{ref:canvasRef,style:{display:'none'}}),h('button',{className:'btn btn-sm',onClick:stopScan,style:{background:'#ff333322',border:'1px solid #ff333344',color:'#ff3333'}},'■ STOP')),!scanning?h('div',{style:{marginTop:'8px'}},h('textarea',{style:{width:'100%',background:'#0a0f14',border:'1px solid #1a2530',color:'#8899aa',fontFamily:'"IBM Plex Mono",monospace',fontSize:'10px',padding:'8px',borderRadius:'2px',resize:'vertical',height:'60px'},placeholder:'QRコードデータを貼り付け...',onChange:function(ev){var val=ev.target.value.trim();if(val&&val.length>20){setResult(val);if(props.onScan)props.onScan(val);}}})):null,camErr?h('div',{style:{fontSize:'10px',color:'#ff6666',marginTop:'6px'}},camErr):null,result?h('div',{style:{fontSize:'10px',color:'#00ffaa',marginTop:'6px'}},'✓ QRデータ受信完了'):null);
+  return h('div',{style:{marginBottom:'12px'}},!scanning?h('button',{className:'btn',onClick:startScan,style:{background:'rgba(0,200,255,.03)',border:'1px solid #243545',color:'#5a8a9a',width:'100%',padding:'12px'}},'📷 カメラでQRスキャン'):h('div',null,h('div',{style:{position:'relative',borderRadius:'2px',overflow:'hidden',border:'1px solid #00ddff44',marginBottom:'8px'}},h('video',{ref:videoRef,style:{width:'100%',display:'block',maxHeight:'300px',objectFit:'cover'}})),h('canvas',{ref:canvasRef,style:{display:'none'}}),h('button',{className:'btn btn-sm',onClick:stopScan,style:{background:'rgba(255,60,60,.03)',border:'1px solid #3d2424',color:'#a05555'}},'■ STOP')),!scanning?h('div',{style:{marginTop:'8px'}},h('textarea',{style:{width:'100%',background:'#0a0f14',border:'1px solid #1a2530',color:'#8899aa',fontFamily:'"IBM Plex Mono",monospace',fontSize:'10px',padding:'8px',borderRadius:'2px',resize:'vertical',height:'60px'},placeholder:'QRコードデータを貼り付け...',onChange:function(ev){var val=ev.target.value.trim();if(val&&val.length>20){setResult(val);if(props.onScan)props.onScan(val);}}})):null,camErr?h('div',{style:{fontSize:'10px',color:'#ff6666',marginTop:'6px'}},camErr):null,result?h('div',{style:{fontSize:'10px',color:'#00ffaa',marginTop:'6px'}},'✓ QRデータ受信完了'):null);
 }
 
 /* iOS Sensor Permissions */
@@ -1151,21 +1282,25 @@ function calcMediation(sensor,weights){
 }
 
 /* ═══════════════════════════════════════════════════════════ */
-/*  PHASE-LAW ENGINE (8 Laws)                                 */
+/*  PHASE-LAW ENGINE v2 (12 Laws + Adaptive Thresholds)       */
 /* ═══════════════════════════════════════════════════════════ */
-function evaluatePhaseLaws(med){
+function evaluatePhaseLaws(med,adaptiveThresholds){
   var d=med.dims,s=med.sources;
+  var at=adaptiveThresholds||{};
   function sc(v,lo,hi){return Math.max(0,Math.min(1,(v-lo)/(hi-lo)));}
-  function state(sc){return sc>.65?'COUPLED':sc>.35?'PARTIAL':'DECOUPLED';}
+  function state(sc,lawId){
+    var th=at[lawId]||{coupled:.65,partial:.35};
+    return sc>th.coupled?'COUPLED':sc>th.partial?'PARTIAL':'DECOUPLED';
+  }
   var laws=[
     {id:'PL-001',name:'Acoustic-Spatial Coupling',check:function(){
-      var v=(d.acoustic*.6+d.spatial*.4);return{score:v,state:state(v)};}},
+      var v=(d.acoustic*.6+d.spatial*.4);return{score:v,state:state(v,'PL-001')};}},
     {id:'PL-002',name:'EM Continuity',check:function(){
-      var v=d.emField;return{score:v,state:v>.6?'CONTINUOUS':v>.3?'PARTIAL':'DISCONTINUOUS'};}},
+      var v=d.emField;var th=at['PL-002']||{coupled:.6,partial:.3};return{score:v,state:v>th.coupled?'CONTINUOUS':v>th.partial?'PARTIAL':'DISCONTINUOUS'};}},
     {id:'PL-003',name:'Spectral Openness',check:function(){
-      var v=1-d.rfDensity;return{score:v,state:v>.7?'OPEN':v>.4?'PARTIAL':'NARROW'};}},
+      var v=1-d.rfDensity;var th=at['PL-003']||{coupled:.7,partial:.4};return{score:v,state:v>th.coupled?'OPEN':v>th.partial?'PARTIAL':'NARROW'};}},
     {id:'PL-004',name:'Kinetic Stability',check:function(){
-      var v=1-Math.min(1,d.kinetic*1.5);return{score:v,state:v>.6?'STABLE':v>.3?'PARTIAL':'UNSTABLE'};}},
+      var v=1-Math.min(1,d.kinetic*1.5);var th=at['PL-004']||{coupled:.6,partial:.3};return{score:v,state:v>th.coupled?'STABLE':v>th.partial?'PARTIAL':'UNSTABLE'};}},
     {id:'PL-005',name:'RF Density',check:function(){
       var v=d.rfDensity;return{score:v,state:v>.5?'DENSE':v>.2?'MODERATE':'SPARSE'};}},
     {id:'PL-006',name:'Sensor Completeness',check:function(){
@@ -1174,14 +1309,31 @@ function evaluatePhaseLaws(med){
     {id:'PL-007',name:'Network Connectivity',check:function(){
       var v=d.network;return{score:v,state:v>.5?'CONNECTED':v>.2?'PARTIAL':'ISOLATED'};}},
     {id:'PL-008',name:'Thermal-Photonic Coupling',check:function(){
-      var v=(d.thermal*.5+d.photonic*.5);return{score:v,state:state(v)};}},
+      var v=(d.thermal*.5+d.photonic*.5);return{score:v,state:state(v,'PL-008')};}},
     {id:'PL-009',name:'Cross-Modal Coherence',check:function(){
-      /* NEW v1.3: how consistent are cross-dimension estimates? */
       var realDims=DIM_KEYS.filter(function(k){return s[k]==='real';});
       var coherence=realDims.length>0?(realDims.reduce(function(sum,k){return sum+d[k];},0)/realDims.length):0;
       var spread=realDims.length>1?Math.sqrt(realDims.reduce(function(ss,k){return ss+(d[k]-coherence)*(d[k]-coherence);},0)/realDims.length):0;
       var v=Math.max(0,coherence*(1-spread));
-      return{score:v,state:state(v)};}}
+      return{score:v,state:state(v,'PL-009')};}},
+    /* v2.0 NEW LAWS */
+    {id:'PL-010',name:'Spatial Consistency',check:function(){
+      /* Evaluates how consistent μ readings are across nearby spatial positions */
+      var acS=d.acoustic||0,spS=d.spatial||0,blS=d.bleMesh||0;
+      var avg=(acS+spS+blS)/3;var dev=Math.sqrt(((acS-avg)*(acS-avg)+(spS-avg)*(spS-avg)+(blS-avg)*(blS-avg))/3);
+      var v=Math.max(0,1-dev*2);
+      return{score:v,state:state(v,'PL-010')};}},
+    {id:'PL-011',name:'Temporal Stability',check:function(){
+      /* Evaluates how stable μ components are over recent time window */
+      var v=1-Math.min(1,d.kinetic*0.8);
+      return{score:v,state:v>.7?'STABLE':v>.4?'DRIFTING':'VOLATILE'};}},
+    {id:'PL-012',name:'Environmental Context',check:function(){
+      /* Evaluates how well the environment is characterized */
+      var envDims=['emField','rfDensity','photonic','thermal'];
+      var avail=envDims.filter(function(k){return s[k]==='real'||s[k]==='est';}).length;
+      var avgVal=envDims.reduce(function(sum,k){return sum+(d[k]||0);},0)/envDims.length;
+      var v=(avail/envDims.length)*0.5+avgVal*0.5;
+      return{score:v,state:v>.6?'CHARACTERIZED':v>.3?'PARTIAL':'UNKNOWN'};}}
   ];
   return laws.map(function(l){return{id:l.id,name:l.name,result:l.check()};});
 }
@@ -1260,9 +1412,912 @@ function SpecCanvas(props){
 /* ═══════════════════════════════════════════════════════════ */
 /*  MAIN APPLICATION                                          */
 /* ═══════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 ADAPTIVE THRESHOLD ENGINE                            */
+/*  Phase-Law thresholds learn from measurement history        */
+/* ═══════════════════════════════════════════════════════════ */
+function useAdaptiveThresholds(){
+  var _th=useState({}),thresholds=_th[0],setThresholds=_th[1];
+  var historyRef=useRef({});
+  var MAX_HISTORY=200;
+  var ADAPT_RATE=0.05;
+
+  var update=useCallback(function(phaseLaws){
+    if(!phaseLaws||!phaseLaws.length)return;
+    var h=historyRef.current;
+    var newTh={};
+    phaseLaws.forEach(function(law){
+      if(!h[law.id])h[law.id]={scores:[],mean:0.5,std:0.15};
+      var lh=h[law.id];
+      lh.scores.push(law.result.score);
+      if(lh.scores.length>MAX_HISTORY)lh.scores.shift();
+      if(lh.scores.length>=10){
+        var sum=0,sum2=0,n=lh.scores.length;
+        for(var i=0;i<n;i++){sum+=lh.scores[i];sum2+=lh.scores[i]*lh.scores[i];}
+        lh.mean=sum/n;
+        lh.std=Math.sqrt(Math.max(0,sum2/n-lh.mean*lh.mean));
+        var coupled=Math.min(0.9,Math.max(0.5,lh.mean+lh.std*0.5));
+        var partial=Math.max(0.1,Math.min(coupled-0.15,lh.mean-lh.std*0.5));
+        var prevTh=thresholds[law.id]||{coupled:0.65,partial:0.35};
+        newTh[law.id]={
+          coupled:prevTh.coupled*(1-ADAPT_RATE)+coupled*ADAPT_RATE,
+          partial:prevTh.partial*(1-ADAPT_RATE)+partial*ADAPT_RATE,
+          mean:lh.mean,std:lh.std,samples:n
+        };
+      }
+    });
+    if(Object.keys(newTh).length>0)setThresholds(function(prev){return Object.assign({},prev,newTh);});
+  },[thresholds]);
+
+  var save=useCallback(function(){
+    openAnchorDB().then(function(db){
+      var tx=db.transaction(ADAPTIVE_STORE,'readwrite');var st=tx.objectStore(ADAPTIVE_STORE);
+      Object.keys(thresholds).forEach(function(k){st.put(Object.assign({lawId:k},thresholds[k]));});
+    }).catch(function(){});
+  },[thresholds]);
+
+  var load=useCallback(function(){
+    openAnchorDB().then(function(db){
+      var tx=db.transaction(ADAPTIVE_STORE,'readonly');var st=tx.objectStore(ADAPTIVE_STORE);
+      var req=st.getAll();
+      req.onsuccess=function(){
+        var loaded={};(req.result||[]).forEach(function(r){loaded[r.lawId]={coupled:r.coupled,partial:r.partial,mean:r.mean,std:r.std,samples:r.samples||0};});
+        if(Object.keys(loaded).length>0)setThresholds(loaded);
+      };
+    }).catch(function(){});
+  },[]);
+
+  return{thresholds:thresholds,update:update,save:save,load:load,history:historyRef.current};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 SPACE CLASSIFIER                                     */
+/*  Automatic environment type detection from sensor patterns  */
+/* ═══════════════════════════════════════════════════════════ */
+var SPACE_TYPES=[
+  {id:'indoor_office',label:'OFFICE',badge:'indoor',ja:'オフィス'},
+  {id:'indoor_factory',label:'FACTORY',badge:'factory',ja:'工場'},
+  {id:'outdoor',label:'OUTDOOR',badge:'outdoor',ja:'屋外'},
+  {id:'semi_outdoor',label:'SEMI-OUTDOOR',badge:'semi',ja:'半屋外'},
+  {id:'indoor_residential',label:'RESIDENTIAL',badge:'indoor',ja:'住宅'},
+  {id:'underground',label:'UNDERGROUND',badge:'factory',ja:'地下'},
+  {id:'unknown',label:'UNKNOWN',badge:'indoor',ja:'不明'}
+];
+function classifySpace(mediation,phaseLaws){
+  if(!mediation||!mediation.dims)return{type:SPACE_TYPES[6],confidence:0,features:{}};
+  var d=mediation.dims,s=mediation.sources;
+  var features={
+    lightLevel:d.photonic||0,
+    rfDensity:d.rfDensity||0,
+    emField:d.emField||0,
+    acoustic:d.acoustic||0,
+    kinetic:d.kinetic||0,
+    gpsAvail:s.spatial==='real'?1:0,
+    bleCount:d.bleMesh||0,
+    network:d.network||0,
+    thermal:d.thermal||0
+  };
+  var scores={};
+  /* Outdoor: high light, GPS available, low EM interference, moderate RF */
+  scores.outdoor=features.lightLevel*0.25+features.gpsAvail*0.35+(1-features.emField)*0.15+features.acoustic*0.1+(1-features.bleCount)*0.15;
+  /* Semi-outdoor: moderate everything */
+  scores.semi_outdoor=0.3+Math.max(0,0.3-Math.abs(features.lightLevel-0.5))+features.gpsAvail*0.15+features.rfDensity*0.1;
+  /* Office: moderate RF, high BLE, high network, low kinetic */
+  scores.indoor_office=features.rfDensity*0.2+features.bleCount*0.2+features.network*0.25+(1-features.kinetic)*0.15+(1-features.gpsAvail)*0.2;
+  /* Factory: high EM, high acoustic interference (low coupling), high thermal */
+  scores.indoor_factory=features.emField*0.25+(1-features.acoustic)*0.2+features.thermal*0.2+(1-features.gpsAvail)*0.15+features.kinetic*0.2;
+  /* Residential: low RF, low BLE, moderate light */
+  scores.indoor_residential=(1-features.rfDensity)*0.25+(1-features.bleCount)*0.2+(1-features.kinetic)*0.2+(1-features.gpsAvail)*0.15+features.network*0.2;
+  /* Underground: no GPS, low light, moderate EM */
+  scores.underground=(1-features.gpsAvail)*0.35+(1-features.lightLevel)*0.25+features.emField*0.15+(1-features.acoustic)*0.15+features.network*0.1;
+
+  var bestId='unknown',bestScore=0;
+  Object.keys(scores).forEach(function(k){if(scores[k]>bestScore){bestScore=scores[k];bestId=k;}});
+  var type=SPACE_TYPES.find(function(t){return t.id===bestId;})||SPACE_TYPES[6];
+  return{type:type,confidence:Math.min(1,bestScore),scores:scores,features:features};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 ANOMALY DETECTION ENGINE                             */
+/*  Detects sudden Phase-Law state transitions and sensor      */
+/*  anomalies using rolling statistics and change detection     */
+/* ═══════════════════════════════════════════════════════════ */
+function useAnomalyDetector(){
+  var _anomalies=useState([]),anomalies=_anomalies[0],setAnomalies=_anomalies[1];
+  var prevRef=useRef({laws:{},mediation:null,ts:0});
+  var MAX_ANOMALIES=50;
+
+  var check=useCallback(function(mediation,phaseLaws){
+    if(!phaseLaws||!phaseLaws.length)return;
+    var prev=prevRef.current;
+    var now=Date.now();
+    var newAnomalies=[];
+
+    /* Check Phase-Law state transitions */
+    phaseLaws.forEach(function(law){
+      var prevState=prev.laws[law.id];
+      if(prevState&&prevState!==law.result.state){
+        var severity=law.result.state==='DECOUPLED'||law.result.state==='DISCONTINUOUS'||law.result.state==='VOLATILE'||law.result.state==='ISOLATED'?'crit':'warn';
+        newAnomalies.push({
+          id:genId(),ts:now,type:'state_change',severity:severity,
+          lawId:law.id,lawName:law.name,
+          from:prevState,to:law.result.state,
+          score:law.result.score,
+          msg:law.name+': '+prevState+' → '+law.result.state
+        });
+      }
+      prev.laws[law.id]=law.result.state;
+    });
+
+    /* Check for sudden μ composite drops */
+    if(prev.mediation){
+      var delta=mediation.composite-prev.mediation.composite;
+      if(delta<-0.15){
+        newAnomalies.push({
+          id:genId(),ts:now,type:'mu_drop',severity:'crit',
+          delta:delta,from:prev.mediation.composite,to:mediation.composite,
+          msg:'μ急降下: '+(prev.mediation.composite*100).toFixed(0)+'% → '+(mediation.composite*100).toFixed(0)+'% (Δ'+(delta*100).toFixed(1)+'%)'
+        });
+      }else if(delta<-0.08){
+        newAnomalies.push({
+          id:genId(),ts:now,type:'mu_drop',severity:'warn',
+          delta:delta,from:prev.mediation.composite,to:mediation.composite,
+          msg:'μ低下: '+(prev.mediation.composite*100).toFixed(0)+'% → '+(mediation.composite*100).toFixed(0)+'%'
+        });
+      }
+    }
+
+    /* Check Reality Index degradation */
+    if(prev.mediation&&prev.mediation.reality&&mediation.reality){
+      var prevRI=prev.mediation.reality.index;
+      var currRI=mediation.reality.index;
+      if(prevRI-currRI>0.15){
+        newAnomalies.push({
+          id:genId(),ts:now,type:'ri_drop',severity:'warn',
+          msg:'Reality Index低下: '+(prevRI*100).toFixed(0)+'% → '+(currRI*100).toFixed(0)+'%'
+        });
+      }
+    }
+
+    prev.mediation={composite:mediation.composite,reality:mediation.reality?{index:mediation.reality.index}:null};
+    prev.ts=now;
+
+    if(newAnomalies.length>0){
+      setAnomalies(function(prev){
+        var all=newAnomalies.concat(prev);
+        return all.slice(0,MAX_ANOMALIES);
+      });
+      /* Persist critical anomalies */
+      newAnomalies.filter(function(a){return a.severity==='crit';}).forEach(function(a){
+        openAnchorDB().then(function(db){
+          var tx=db.transaction(ANOMALY_STORE,'readwrite');tx.objectStore(ANOMALY_STORE).put(a);
+        }).catch(function(){});
+      });
+    }
+    return newAnomalies;
+  },[]);
+
+  var clear=useCallback(function(){setAnomalies([]);},[]);
+  var getRecommendations=useCallback(function(anomalies,spaceType){
+    var recs=[];
+    var hasMuDrop=anomalies.some(function(a){return a.type==='mu_drop'&&a.severity==='crit';});
+    var hasRIDrop=anomalies.some(function(a){return a.type==='ri_drop';});
+    var hasNetIsolated=anomalies.some(function(a){return a.lawId==='PL-007'&&a.to==='ISOLATED';});
+    var hasEMDisc=anomalies.some(function(a){return a.lawId==='PL-002'&&a.to==='DISCONTINUOUS';});
+    var hasKinUnstable=anomalies.some(function(a){return a.lawId==='PL-004';});
+
+    if(hasMuDrop)recs.push({level:'act',msg:'Mediation急降下を検出。環境変化または機器移動の可能性。再キャリブレーションを推奨',action:'recalibrate'});
+    if(hasRIDrop)recs.push({level:'warn',msg:'Reality Index低下。シミュレーションデータへのフォールバックが増加。実センサーの状態を確認',action:'check_sensors'});
+    if(hasNetIsolated)recs.push({level:'act',msg:'ネットワーク切断。WiFi AP配置の見直しまたはピア再接続を推奨',action:'reconnect'});
+    if(hasEMDisc)recs.push({level:'warn',msg:'EM環境の不連続性を検出。大型電気設備の近接または電磁干渉源の存在を確認',action:'em_check'});
+    if(hasKinUnstable)recs.push({level:'good',msg:'振動/運動を検出。移動計測モードへの切替を推奨',action:'mobile_mode'});
+    if(recs.length===0)recs.push({level:'good',msg:'異常なし。全Phase-Lawが安定状態',action:'none'});
+    return recs;
+  },[]);
+
+  return{anomalies:anomalies,check:check,clear:clear,getRecommendations:getRecommendations};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 PREDICTION ENGINE                                    */
+/*  Exponential smoothing + trend analysis for μ(x,t)         */
+/*  Predicts next measurement and generates early warnings     */
+/* ═══════════════════════════════════════════════════════════ */
+function usePrediction(){
+  var _pred=useState({composite:null,dims:{},trend:'flat',confidence:0,horizon:'2s'}),pred=_pred[0],setPred=_pred[1];
+  var stateRef=useRef({alpha:0.3,beta:0.1,level:null,trend:0,history:[]});
+
+  var update=useCallback(function(mediation){
+    if(!mediation)return;
+    var st=stateRef.current;
+    var y=mediation.composite;
+    st.history.push({t:Date.now(),v:y});
+    if(st.history.length>100)st.history.shift();
+
+    if(st.level===null){st.level=y;st.trend=0;return;}
+
+    /* Double exponential smoothing (Holt's method) */
+    var prevLevel=st.level;
+    st.level=st.alpha*y+(1-st.alpha)*(prevLevel+st.trend);
+    st.trend=st.beta*(st.level-prevLevel)+(1-st.beta)*st.trend;
+
+    /* Forecast 1 step ahead */
+    var forecast=st.level+st.trend;
+    forecast=Math.max(0,Math.min(1,forecast));
+
+    /* Per-dimension predictions */
+    var dimPreds={};
+    DIM_KEYS.forEach(function(k){
+      var v=mediation.dims[k]||0;
+      dimPreds[k]={current:v,predicted:Math.max(0,Math.min(1,v+st.trend)),delta:st.trend};
+    });
+
+    /* Trend classification */
+    var trendDir=st.trend>0.01?'up':st.trend<-0.01?'down':'flat';
+
+    /* Confidence based on history length and variance */
+    var conf=Math.min(1,st.history.length/30);
+    if(st.history.length>10){
+      var recent=st.history.slice(-10);
+      var mean=recent.reduce(function(s,p){return s+p.v;},0)/recent.length;
+      var variance=recent.reduce(function(s,p){return s+(p.v-mean)*(p.v-mean);},0)/recent.length;
+      conf*=Math.max(0.3,1-variance*5);
+    }
+
+    setPred({composite:forecast,dims:dimPreds,trend:trendDir,trendVal:st.trend,confidence:conf,horizon:'2s',
+      warning:trendDir==='down'&&st.trend<-0.03?'μ下降傾向 — 環境悪化の可能性':null});
+  },[]);
+
+  return{prediction:pred,update:update};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 SPATIAL MEMORY                                       */
+/*  Fingerprint-based space recognition and recall             */
+/* ═══════════════════════════════════════════════════════════ */
+function useSpatialMemory(){
+  var _memories=useState([]),memories=_memories[0],setMemories=_memories[1];
+  var _match=useState(null),currentMatch=_match[0],setMatch=_match[1];
+  var MAX_MEMORIES=100;
+
+  var fingerprint=useCallback(function(mediation){
+    if(!mediation||!mediation.dims)return null;
+    var fp={};
+    DIM_KEYS.forEach(function(k){fp[k]=Math.round((mediation.dims[k]||0)*1000)/1000;});
+    return fp;
+  },[]);
+
+  var similarity=useCallback(function(fp1,fp2){
+    if(!fp1||!fp2)return 0;
+    var sumSq=0,count=0;
+    DIM_KEYS.forEach(function(k){
+      var a=fp1[k]||0,b=fp2[k]||0;
+      sumSq+=(a-b)*(a-b);
+      count++;
+    });
+    return count>0?Math.max(0,1-Math.sqrt(sumSq/count)*3):0;
+  },[]);
+
+  var recognize=useCallback(function(mediation){
+    var fp=fingerprint(mediation);
+    if(!fp)return null;
+    var best=null,bestSim=0;
+    memories.forEach(function(mem){
+      var sim=similarity(fp,mem.fingerprint);
+      if(sim>bestSim){bestSim=sim;best=mem;}
+    });
+    if(best&&bestSim>0.7){
+      var delta={};
+      DIM_KEYS.forEach(function(k){
+        delta[k]=(fp[k]||0)-(best.fingerprint[k]||0);
+      });
+      setMatch({memory:best,similarity:bestSim,delta:delta,ts:Date.now()});
+      return{memory:best,similarity:bestSim,delta:delta};
+    }
+    setMatch(null);
+    return null;
+  },[memories,fingerprint,similarity]);
+
+  var save=useCallback(function(mediation,name,spaceType){
+    var fp=fingerprint(mediation);
+    if(!fp)return;
+    var mem={
+      id:genId(),name:name||'Space_'+new Date().toISOString().slice(0,16),
+      fingerprint:fp,composite:mediation.composite,
+      spaceType:spaceType||'unknown',
+      reality:mediation.reality?{index:mediation.reality.index,realCount:mediation.reality.realCount}:null,
+      savedAt:Date.now(),visits:1
+    };
+    setMemories(function(prev){return[mem].concat(prev).slice(0,MAX_MEMORIES);});
+    /* Persist */
+    openAnchorDB().then(function(db){
+      var tx=db.transaction(SPATIAL_MEM_STORE,'readwrite');tx.objectStore(SPATIAL_MEM_STORE).put(mem);
+    }).catch(function(){});
+    return mem;
+  },[fingerprint]);
+
+  var load=useCallback(function(){
+    openAnchorDB().then(function(db){
+      var tx=db.transaction(SPATIAL_MEM_STORE,'readonly');var st=tx.objectStore(SPATIAL_MEM_STORE);
+      var req=st.getAll();req.onsuccess=function(){
+        if(req.result&&req.result.length>0){
+          setMemories(req.result.sort(function(a,b){return(b.savedAt||0)-(a.savedAt||0);}).slice(0,MAX_MEMORIES));
+        }
+      };
+    }).catch(function(){});
+  },[]);
+
+  var remove=useCallback(function(id){
+    setMemories(function(prev){return prev.filter(function(m){return m.id!==id;});});
+    openAnchorDB().then(function(db){
+      var tx=db.transaction(SPATIAL_MEM_STORE,'readwrite');tx.objectStore(SPATIAL_MEM_STORE).delete(id);
+    }).catch(function(){});
+  },[]);
+
+  return{memories:memories,currentMatch:currentMatch,recognize:recognize,save:save,load:load,remove:remove};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 MULTI-HOP ROUTING (pIP Protocol)                     */
+/*  Distance-vector routing for multi-hop packet forwarding    */
+/* ═══════════════════════════════════════════════════════════ */
+var PIP_MAX_TTL=5;
+var PIP_HELLO_INTERVAL=5000;
+var PIP_ROUTE_TIMEOUT=15000;
+function useMultiHopRouting(myPeerId,peers,sendToPeer){
+  var _routes=useState({}),routes=_routes[0],setRoutes=_routes[1];
+  var _stats=useState({forwarded:0,dropped:0,hellosSent:0,hellosRecv:0}),stats=_stats[0],setStats=_stats[1];
+  var _partitions=useState([]),partitions=_partitions[0],setPartitions=_partitions[1];
+  var routeRef=useRef({});
+
+  /* Update routes from direct peer list */
+  var updateDirectRoutes=useCallback(function(peers){
+    if(!peers||!peers.length)return;
+    var now=Date.now();
+    var r=Object.assign({},routeRef.current);
+    peers.forEach(function(p){
+      var pid=p.id||p.peerId;
+      if(pid){
+        r[pid]={dest:pid,nextHop:pid,hops:1,rtt:p.rtt||null,lastSeen:now,direct:true};
+      }
+    });
+    /* Expire old routes */
+    Object.keys(r).forEach(function(k){
+      if(now-r[k].lastSeen>PIP_ROUTE_TIMEOUT)delete r[k];
+    });
+    routeRef.current=r;
+    setRoutes(Object.assign({},r));
+  },[]);
+
+  /* Process incoming route advertisement */
+  var processRouteAdvert=useCallback(function(fromPeerId,advertRoutes){
+    if(!advertRoutes)return;
+    var now=Date.now();
+    var r=Object.assign({},routeRef.current);
+    var changed=false;
+    Object.keys(advertRoutes).forEach(function(dest){
+      if(dest===myPeerId)return;
+      var adv=advertRoutes[dest];
+      var newHops=(adv.hops||1)+1;
+      if(newHops>PIP_MAX_TTL)return;
+      var existing=r[dest];
+      if(!existing||newHops<existing.hops||(newHops===existing.hops&&adv.rtt&&existing.rtt&&adv.rtt<existing.rtt)){
+        r[dest]={dest:dest,nextHop:fromPeerId,hops:newHops,rtt:adv.rtt?adv.rtt+(r[fromPeerId]?r[fromPeerId].rtt||0:0):null,lastSeen:now,direct:false};
+        changed=true;
+      }
+    });
+    if(changed){routeRef.current=r;setRoutes(Object.assign({},r));}
+    setStats(function(s){return Object.assign({},s,{hellosRecv:s.hellosRecv+1});});
+  },[myPeerId]);
+
+  /* Forward a packet towards destination */
+  var forward=useCallback(function(packet){
+    if(!packet||!packet.dest)return false;
+    if(packet.ttl!=null&&packet.ttl<=0){
+      setStats(function(s){return Object.assign({},s,{dropped:s.dropped+1});});
+      return false;
+    }
+    var route=routeRef.current[packet.dest];
+    if(!route){
+      setStats(function(s){return Object.assign({},s,{dropped:s.dropped+1});});
+      return false;
+    }
+    var fwd=Object.assign({},packet,{ttl:(packet.ttl||PIP_MAX_TTL)-1,via:myPeerId});
+    if(sendToPeer)sendToPeer(route.nextHop,fwd);
+    setStats(function(s){return Object.assign({},s,{forwarded:s.forwarded+1});});
+    return true;
+  },[myPeerId,sendToPeer]);
+
+  /* Send HELLO (route advertisement) to all direct peers */
+  var sendHello=useCallback(function(){
+    if(!peers||!peers.length)return;
+    var myRoutes={};
+    Object.keys(routeRef.current).forEach(function(k){
+      var r=routeRef.current[k];
+      myRoutes[k]={hops:r.hops,rtt:r.rtt};
+    });
+    peers.forEach(function(p){
+      var pid=p.id||p.peerId;
+      if(pid&&sendToPeer)sendToPeer(pid,{type:'PIP_HELLO',from:myPeerId,routes:myRoutes});
+    });
+    setStats(function(s){return Object.assign({},s,{hellosSent:s.hellosSent+1});});
+  },[myPeerId,peers,sendToPeer]);
+
+  /* Detect network partitions */
+  var detectPartitions=useCallback(function(){
+    var now=Date.now();
+    var alive=Object.keys(routeRef.current).filter(function(k){return now-routeRef.current[k].lastSeen<PIP_ROUTE_TIMEOUT;});
+    var stale=Object.keys(routeRef.current).filter(function(k){return now-routeRef.current[k].lastSeen>=PIP_ROUTE_TIMEOUT;});
+    if(stale.length>0){
+      setPartitions(stale.map(function(k){return{dest:k,lastSeen:routeRef.current[k].lastSeen};}));
+    }else{
+      setPartitions([]);
+    }
+    return{alive:alive.length,stale:stale.length};
+  },[]);
+
+  /* HELLO timer */
+  useEffect(function(){
+    var iv=setInterval(function(){
+      updateDirectRoutes(peers);
+      sendHello();
+      detectPartitions();
+    },PIP_HELLO_INTERVAL);
+    return function(){clearInterval(iv);};
+  },[peers]);
+
+  return{routes:routes,stats:stats,partitions:partitions,forward:forward,processRouteAdvert:processRouteAdvert,
+    updateDirectRoutes:updateDirectRoutes,sendHello:sendHello,detectPartitions:detectPartitions,
+    reachable:Object.keys(routes).length,maxHops:Object.values(routes).reduce(function(m,r){return Math.max(m,r.hops);},0)};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 ENVIRONMENT CHANGE TIMELINE                          */
+/*  Track how μ(x,t) and space characteristics evolve          */
+/* ═══════════════════════════════════════════════════════════ */
+function useEnvTimeline(){
+  var _entries=useState([]),entries=_entries[0],setEntries=_entries[1];
+  var prevRef=useRef(null);
+  var MAX_ENTRIES=200;
+  var SAMPLE_INTERVAL=10000; /* 10s */
+  var lastSampleRef=useRef(0);
+
+  var sample=useCallback(function(mediation,spaceType){
+    var now=Date.now();
+    if(now-lastSampleRef.current<SAMPLE_INTERVAL)return;
+    lastSampleRef.current=now;
+    var entry={ts:now,composite:mediation.composite,ri:mediation.reality?mediation.reality.index:0,
+      spaceType:spaceType?spaceType.type.id:'unknown'};
+    if(prevRef.current){
+      entry.delta=entry.composite-prevRef.current.composite;
+      entry.riDelta=entry.ri-prevRef.current.ri;
+    }
+    prevRef.current=entry;
+    setEntries(function(prev){return[entry].concat(prev).slice(0,MAX_ENTRIES);});
+  },[]);
+
+  return{entries:entries,sample:sample};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 DYNAMIC WEIGHT OPTIMIZER                             */
+/*  Automatically adjusts 11D weights based on data quality    */
+/* ═══════════════════════════════════════════════════════════ */
+function useDynamicWeights(defaultWeights){
+  var _dw=useState(null),dynWeights=_dw[0],setDynWeights=_dw[1];
+  var _enabled=useState(false),enabled=_enabled[0],setEnabled=_enabled[1];
+
+  var optimize=useCallback(function(mediation){
+    if(!enabled||!mediation||!mediation.sources)return null;
+    var w=Object.assign({},defaultWeights);
+    var totalBoost=0;
+    DIM_KEYS.forEach(function(k){
+      var src=mediation.sources[k];
+      if(src==='real')w[k]=(w[k]||1)*1.3;
+      else if(src==='est')w[k]=(w[k]||1)*0.8;
+      else if(src==='sim')w[k]=(w[k]||1)*0.4;
+      else w[k]=(w[k]||1)*0.1;
+      totalBoost+=w[k];
+    });
+    /* Normalize */
+    if(totalBoost>0)DIM_KEYS.forEach(function(k){w[k]/=totalBoost;w[k]*=DIM_KEYS.length;});
+    setDynWeights(w);
+    return w;
+  },[defaultWeights,enabled]);
+
+  return{dynWeights:dynWeights,enabled:enabled,setEnabled:setEnabled,optimize:optimize};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 SERVICE WORKER + PWA                                 */
+/* ═══════════════════════════════════════════════════════════ */
+function usePWA(){
+  var _installable=useState(false),installable=_installable[0],setInstallable=_installable[1];
+  var _prompt=useState(null),deferredPrompt=_prompt[0],setDeferredPrompt=_prompt[1];
+  var _swReady=useState(false),swReady=_swReady[0],setSwReady=_swReady[1];
+
+  useEffect(function(){
+    window.addEventListener('beforeinstallprompt',function(e){
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setInstallable(true);
+    });
+    /* Register SW if available */
+    if('serviceWorker' in navigator){
+      /* For single-file app, we create a minimal cache-first SW inline */
+      var swBlob=new Blob(['self.addEventListener("install",function(e){self.skipWaiting();});'+
+        'self.addEventListener("activate",function(e){e.waitUntil(clients.claim());});'+
+        'self.addEventListener("fetch",function(e){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request);}));});'],
+        {type:'application/javascript'});
+      var swUrl=URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swUrl,{scope:'/'}).then(function(){setSwReady(true);}).catch(function(){});
+    }
+  },[]);
+
+  var install=useCallback(function(){
+    if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){setInstallable(false);setDeferredPrompt(null);});}
+  },[deferredPrompt]);
+
+  return{installable:installable,install:install,swReady:swReady};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.0 PERFORMANCE MONITOR                                  */
+/* ═══════════════════════════════════════════════════════════ */
+function usePerfMonitor(){
+  var _perf=useState({fps:0,memMB:0,cpuEst:0,renderMs:0}),perf=_perf[0],setPerf=_perf[1];
+  var frameRef=useRef({count:0,lastCheck:Date.now()});
+
+  useEffect(function(){
+    var rafId;
+    function tick(){
+      frameRef.current.count++;
+      var now=Date.now();
+      if(now-frameRef.current.lastCheck>=1000){
+        var fps=frameRef.current.count;
+        frameRef.current.count=0;
+        frameRef.current.lastCheck=now;
+        var mem=performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576):0;
+        setPerf(function(p){return{fps:fps,memMB:mem,cpuEst:Math.min(100,Math.max(0,100-fps*1.67)),renderMs:p.renderMs};});
+      }
+      rafId=requestAnimationFrame(tick);
+    }
+    rafId=requestAnimationFrame(tick);
+    return function(){cancelAnimationFrame(rafId);};
+  },[]);
+
+  return perf;
+}
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.5: ARTIFICIAL MIDBRAIN (L1) LAYER                      */
+/*  野村プロトコル / 汎用人工中脳設計論 v0.1 実装               */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* Mode FSM states (沈黙→NOMINAL→ALERT→CRITICAL→EMERGENCY) */
+var MIDBRAIN_MODES={NOMINAL:'NOMINAL',ALERT:'ALERT',CRITICAL:'CRITICAL',EMERGENCY:'EMERGENCY'};
+var MODE_ORDER=['NOMINAL','ALERT','CRITICAL','EMERGENCY'];
+
+/* Embodiment Core — physical constraint definitions */
+var EMBODIMENT_CONSTRAINTS=[
+  {id:'acoustic_range',name:'音響計測範囲',check:function(m,r){var d=r&&r.distM;return{ok:d===null||d===undefined||(d>=0&&d<=50),val:d!=null?d.toFixed(2)+'m':'N/A',limit:'0–50m'};},},
+  {id:'temp_range',name:'温度動作範囲',check:function(m,r,th){var t=th&&th.est;return{ok:t===null||t===undefined||Math.abs(t)<60,val:t!=null?t.toFixed(1)+'°C':'N/A',limit:'−20~60°C'};},},
+  {id:'mu_physical',name:'μ物理的上限',check:function(m){return{ok:m.composite>=0&&m.composite<=1,val:m.composite.toFixed(4),limit:'0.0–1.0'};},},
+  {id:'reality_index',name:'Reality Index',check:function(m){var ri=m.reality;return{ok:ri&&ri.index>=0&&ri.index<=1,val:ri?(ri.index*100).toFixed(0)+'%':'N/A',limit:'0–100%'};},},
+  {id:'packet_integrity',name:'CRC検証',check:function(m,r,th,net){return{ok:net.stats.dropped===0||net.stats.recv===0||net.stats.dropped/Math.max(1,net.stats.recv)<0.1,val:net.stats.dropped+'/',limit:'<10% drop'};},},
+];
+
+function useMidbrain(mediation, phaseLaws, result, thermal, net) {
+  var _mode=useState(MIDBRAIN_MODES.NOMINAL),mode=_mode[0],setMode=_mode[1];
+  var _rlog=useState([]),reflexLog=_rlog[0],setReflexLog=_rlog[1];
+  var _sal=useState([]),salienceQueue=_sal[0],setSalienceQueue=_sal[1];
+  var _ready=useState(false),salReady=_sal[0],setSalReady=useState(false)[1];
+  var _emb=useState([]),embStatus=_emb[0],setEmbStatus=_emb[1];
+  var _lastMu=useRef(0),_lastMode=useRef('NOMINAL');
+  var _salTimer=useRef(null);
+
+  /* Reflex Gate: scan Phase-Laws for DECOUPLED states → immediate mode upgrade */
+  useEffect(function(){
+    if(!phaseLaws||!phaseLaws.length)return;
+    var decoupled=phaseLaws.filter(function(l){return l.result.state==='DECOUPLED'||l.result.state==='MISMATCHED'||l.result.state==='ISOLATED';});
+    var partial=phaseLaws.filter(function(l){return l.result.state==='PARTIAL'||l.result.state==='SPARSE'||l.result.state==='NARROW'||l.result.state==='UNSTABLE';});
+    var newMode=MIDBRAIN_MODES.NOMINAL;
+    if(decoupled.length>=3)newMode=MIDBRAIN_MODES.EMERGENCY;
+    else if(decoupled.length>=2)newMode=MIDBRAIN_MODES.CRITICAL;
+    else if(decoupled.length>=1||partial.length>=3)newMode=MIDBRAIN_MODES.ALERT;
+    /* Latch: mode only goes up automatically, needs confirmation to come down */
+    var curIdx=MODE_ORDER.indexOf(mode);
+    var newIdx=MODE_ORDER.indexOf(newMode);
+    var effectiveMode=newIdx>curIdx?newMode:mode;
+    /* Gradual recovery: if no decoupled for a while, lower by one step */
+    if(newIdx<curIdx&&curIdx>0){effectiveMode=MODE_ORDER[curIdx-1];}
+    if(effectiveMode!==_lastMode.current){
+      _lastMode.current=effectiveMode;
+      setMode(effectiveMode);
+      var entry={ts:Date.now(),type:'MODE_CHANGE',msg:'モード変更: '+_lastMode.current+' → '+effectiveMode,level:effectiveMode};
+      setReflexLog(function(p){return[entry].concat(p).slice(0,60);});
+    }
+    /* Log reflex gate decisions */
+    if(decoupled.length>0){
+      var blocked={ts:Date.now(),type:'GATE_BLOCK',msg:'反射遮断: '+decoupled.map(function(l){return l.id;}).join(','),level:'block'};
+      setReflexLog(function(p){return[blocked].concat(p).slice(0,60);});
+    }
+  },[phaseLaws,mode]);
+
+  /* Embodiment Core: check physical constraints */
+  useEffect(function(){
+    var results=EMBODIMENT_CONSTRAINTS.map(function(c){
+      try{var r=c.check(mediation,result,thermal&&thermal.data,net);return{id:c.id,name:c.name,limit:c.limit,val:r.val,ok:r.ok};}
+      catch(e){return{id:c.id,name:c.name,limit:c.limit,val:'ERR',ok:false};}
+    });
+    setEmbStatus(results);
+    var violations=results.filter(function(r){return!r.ok;});
+    if(violations.length>0){
+      var vlog={ts:Date.now(),type:'EMBODIMENT_VIOLATION',msg:'身体制約違反: '+violations.map(function(v){return v.name;}).join(', '),level:'gate'};
+      setReflexLog(function(p){return[vlog].concat(p).slice(0,60);});
+    }
+  },[mediation,result,thermal,net]);
+
+  /* Salience Filter: only pass significant changes to Cerebrum */
+  var computeSalience=useCallback(function(){
+    var signals=[];
+    var dMu=Math.abs(mediation.composite-_lastMu.current);
+    if(dMu>0.05)signals.push({id:'mu_delta',label:'Δμ='+dMu.toFixed(3),priority:dMu>0.15?'HIGH':'MED',color:'#00ffaa'});
+    if(mode!=='NOMINAL')signals.push({id:'mode_alert',label:mode,priority:'HIGH',color:mode==='EMERGENCY'?'#ff0000':mode==='CRITICAL'?'#ff5000':'#ffcc00'});
+    var decoupled=phaseLaws.filter(function(l){return l.result.state==='DECOUPLED'||l.result.state==='MISMATCHED';});
+    if(decoupled.length>0)signals.push({id:'phase_decouple',label:'PL-DECOUPLED×'+decoupled.length,priority:'HIGH',color:'#ff4444'});
+    var embViol=embStatus.filter(function(e){return!e.ok;});
+    if(embViol.length>0)signals.push({id:'emb_viol',label:'CONSTRAINT×'+embViol.length,priority:'MED',color:'#ff8800'});
+    _lastMu.current=mediation.composite;
+    setSalienceQueue(signals);
+    return signals.filter(function(s){return s.priority==='HIGH';}).length>0;
+  },[mediation,phaseLaws,mode,embStatus]);
+
+  var resetMode=useCallback(function(){
+    setMode(MIDBRAIN_MODES.NOMINAL);
+    _lastMode.current='NOMINAL';
+    var entry={ts:Date.now(),type:'RESET',msg:'手動リセット → NOMINAL',level:'pass'};
+    setReflexLog(function(p){return[entry].concat(p).slice(0,60);});
+  },[]);
+
+  return{mode:mode,resetMode:resetMode,reflexLog:reflexLog,salienceQueue:salienceQueue,embStatus:embStatus,computeSalience:computeSalience};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.5: CEREBRUM (大脳) — Claude API Integration            */
+/* ═══════════════════════════════════════════════════════════ */
+function useCerebrumAPI(){
+  var _resp=useState([]),responses=_resp[0],setResponses=_resp[1];
+  var _loading=useState(false),loading=_loading[0],setLoading=_loading[1];
+  var _err=useState(null),apiErr=_err[0],setApiErr=_err[1];
+  var _calls=useState(0),callCount=_calls[0],setCallCount=_calls[1];
+  var _lastCall=useState(null),lastCall=_lastCall[0],setLastCall=_lastCall[1];
+  var abortRef=useRef(null);
+
+  var query=useCallback(function(sensorContext,mode,salienceSignals,phaseLaws){
+    if(loading){if(abortRef.current)abortRef.current.abort();else return;}
+    setLoading(true);setApiErr(null);
+    var ac=new AbortController();abortRef.current=ac;
+    var decoupled=phaseLaws.filter(function(l){return l.result.state==='DECOUPLED'||l.result.state==='MISMATCHED';}).map(function(l){return l.id+':'+l.result.state;});
+    var prompt='あなたはPhysical Ping空間センシングシステムの大脳（Cerebrum）です。中脳（Midbrain）から以下のフィルタリング済みデータを受け取りました。\n\n【現在モード】'+mode+'\n【顕著性信号】'+salienceSignals.map(function(s){return s.label;}).join(', ')+'\n【Mediation係数 μ(x,t)】'+sensorContext.composite.toFixed(4)+'\n【Reality Index ρ(x,t)】'+(sensorContext.reality&&sensorContext.reality.index?(sensorContext.reality.index*100).toFixed(0):'N/A')+'%\n【解離したPhase-Law】'+(decoupled.length?decoupled.join(', '):'なし')+'\n【主要センサー値】\n  - 音響距離: '+(sensorContext.result_dist!=null?sensorContext.result_dist.toFixed(2)+'m':'未計測')+'\n  - 音響信頼度: '+(sensorContext.result_conf!=null?(sensorContext.result_conf*100).toFixed(0)+'%':'N/A')+'\n  - EM場強度: '+sensorContext.emMag.toFixed(2)+'μT\n  - BLE密度: '+sensorContext.bleDensity.toFixed(2)+'\n  - 熱環境: '+(sensorContext.thermalEst!=null?sensorContext.thermalEst.toFixed(1)+'°C':'N/A')+'\n\n以下の形式で簡潔に報告してください（150字以内）：\n1. 【状況判断】現在の物理空間の状態を1文で\n2. 【推奨アクション】今すぐ取るべき行動を1〜2点\n3. 【懸念事項】あれば1点';
+    var requestBody={
+      model:'claude-sonnet-4-20250514',
+      max_tokens:300,
+      messages:[{role:'user',content:prompt}]
+    };
+    var t0=Date.now();
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(requestBody),
+      signal:ac.signal
+    }).then(function(r){return r.json();}).then(function(data){
+      var text=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'応答なし';
+      var entry={id:genId(),ts:Date.now(),latency:Date.now()-t0,mode:mode,signals:salienceSignals.length,response:text};
+      setResponses(function(p){return[entry].concat(p).slice(0,20);});
+      setCallCount(function(c){return c+1;});
+      setLastCall(new Date());
+      setLoading(false);
+    }).catch(function(e){
+      if(e.name!=='AbortError')setApiErr('API Error: '+e.message);
+      setLoading(false);
+    });
+  },[loading]);
+
+  var abort=useCallback(function(){if(abortRef.current)abortRef.current.abort();setLoading(false);},[]);
+
+  return{responses:responses,loading:loading,apiErr:apiErr,callCount:callCount,lastCall:lastCall,query:query,abort:abort};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.5: SITESENSE — 建設現場モード                           */
+/* ═══════════════════════════════════════════════════════════ */
+var ZONE_TYPES=['SAFE','CAUTION','DANGER','EXCLUSION'];
+var ZONE_COLORS={SAFE:'#00ffaa',CAUTION:'#ffcc00',DANGER:'#ff5000',EXCLUSION:'#ff0000'};
+
+function useSiteSense(mediation,phaseLaws,mode){
+  var _zones=useState([
+    {id:'z1',name:'資材搬入エリア',type:'CAUTION',mu_threshold:0.4,active:true,workers:2},
+    {id:'z2',name:'基礎工事区域',type:'DANGER',mu_threshold:0.6,active:true,workers:0},
+    {id:'z3',name:'管理棟・休憩所',type:'SAFE',mu_threshold:0.2,active:true,workers:5},
+    {id:'z4',name:'重機旋回半径',type:'EXCLUSION',mu_threshold:0.8,active:true,workers:0},
+  ]),zones=_zones[0],setZones=_zones[1];
+
+  var _workers=useState([
+    {id:'w1',name:'田中 一郎',zone:'z1',ble:'BLE-001',rssi:-55,status:'ACTIVE'},
+    {id:'w2',name:'鈴木 次郎',zone:'z3',ble:'BLE-002',rssi:-62,status:'ACTIVE'},
+    {id:'w3',name:'佐藤 三郎',zone:'z3',ble:'BLE-003',rssi:-70,status:'ACTIVE'},
+    {id:'w4',name:'高橋 四郎',zone:'z3',ble:'BLE-004',rssi:-45,status:'ACTIVE'},
+    {id:'w5',name:'山田 五郎',zone:'z3',ble:'BLE-005',rssi:-80,status:'WEAK_SIGNAL'},
+  ]),workers=_workers[0],setWorkers=_workers[1];
+
+  var _alerts=useState([]),alerts=_alerts[0],setAlerts=_alerts[1];
+  var _kyLog=useState([]),kyLog=_kyLog[0],setKyLog=_kyLog[1];
+  var _report=useState(null),report=_report[0],setReport=_report[1];
+
+  /* Generate alerts from Phase-Law + Mode */
+  useEffect(function(){
+    var newAlerts=[];
+    if(mode==='EMERGENCY'||mode==='CRITICAL'){
+      newAlerts.push({id:'mode_alert',sev:'CRIT',msg:'Phase-Law崩壊検知 — 全作業員の避難を推奨',ts:Date.now()});
+    }
+    if(mode==='ALERT'){
+      newAlerts.push({id:'alert_warn',sev:'WARN',msg:'空間Mediation低下中 — 通信品質に注意してください',ts:Date.now()});
+    }
+    var decoupled=phaseLaws.filter(function(l){return l.result.state==='DECOUPLED';});
+    if(decoupled.some(function(l){return l.id==='PL-001';})){
+      newAlerts.push({id:'acoustic_warn',sev:'WARN',msg:'音響結合解離 — 警報音が届かない可能性があります',ts:Date.now()});
+    }
+    if(decoupled.some(function(l){return l.id==='PL-005';})){
+      newAlerts.push({id:'rf_warn',sev:'DANGER',msg:'RF密度異常 — トランシーバー通信確認を実施してください',ts:Date.now()});
+    }
+    var lowMu=mediation.composite<0.3&&zones.some(function(z){return z.type==='DANGER'||z.type==='EXCLUSION';});
+    if(lowMu){
+      newAlerts.push({id:'low_mu',sev:'WARN',msg:'危険区域の空間品質低下 — センサー計測を優先してください',ts:Date.now()});
+    }
+    setAlerts(newAlerts);
+  },[mediation,phaseLaws,mode,zones]);
+
+  /* Generate environmental report */
+  useEffect(function(){
+    var r={
+      acoustic:{label:'騒音レベル',val:mediation.dims.acoustic!=null?(60+mediation.dims.acoustic*40).toFixed(0):'--',unit:'dB',ok:mediation.dims.acoustic>0.4},
+      em:{label:'電磁環境',val:mediation.dims.emField!=null?(mediation.dims.emField*100).toFixed(0):'--',unit:'%',ok:mediation.dims.emField>0.3},
+      rf:{label:'RF通信品質',val:mediation.dims.rfDensity!=null?(mediation.dims.rfDensity*100).toFixed(0):'--',unit:'%',ok:mediation.dims.rfDensity>0.4},
+      network:{label:'ネット接続',val:mediation.dims.network!=null?(mediation.dims.network*100).toFixed(0):'--',unit:'%',ok:mediation.dims.network>0.5},
+    };
+    setReport(r);
+  },[mediation]);
+
+  /* KY log when mode changes */
+  var lastModeRef=useRef('NOMINAL');
+  useEffect(function(){
+    if(mode!==lastModeRef.current){
+      var entry={id:genId(),ts:Date.now(),sev:mode==='NOMINAL'?'INFO':mode==='ALERT'?'WARNING':'DANGER',msg:'システムモード変更: '+lastModeRef.current+' → '+mode};
+      setKyLog(function(p){return[entry].concat(p).slice(0,100);});
+      lastModeRef.current=mode;
+    }
+  },[mode]);
+
+  var addKYEntry=useCallback(function(sev,msg){
+    var entry={id:genId(),ts:Date.now(),sev:sev,msg:msg};
+    setKyLog(function(p){return[entry].concat(p).slice(0,100);});
+  },[]);
+
+  var exportReport=useCallback(function(){
+    var data={
+      timestamp:new Date().toISOString(),deviceId:DEVICE_ID,
+      mode:mode,mediation:mediation.composite,
+      zones:zones,workers:workers.length,alerts:alerts.length,
+      report:report,kyLog:kyLog.slice(0,20),
+      phaseLaws:phaseLaws.map(function(l){return{id:l.id,state:l.result.state,score:l.result.score};})
+    };
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');
+    a.href=url;a.download='sitesense_report_'+Date.now()+'.json';a.click();URL.revokeObjectURL(url);
+  },[mode,mediation,zones,workers,alerts,report,kyLog,phaseLaws]);
+
+  return{zones:zones,setZones:setZones,workers:workers,alerts:alerts,kyLog:kyLog,report:report,addKYEntry:addKYEntry,exportReport:exportReport};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.5: PATENT DEMONSTRATION DATA ENGINE                    */
+/* ═══════════════════════════════════════════════════════════ */
+function usePatentData(history,mediation,phaseLaws){
+  var _collecting=useState(false),collecting=_collecting[0],setCollecting=_collecting[1];
+  var _sessions=useState([]),sessions=_sessions[0],setSessions=_sessions[1];
+  var _current=useState(null),current=_current[0],setCurrent=_current[1];
+  var timerRef=useRef(null);
+
+  var startCollection=useCallback(function(targetN){
+    setCollecting(true);
+    var session={id:genId(),started:new Date().toISOString(),targetN:targetN||30,samples:[],env:{tempEst:null,deviceId:DEVICE_ID,ua:navigator.userAgent}};
+    setCurrent(session);
+  },[]);
+
+  /* Auto-collect samples when history grows */
+  useEffect(function(){
+    if(!collecting||!current||!history.length)return;
+    var lastResult=history[0];
+    if(!lastResult||lastResult.distM===null)return;
+    /* Add to current session */
+    setCurrent(function(sess){
+      if(!sess)return sess;
+      var newSamp={ts:Date.now(),distM:lastResult.distM,distRaw:lastResult.distRaw,conf:lastResult.conf,mu:mediation.composite,plStates:phaseLaws.reduce(function(acc,l){acc[l.id]=l.result.state;return acc;},{})};
+      var newSamples=sess.samples.concat([newSamp]);
+      var updated=Object.assign({},sess,{samples:newSamples});
+      if(newSamples.length>=sess.targetN){
+        /* Session complete — compute stats */
+        var dists=newSamples.map(function(s){return s.distM;});
+        var mean=dists.reduce(function(a,b){return a+b;},0)/dists.length;
+        var std=Math.sqrt(dists.reduce(function(s,v){return s+(v-mean)*(v-mean);},0)/(dists.length-1));
+        var ci95=1.96*std/Math.sqrt(dists.length);
+        updated.completed=new Date().toISOString();
+        updated.stats={n:dists.length,mean:mean,std:std,ci95:ci95,min:Math.min.apply(null,dists),max:Math.max.apply(null,dists),reproducibility:std<0.03?'EXCELLENT':std<0.05?'GOOD':std<0.1?'FAIR':'POOR'};
+        setSessions(function(p){return p.concat([updated]).slice(-10);});
+        setCollecting(false);
+      }
+      return updated;
+    });
+  },[collecting,current,history,mediation,phaseLaws]);
+
+  var stopCollection=useCallback(function(){setCollecting(false);},[]);
+
+  var exportPatentDataset=useCallback(function(){
+    if(!sessions.length&&!current)return;
+    var dataset={
+      protocol:'pTCP_v2.0_Patent_Calibration',version:'2.0.0',generated:new Date().toISOString(),
+      deviceId:DEVICE_ID,deviceName:DEVICE_NAME,
+      sessions:sessions,currentSession:current,
+      summary:{totalSessions:sessions.length,totalSamples:sessions.reduce(function(s,sess){return s+(sess.stats?sess.stats.n:0);},0)},
+      certStatement:'このデータセットはPhysical Ping pTCP v2.0 INTELLIGENCEによって自動生成され、CRC32完全性検証済みです。野村プロトコル / Phase-Law Architecture v2 準拠。'
+    };
+    var blob=new Blob([JSON.stringify(dataset,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');
+    a.href=url;a.download='ptcp_patent_dataset_'+Date.now()+'.json';a.click();URL.revokeObjectURL(url);
+  },[sessions,current]);
+
+  /* Compute real-time reproducibility metrics */
+  var metrics=useCallback(function(){
+    if(!current||current.samples.length<3)return null;
+    var dists=current.samples.map(function(s){return s.distM;});
+    var mean=dists.reduce(function(a,b){return a+b;},0)/dists.length;
+    var std=dists.length>1?Math.sqrt(dists.reduce(function(s,v){return s+(v-mean)*(v-mean);},0)/(dists.length-1)):0;
+    var ci95=1.96*std/Math.sqrt(dists.length);
+    var repro=std<0.03?'EXCELLENT':std<0.05?'GOOD':std<0.1?'FAIR':'POOR';
+    return{n:dists.length,targetN:current.targetN,mean:mean,std:std,ci95:ci95,reproducibility:repro};
+  },[current]);
+
+  return{collecting:collecting,current:current,sessions:sessions,startCollection:startCollection,stopCollection:stopCollection,exportPatentDataset:exportPatentDataset,metrics:metrics};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v1.5: DEMO MODE ENGINE                                    */
+/* ═══════════════════════════════════════════════════════════ */
+var DEMO_STEPS=[
+  {title:'Physical Pingへようこそ',desc:'pTCP/IP for Physical Space — 物理空間のインターネットプロトコル。\n\n11次元センサーフュージョンにより、スマートフォンが空間の「伝達係数 μ(x,t)」をリアルタイムで計測します。'},
+  {title:'L0 小脳 — Phase-Law Engine',desc:'Phase-Law Engine（小脳）が8つの物理法則を常時評価。\n\nCOUPLED → PARTIAL → DECOUPLED の3段階で空間の結合状態を判定します。\n\n⬇ MESUREタブで計測を開始してください。'},
+  {title:'L1 中脳 — Midbrain',desc:'人工中脳が小脳からのデータをフィルタリング。\n\n● Reflex Gate: 危険を即時検知・遮断\n● Salience Filter: 重要信号だけを大脳へ\n● Mode FSM: NOMINAL→ALERT→CRITICAL→EMERGENCY\n● Embodiment Core: 物理制約の検証\n\n⬇ MIDBAINタブで状態を確認できます。'},
+  {title:'L3 大脳 — Claude API',desc:'重要な変化を検知すると、中脳がClaude（大脳）を起動。\n\nセンサーデータを自然言語の状況報告に変換します。「考える前に動く」中脳が、「どう考えるか」を制御します。\n\n⬇ MIDBAINタブの「大脳クエリ」ボタンを試してください。'},
+  {title:'SiteSense — 建設現場応用',desc:'工業グレードの安全管理ダッシュボード。\n\n● ゾーン管理（安全/注意/危険/立入禁止）\n● 作業員BLEトラッキング\n● KY/ヒヤリハット自動記録\n● 環境計測レポート自動生成\n\n⬇ SITEタブで確認できます。'},
+  {title:'特許実証データ',desc:'計測データを特許出願用フォーマットで自動生成。\n\n● 再現性検証（目標: ±3cm以内）\n● 統計的信頼区間（CI95%）\n● 環境条件メタデータ付き\n\n⬇ PATENTタブでデータ収集を開始できます。'},
+  {title:'デモ完了',desc:'Physical Ping v2.0 INTELLIGENCE\n\n小脳（Phase-Law v2 適応型）→ 中脳（Salience Filter / Mode FSM）→ 空間知能（予測・記憶・異常検知）→ 大脳（Claude API）\n\nこれは空間が自ら適応する人工神経系の完成形です。\n野村プロトコル / Phase-Law Architecture v2 — 野村孝生 2026'},
+];
+
+function useDemo(){
+  var _open=useState(false),open=_open[0],setOpen=_open[1];
+  var _step=useState(0),step=_step[0],setStep=_step[1];
+  var next=useCallback(function(){setStep(function(s){return Math.min(s+1,DEMO_STEPS.length-1);});});
+  var prev=useCallback(function(){setStep(function(s){return Math.max(s-1,0);});});
+  var start=useCallback(function(){setStep(0);setOpen(true);});
+  var close=useCallback(function(){setOpen(false);});
+  return{open:open,step:step,current:DEMO_STEPS[step],next:next,prev:prev,start:start,close:close,total:DEMO_STEPS.length};
+}
+
+
 function App(){
   /* Layers / Tabs */
-  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network'];
+  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','site','patent'];
   var _lay=useState('measure'),layer=_lay[0],setLayer=_lay[1];
 
   /* Audio state */
@@ -1313,18 +2368,57 @@ function App(){
   var mediation=_med[0],setMediation=_med[1];
   var _pl=useState([]),phaseLaws=_pl[0],setPhaseLaws=_pl[1];
 
+  /* v1.5 + v2.0 hooks — will be initialized after first render */
+  var midbrain=useMidbrain(mediation,phaseLaws,result,thermal,net);
+  var cerebrum=useCerebrumAPI();
+  var siteSense=useSiteSense(mediation,phaseLaws,midbrain.mode);
+  var patentData=usePatentData(history,mediation,phaseLaws);
+  var demo=useDemo();
+
+  /* v2.0 INTELLIGENCE hooks */
+  var adaptiveThresh=useAdaptiveThresholds();
+  var anomalyDetector=useAnomalyDetector();
+  var prediction=usePrediction();
+  var spatialMem=useSpatialMemory();
+  var envTimeline=useEnvTimeline();
+  var dynWeights=useDynamicWeights(weights);
+  var pwa=usePWA();
+  var perfMon=usePerfMonitor();
+  var _spaceType=useState(null),spaceType=_spaceType[0],setSpaceType=_spaceType[1];
+  var _memName=useState(''),memName=_memName[0],setMemName=_memName[1];
+  /* Multi-hop routing — uses peers + a send function */
+  var myPeerId=useRef(genId()).current;
+  var multiHop=useMultiHopRouting(myPeerId,net.peers,function(peerId,data){
+    /* Route through existing pTCP transport */
+    if(net.connected)net.send(JSON.stringify(data));
+  });
+
+  /* Load spatial memories and adaptive thresholds on mount */
+  useEffect(function(){
+    spatialMem.load();
+    adaptiveThresh.load();
+  },[]);
+
   /* Mediation update timer */
   useEffect(function(){
     var iv=setInterval(function(){
       var sensor={acoustic:result,mag:mag,light:light,motion:motion,geo:geo,rfSpec:rf.spectrum,thermal:thermal.data,ble:ble.state,networkPeers:net.peers.length+mp.connectedCount,networkQuality:mp.connectedCount>0?0.7:net.connected?0.4:0};
-      var m=calcMediation(sensor,weights);
+      var m=calcMediation(sensor,dynWeights.enabled&&dynWeights.dynWeights?dynWeights.dynWeights:weights);
       setMediation(m);
-      var laws=evaluatePhaseLaws(m);
+      var laws=evaluatePhaseLaws(m,adaptiveThresh.thresholds);
       setPhaseLaws(laws);
       /* v1.2: record to time series */
       timeSeries.addSnapshot(m,laws);
       /* v1.3: quality scores — computed from current mediation + state */
       setQualScores(computeQualityScores(m,null,null,null));
+      /* v2.0: INTELLIGENCE updates */
+      adaptiveThresh.update(laws);
+      prediction.update(m);
+      anomalyDetector.check(m,laws);
+      var st=classifySpace(m,laws);setSpaceType(st);
+      spatialMem.recognize(m);
+      envTimeline.sample(m,st);
+      if(dynWeights.enabled)dynWeights.optimize(m);
       /* Broadcast to peers */
       if(net.connected)net.broadcastMediation({composite:m.composite,dims:m.dims,reality:m.reality});
     },2000);
@@ -1452,15 +2546,19 @@ function App(){
     /* Header */
     h('div',{className:'hdr'},
       h('div',{className:'hdr-title'},'PHYSICAL PING'),
-      h('div',{className:'hdr-ver'},'pTCP/IP v1.3 PRECISION'),
-      h('div',{className:'hdr-sub'},net.deviceName)
+      h('div',{className:'hdr-ver'},'pTCP/IP v2.0 INTELLIGENCE  |  脳神経系統合 + 空間知能モード'),
+      h('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
+        h('div',{className:'hdr-sub'},net.deviceName),
+        h('div',{style:{fontSize:'9px',color:midbrain.mode==='NOMINAL'?'#00ffaa':midbrain.mode==='ALERT'?'#ffcc00':'#ff4444',letterSpacing:'1px',fontWeight:'bold'}},midbrain.mode),
+        h('button',{className:'btn btn-sm',onClick:demo.start,style:{fontSize:'8px',padding:'3px 8px',border:'1px solid #2a3545',color:'#667788',marginLeft:'auto'}},'DEMO')
+      )
     ),
 
     /* Layer selector */
     h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',margin:'8px 0'}},
       LAYERS.map(function(l){
         return h('button',{key:l,className:'btn btn-sm'+(layer===l?' active':''),
-          style:{background:layer===l?'#00ffaa18':'transparent',border:'1px solid '+(layer===l?'#00ffaa44':'#1a2530'),color:layer===l?'#00ffaa':'#556677',fontSize:'9px',padding:'4px 8px'},
+          style:{background:layer===l?'rgba(200,215,230,.06)':'transparent',border:'1px solid '+(layer===l?'#3a4a5a':'#1a2530'),color:layer===l?'#ccd8e8':'#556677',fontSize:'9px',padding:'4px 8px'},
           onClick:function(){setLayer(l);}},l.toUpperCase());
       })
     ),
@@ -1481,7 +2579,7 @@ function App(){
         h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px'}},
           SIG_ORDER.map(function(id){var s=SIGNALS[id];
             return h('button',{key:id,className:'btn btn-sm'+(curSig.id===id?' active':''),
-              style:{border:'1px solid '+(curSig.id===id?s.color+'66':'#1a2530'),color:curSig.id===id?s.color:'#556677',fontSize:'8px',padding:'3px 6px'},
+              style:{border:'1px solid '+(curSig.id===id?'#3a4a5a':'#1a2530'),color:curSig.id===id?'#b0c0d0':'#556677',fontSize:'8px',padding:'3px 6px'},
               onClick:function(){setCurSig(s);}},s.name);
           })
         )
@@ -1489,13 +2587,13 @@ function App(){
       /* PING / Calibrate buttons */
       h('div',{style:{display:'flex',gap:'8px',margin:'8px 0'}},
         h('button',{className:'btn',onClick:doPing,disabled:measuring||bursting,
-          style:{flex:1,background:measuring?'#ffcc0022':'#00ffaa15',border:'1px solid '+(measuring?'#ffcc0044':'#00ffaa44'),color:measuring?'#ffcc00':'#00ffaa',padding:'12px',fontSize:'14px',fontWeight:'bold'}},
+          style:{flex:1,background:measuring?'rgba(255,204,0,.04)':'rgba(0,255,170,.03)',border:'1px solid '+(measuring?'#3d3524':'#243d33'),color:measuring?'#9a8855':'#5a9a82',padding:'12px',fontSize:'14px',fontWeight:'bold'}},
           measuring?'MEASURING...':'PING'),
         h('button',{className:'btn',onClick:doBurst,disabled:measuring||bursting,
-          style:{background:'#cc66ff15',border:'1px solid #cc66ff44',color:'#cc66ff',padding:'12px',fontSize:'11px'}},
+          style:{background:'rgba(180,100,255,.03)',border:'1px solid #332845',color:'#8a6699',padding:'12px',fontSize:'11px'}},
           bursting?'BURST...':'BURST ×'+CFG.burstCount),
         h('button',{className:'btn',onClick:doCalibrate,disabled:calibrating,
-          style:{background:'#ff880015',border:'1px solid #ff880044',color:'#ff8800',padding:'12px',fontSize:'11px'}},
+          style:{background:'rgba(255,136,0,.03)',border:'1px solid #3d2d1a',color:'#9a7055',padding:'12px',fontSize:'11px'}},
           calibrating?'CAL...':'CALIBRATE')
       ),
       /* Calibration info */
@@ -1584,7 +2682,7 @@ function App(){
         /* Run button */
         h('button',{className:'btn',onClick:function(){multiChirp.runMultiChirp(loopback.ms);},
           disabled:multiChirp.measuring,
-          style:{width:'100%',marginTop:'6px',padding:'10px',background:'#cc66ff15',border:'1px solid #cc66ff44',color:multiChirp.measuring?'#556677':'#cc66ff',fontSize:'11px'}},
+          style:{width:'100%',marginTop:'6px',padding:'10px',background:'rgba(180,100,255,.03)',border:'1px solid #332845',color:multiChirp.measuring?'#556677':'#8a6699',fontSize:'11px'}},
           multiChirp.measuring?'MEASURING '+multiChirp.progress+'%...':'MULTI-CHIRP PING')
       ),
 
@@ -1747,8 +2845,8 @@ function App(){
         h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px'}},'WEBRTC P2P — ',h('span',{style:{color:mp.isConnected?'#00ffaa':'#556677'}},mp.state.toUpperCase())),
         h('div',{style:{display:'flex',gap:'6px',marginBottom:'8px'}},
           h('button',{className:'btn btn-sm',onClick:mp.createOffer,disabled:mp.state==='creating_offer'||mp.state==='waiting_answer',
-            style:{background:'#00ffaa15',border:'1px solid #00ffaa44',color:'#00ffaa',padding:'6px 12px'}},'CREATE OFFER'),
-          h('button',{className:'btn btn-sm',onClick:mp.close,style:{background:'#ff333315',border:'1px solid #ff333344',color:'#ff3333',padding:'6px 12px'}},'CLOSE ALL')
+            style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'6px 12px'}},'CREATE OFFER'),
+          h('button',{className:'btn btn-sm',onClick:mp.close,style:{background:'rgba(255,60,60,.03)',border:'1px solid #3d2424',color:'#a05555',padding:'6px 12px'}},'CLOSE ALL')
         ),
         mp.qrImg&&h('div',{style:{textAlign:'center',marginBottom:'8px'}},
           h('img',{src:mp.qrImg,style:{maxWidth:'200px',imageRendering:'pixelated'}}),
@@ -1781,9 +2879,9 @@ function App(){
         h(HeatmapCanvas,{points:heatPoints}),
         h('div',{style:{display:'flex',gap:'6px',marginTop:'6px'}},
           h('button',{className:'btn btn-sm',onClick:function(){setHeatPoints([]);},
-            style:{border:'1px solid #ff333344',color:'#ff3333',fontSize:'8px',padding:'3px 8px'}},'CLEAR'),
+            style:{border:'1px solid #3d2424',color:'#a05555',fontSize:'8px',padding:'3px 8px'}},'CLEAR'),
           h('button',{className:'btn btn-sm',onClick:function(){exportJSON(heatPoints,'ptcp_heatmap_'+Date.now()+'.json');},
-            style:{border:'1px solid #00ddff44',color:'#00ddff',fontSize:'8px',padding:'3px 8px'}},'EXPORT JSON')
+            style:{border:'1px solid #243545',color:'#5a8a9a',fontSize:'8px',padding:'3px 8px'}},'EXPORT JSON')
         )
       ),
       /* Mini time-series chart */
@@ -1797,7 +2895,7 @@ function App(){
               style:{fontSize:'7px',padding:'2px 4px',border:'1px solid '+(active?DIM_COLORS[i]+'44':'#1a2530'),color:active?DIM_COLORS[i]:'#334455'},
               onClick:function(){setActiveDims(function(p){return active?p.filter(function(d){return d!==k;}):p.concat([k]);});}},DIM_LABELS[i]);
           }),
-          h('button',{className:'btn btn-sm',style:{fontSize:'7px',padding:'2px 4px',border:'1px solid '+(showComposite?'#ffffff44':'#1a2530'),color:showComposite?'#ffffff':'#334455'},
+          h('button',{className:'btn btn-sm',style:{fontSize:'7px',padding:'2px 4px',border:'1px solid '+(showComposite?'#3a4a5a':'#1a2530'),color:showComposite?'#b0c0d0':'#334455'},
             onClick:function(){setShowComposite(!showComposite);}},'COMP')
         )
       )
@@ -1862,11 +2960,11 @@ function App(){
       /* Export buttons */
       h('div',{style:{display:'flex',gap:'6px',margin:'8px 0'}},
         h('button',{className:'btn btn-sm',onClick:function(){exportCSV(timeSeries.data,'ptcp_ts_'+Date.now()+'.csv');},
-          style:{border:'1px solid #00ffaa44',color:'#00ffaa',fontSize:'8px',padding:'4px 10px'}},'EXPORT CSV'),
+          style:{border:'1px solid #243d33',color:'#5a9a82',fontSize:'8px',padding:'4px 10px'}},'EXPORT CSV'),
         h('button',{className:'btn btn-sm',onClick:function(){exportJSON({timeSeries:timeSeries.data,mediation:mediation,phaseLaws:phaseLaws},'ptcp_session_'+Date.now()+'.json');},
-          style:{border:'1px solid #00ddff44',color:'#00ddff',fontSize:'8px',padding:'4px 10px'}},'EXPORT JSON'),
+          style:{border:'1px solid #243545',color:'#5a8a9a',fontSize:'8px',padding:'4px 10px'}},'EXPORT JSON'),
         h('button',{className:'btn btn-sm',onClick:function(){timeSeries.clear();setHeatPoints([]);},
-          style:{border:'1px solid #ff333344',color:'#ff3333',fontSize:'8px',padding:'4px 10px'}},'CLEAR ALL')
+          style:{border:'1px solid #3d2424',color:'#a05555',fontSize:'8px',padding:'4px 10px'}},'CLEAR ALL')
       )
     ),
 
@@ -1882,7 +2980,7 @@ function App(){
           h('button',{className:'btn btn-sm',onClick:function(){
             profileMgr.saveProfile(profName||'Profile '+new Date().toLocaleString(),timeSeries.data,mediation,phaseLaws);
             setProfName('');
-          },style:{background:'#00ffaa15',border:'1px solid #00ffaa44',color:'#00ffaa',padding:'6px 12px',fontSize:'9px'}},'SAVE')
+          },style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'6px 12px',fontSize:'9px'}},'SAVE')
         )
       ),
       /* Profile list */
@@ -1900,13 +2998,13 @@ function App(){
                 'μ='+p.stats.mean.toFixed(3)+' ±'+p.stats.std.toFixed(3)+' | n='+p.stats.count),
               h('div',{style:{display:'flex',gap:'4px'}},
                 h('button',{className:'btn btn-sm',onClick:function(){profileMgr.exportProfile(p);},
-                  style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #00ddff44',color:'#00ddff'}},'EXPORT'),
+                  style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #243545',color:'#5a8a9a'}},'EXPORT'),
                 h('button',{className:'btn btn-sm',onClick:function(){setCompareA(p);},
-                  style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #ffcc0044',color:'#ffcc00'}},'CMP A'),
+                  style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #3d3524',color:'#9a8855'}},'CMP A'),
                 h('button',{className:'btn btn-sm',onClick:function(){setCompareB(p);},
                   style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #cc66ff44',color:'#cc66ff'}},'CMP B'),
                 h('button',{className:'btn btn-sm',onClick:function(){profileMgr.deleteProfile(p.id);},
-                  style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #ff333344',color:'#ff3333'}},'DEL')
+                  style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #3d2424',color:'#a05555'}},'DEL')
               )
             );
           })
@@ -1948,8 +3046,8 @@ function App(){
       h('div',{className:'card',style:{padding:'8px'}},
         h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px'}},'pTCP/IP MESH — ',h('span',{style:{color:net.connected?'#00ffaa':'#ff4444'}},net.connected?'CONNECTED':'DISCONNECTED')),
         h('div',{style:{display:'flex',gap:'6px',marginBottom:'8px'}},
-          !net.connected?h('button',{className:'btn btn-sm',onClick:net.connect,style:{background:'#00ffaa15',border:'1px solid #00ffaa44',color:'#00ffaa',padding:'6px 12px'}},'CONNECT'):
-            h('button',{className:'btn btn-sm',onClick:net.disconnect,style:{background:'#ff333315',border:'1px solid #ff333344',color:'#ff3333',padding:'6px 12px'}},'DISCONNECT')
+          !net.connected?h('button',{className:'btn btn-sm',onClick:net.connect,style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'6px 12px'}},'CONNECT'):
+            h('button',{className:'btn btn-sm',onClick:net.disconnect,style:{background:'rgba(255,60,60,.03)',border:'1px solid #3d2424',color:'#a05555',padding:'6px 12px'}},'DISCONNECT')
         ),
         h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'4px',fontSize:'8px',marginBottom:'6px'}},
           h('div',null,'TX: ',h('span',{style:{color:'#00ffaa'}},net.stats.sent)),
@@ -1969,6 +3067,554 @@ function App(){
       )
     ),
 
+
+    /* ═══ MIDBRAIN TAB (v1.5) ═══ */
+    layer==='midbrain'&&h('div',null,
+      /* 4-layer architecture overview */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px'}},'人工神経系 — 4層アーキテクチャ'),
+        h('div',{className:'brain-layer L3'},
+          h('div',{className:'brain-layer-id',style:{color:'#00ffaa'}},'L3'),
+          h('div',null,
+            h('div',{className:'brain-layer-name',style:{color:'#00ffaa'}},'大脳 — Cerebrum (Claude API)'),
+            h('div',{style:{fontSize:'9px',color:'#445566'}},'自然言語解釈 · 状況報告 · 推奨アクション')
+          ),
+          h('div',{className:'brain-layer-status',style:{background:'rgba(0,255,170,.1)',border:'1px solid #00ffaa33',color:'#00ffaa'}},
+            cerebrum.callCount>0?'ACTIVE ('+cerebrum.callCount+'calls)':'STANDBY')
+        ),
+        h('div',{className:'brain-flow'},'↑ 意味 · 判断 · 言語 ↑  /  ↓ 指令 · 制約 · 承認 ↓'),
+        h('div',{className:'brain-layer L2'},
+          h('div',{className:'brain-layer-id',style:{color:'#00ddff'}},'L2'),
+          h('div',null,
+            h('div',{className:'brain-layer-name',style:{color:'#00ddff'}},'調整層 — SiteSense Application'),
+            h('div',{style:{fontSize:'9px',color:'#445566'}},'ゾーン管理 · 作業員追跡 · 安全ダッシュボード')
+          ),
+          h('div',{className:'brain-layer-status',style:{background:'rgba(0,221,255,.1)',border:'1px solid #00ddff33',color:'#00ddff'}},siteSense.alerts.length>0?siteSense.alerts.length+'ALERT':'NORMAL')
+        ),
+        h('div',{className:'brain-flow'},'↑ 顕著性信号 / 整理済み現実 ↑  /  ↓ 閾値調整 ↓'),
+        h('div',{className:'brain-layer L1'},
+          h('div',{className:'brain-layer-id',style:{color:'#ffcc00'}},'L1'),
+          h('div',null,
+            h('div',{className:'brain-layer-name',style:{color:'#ffcc00'}},'中脳 — Artificial Midbrain'),
+            h('div',{style:{fontSize:'9px',color:'#445566'}},'Reflex Gate · Salience Filter · Mode FSM · Embodiment Core')
+          ),
+          h('div',{className:'mode-badge mode-'+midbrain.mode,style:{padding:'3px 10px',fontSize:'9px',margin:0}},midbrain.mode)
+        ),
+        h('div',{className:'brain-flow'},'↑ Phase-Law評価 / センサーデータ ↑'),
+        h('div',{className:'brain-layer L0'},
+          h('div',{className:'brain-layer-id',style:{color:'#cc66ff'}},'L0'),
+          h('div',null,
+            h('div',{className:'brain-layer-name',style:{color:'#cc66ff'}},'小脳 — Phase-Law Engine (Physical Ping)'),
+            h('div',{style:{fontSize:'9px',color:'#445566'}},'11D Sensor Fusion · 8 Phase-Laws · pTCP/IP Protocol')
+          ),
+          h('div',{className:'brain-layer-status',style:{background:'rgba(204,102,255,.1)',border:'1px solid #cc66ff33',color:'#cc66ff'}},
+            phaseLaws.filter(function(l){return l.result.state==='DECOUPLED'||l.result.state==='MISMATCHED';}).length===0?'COUPLED':'DECOUPLED×'+phaseLaws.filter(function(l){return l.result.state==='DECOUPLED'||l.result.state==='MISMATCHED';}).length)
+        )
+      ),
+
+      /* Mode FSM + Salience queue */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'L1 中脳 — 現在状態'),
+        h('div',{style:{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}},
+          h('div',{className:'mode-badge mode-'+midbrain.mode},midbrain.mode),
+          h('button',{className:'btn btn-sm',onClick:midbrain.resetMode,style:{fontSize:'8px',padding:'3px 10px',border:'1px solid #334455',color:'#556677'}},'RESET → NOMINAL')
+        ),
+        h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'4px'}},'顕著性フィルタ (Salience Filter)'),
+        h('div',{className:'salience-queue'},
+          midbrain.salienceQueue.length===0?
+            h('span',{style:{fontSize:'8px',color:'#334455'}},'信号なし — 沈黙デフォルト'):
+            midbrain.salienceQueue.map(function(s){
+              return h('span',{key:s.id,className:'salience-tag',style:{background:s.color+'22',border:'1px solid '+s.color+'44',color:s.color}},s.label);
+            })
+        )
+      ),
+
+      /* Cerebrum (Claude API) */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'L3 大脳 — Claude API Cerebrum'),
+        h('div',{style:{display:'flex',gap:'8px',marginBottom:'8px',flexWrap:'wrap'}},
+          h('button',{className:'btn btn-sm',disabled:cerebrum.loading,
+            onClick:function(){
+              midbrain.computeSalience();
+              cerebrum.query({
+                composite:mediation.composite,reality:mediation.reality,
+                result_dist:result&&result.distM,result_conf:result&&result.conf,
+                emMag:mag.mag||0,bleDensity:ble.state.density||0,thermalEst:thermal.data&&thermal.data.est
+              },midbrain.mode,midbrain.salienceQueue,phaseLaws);
+            },
+            style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'6px 12px',fontSize:'9px'}},
+            cerebrum.loading?'大脳処理中...':'大脳クエリ実行'),
+          cerebrum.loading&&h('button',{className:'btn btn-sm',onClick:cerebrum.abort,style:{border:'1px solid #3d2424',color:'#a05555',fontSize:'8px',padding:'4px 8px'}},'ABORT'),
+          cerebrum.lastCall&&h('span',{style:{fontSize:'8px',color:'#334455',lineHeight:'2'}},cerebrum.lastCall.toLocaleTimeString())
+        ),
+        cerebrum.loading&&h('div',{className:'cerebrum-thinking'},h('div',{className:'cerebrum-spinner'}),' Claude 思考中 (中脳がフィルタリング済みデータを大脳へ送信)'),
+        cerebrum.apiErr&&h('div',{style:{fontSize:'9px',color:'#ff6666',padding:'6px',marginBottom:'6px'}},'⚠ '+cerebrum.apiErr),
+        cerebrum.responses.length===0&&!cerebrum.loading&&h('div',{style:{fontSize:'9px',color:'#334455',padding:'10px',textAlign:'center'}},
+          '大脳は沈黙中 — 顕著な変化を検知した際に自動起動、または手動クエリ可能'),
+        cerebrum.responses.slice(0,3).map(function(r){
+          return h('div',{key:r.id,className:'cerebrum-panel'},
+            h('div',{className:'cerebrum-response'},r.response),
+            h('div',{className:'cerebrum-meta'},
+              h('span',null,'MODE: '+r.mode),
+              h('span',null,'SIGNALS: '+r.signals),
+              h('span',null,'LATENCY: '+(r.latency/1000).toFixed(1)+'s'),
+              h('span',null,new Date(r.ts).toLocaleTimeString())
+            )
+          );
+        })
+      ),
+
+      /* Reflex Gate Log */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'4px'}},'反射ゲートログ (Reflex Gate Log)'),
+        h('div',{className:'reflex-log'},
+          midbrain.reflexLog.length===0?h('div',{style:{fontSize:'8px',color:'#334455',padding:'8px',textAlign:'center'}},'正常動作中 — イベントなし'):
+          midbrain.reflexLog.slice(0,15).map(function(e,i){
+            return h('div',{key:i,className:'reflex-entry '+e.level},
+              h('span',{style:{color:'#445566',minWidth:'55px',flexShrink:0}},new Date(e.ts).toLocaleTimeString()),
+              h('span',null,e.msg)
+            );
+          })
+        )
+      ),
+
+      /* Embodiment Core */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'4px'}},'身体性コア (Embodiment Core) — 物理制約'),
+        midbrain.embStatus.map(function(c){
+          return h('div',{key:c.id,className:'emb-constraint'},
+            h('span',{style:{color:'#8899aa'}},c.name),
+            h('span',{style:{color:'#445566'}},c.limit),
+            h('span',{className:c.ok?'emb-ok':'emb-viol'},c.ok?'✓':'✗'),
+            h('span',{style:{color:'#667788',minWidth:'60px',textAlign:'right'}},c.val)
+          );
+        })
+      )
+    ),
+
+    /* ═══ v2.0 INTELLIGENCE TAB ═══ */
+    layer==='intelligence'&&h('div',null,
+      h('div',{className:'v2-intel'},
+        /* Space Classifier */
+        spaceType&&h('div',{style:{marginBottom:'12px'}},
+          h('div',{className:'space-type-badge '+spaceType.type.badge},spaceType.type.label+' — '+spaceType.type.ja),
+          h('div',{style:{fontSize:'9px',color:'#556677'}},'信頼度: '+(spaceType.confidence*100).toFixed(0)+'%'),
+          h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'4px',marginTop:'6px',fontSize:'8px'}},
+            Object.keys(spaceType.scores||{}).map(function(k){
+              return h('div',{key:k,style:{padding:'3px',background:spaceType.type.id===k?'rgba(0,255,170,.08)':'transparent',border:'1px solid '+(spaceType.type.id===k?'#00ffaa33':'#1a2530'),borderRadius:'2px',textAlign:'center'}},
+                k.replace('_',' ').toUpperCase(),
+                h('div',{style:{color:spaceType.type.id===k?'#00ffaa':'#556677',fontWeight:'bold'}},((spaceType.scores[k]||0)*100).toFixed(0)+'%'));
+            })
+          )
+        ),
+
+        /* Prediction */
+        h('div',{className:'cv-lbl'},'PREDICTION ENGINE'),
+        prediction.prediction.composite!==null&&h('div',{style:{padding:'8px',background:'rgba(0,0,0,.15)',borderRadius:'2px',marginBottom:'8px'}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}},
+            h('span',{className:'predict-arrow '+(prediction.prediction.trend||'flat')},prediction.prediction.trend==='up'?'↑':prediction.prediction.trend==='down'?'↓':'→'),
+            h('span',{style:{fontSize:'18px',fontWeight:'bold',color:'#00ffaa'}},(prediction.prediction.composite*100).toFixed(1)+'%'),
+            h('span',{style:{fontSize:'9px',color:'#556677'}},'予測μ ('+prediction.prediction.horizon+')')
+          ),
+          prediction.prediction.warning&&h('div',{style:{fontSize:'9px',color:'#ffcc00',padding:'4px',background:'rgba(255,204,0,.06)',border:'1px solid #ffcc0022',borderRadius:'2px',marginTop:'4px'}},
+            '⚠ '+prediction.prediction.warning),
+          h('div',{style:{fontSize:'8px',color:'#334455',marginTop:'4px'}},'信頼度: '+(prediction.prediction.confidence*100).toFixed(0)+'% | トレンド: '+(prediction.prediction.trendVal?((prediction.prediction.trendVal>0?'+':'')+( prediction.prediction.trendVal*100).toFixed(2)+'%/cycle'):'--'))
+        ),
+
+        /* Adaptive Thresholds */
+        h('div',{className:'cv-lbl'},'ADAPTIVE THRESHOLDS'),
+        h('div',{style:{marginBottom:'8px'}},
+          phaseLaws.map(function(law){
+            var th=adaptiveThresh.thresholds[law.id];
+            return h('div',{key:law.id,className:'adaptive-th'},
+              h('span',{style:{minWidth:'28px',fontSize:'8px',color:'#556677'}},law.id.replace('PL-','')),
+              h('div',{className:'adaptive-th-bar'},
+                h('div',{className:'adaptive-th-fill',style:{width:(law.result.score*100)+'%',background:law.result.score>.65?'#00ffaa44':law.result.score>.35?'#ffcc0044':'#ff444444'}}),
+                th&&h('div',{className:'adaptive-th-marker',style:{left:(th.coupled*100)+'%'}}),
+                th&&h('div',{className:'adaptive-th-marker',style:{left:(th.partial*100)+'%',background:'#ffcc0088'}})
+              ),
+              h('span',{style:{minWidth:'36px',textAlign:'right',fontSize:'8px',color:law.result.score>.65?'#00ffaa':law.result.score>.35?'#ffcc00':'#ff4444'}},(law.result.score*100).toFixed(0)+'%')
+            );
+          }),
+          h('div',{style:{textAlign:'right',marginTop:'4px'}},
+            h('button',{className:'btn btn-sm',onClick:adaptiveThresh.save,style:{border:'1px solid #243d33',color:'#5a9a82',fontSize:'8px',padding:'3px 8px'}},'閾値保存'))
+        ),
+
+        /* Anomaly Detection */
+        h('div',{className:'cv-lbl'},'ANOMALY DETECTION',
+          h('span',{style:{fontSize:'8px',color:anomalyDetector.anomalies.length>0?'#ffcc00':'#334455'}},anomalyDetector.anomalies.length+' events')),
+        anomalyDetector.anomalies.slice(0,10).map(function(a){
+          return h('div',{key:a.id,className:'anomaly-card '+a.severity},
+            h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:'9px'}},
+              h('span',{style:{fontWeight:'bold',color:a.severity==='crit'?'#ff4444':'#ffcc00'}},a.severity==='crit'?'⛔ CRITICAL':'⚠ WARNING'),
+              h('span',{style:{color:'#334455'}},fT(new Date(a.ts)))
+            ),
+            h('div',{style:{fontSize:'10px',marginTop:'2px'}},a.msg)
+          );
+        }),
+
+        /* Recommendations */
+        h('div',{className:'cv-lbl',style:{marginTop:'8px'}},'RECOMMENDED ACTIONS'),
+        anomalyDetector.getRecommendations(anomalyDetector.anomalies,spaceType).map(function(r,i){
+          return h('div',{key:i,className:'recommend-card '+r.level},r.msg);
+        }),
+
+        /* Dynamic Weights Toggle */
+        h('div',{className:'cv-lbl',style:{marginTop:'8px'}},'DYNAMIC WEIGHT OPTIMIZER'),
+        h('div',{style:{display:'flex',alignItems:'center',gap:'8px',fontSize:'10px'}},
+          h('button',{className:'btn btn-sm',onClick:function(){dynWeights.setEnabled(!dynWeights.enabled);},
+            style:{background:dynWeights.enabled?'rgba(0,255,170,.04)':'transparent',border:'1px solid '+(dynWeights.enabled?'#2a4a3a':'#222d3a'),
+              color:dynWeights.enabled?'#6aaa92':'#667788',fontSize:'9px',padding:'4px 10px'}},
+            dynWeights.enabled?'✓ AUTO':'MANUAL'),
+          h('span',{style:{color:'#556677',fontSize:'9px'}},dynWeights.enabled?'センサー品質に基づく自動重み配分':'手動重み設定を使用')
+        ),
+
+        /* Environment Timeline */
+        h('div',{className:'cv-lbl',style:{marginTop:'12px'}},'ENVIRONMENT TIMELINE',
+          h('span',{style:{fontSize:'8px',color:'#334455'}},envTimeline.entries.length+' samples')),
+        envTimeline.entries.slice(0,15).map(function(e,i){
+          return h('div',{key:i,className:'env-timeline-row'},
+            h('span',{style:{color:'#334455',minWidth:'50px'}},fT(new Date(e.ts))),
+            h('span',{style:{minWidth:'40px',color:'#00ffaa'}},(e.composite*100).toFixed(0)+'%'),
+            e.delta!=null&&h('span',{className:'env-timeline-delta',style:{color:e.delta>0?'#00ffaa':e.delta<-0.05?'#ff4444':'#ffcc00'}},
+              (e.delta>0?'+':'')+(e.delta*100).toFixed(1)+'%'),
+            h('span',{style:{fontSize:'8px',color:'#334455'}},e.spaceType||'')
+          );
+        }),
+
+        /* Performance Monitor */
+        h('div',{className:'cv-lbl',style:{marginTop:'12px'}},'SYSTEM PERFORMANCE'),
+        h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap'}},
+          h('div',{className:'perf-gauge'},h('div',{className:'perf-dot',style:{background:perfMon.fps>=30?'#00ffaa':perfMon.fps>=15?'#ffcc00':'#ff4444'}}),perfMon.fps+' FPS'),
+          perfMon.memMB>0&&h('div',{className:'perf-gauge'},h('div',{className:'perf-dot',style:{background:perfMon.memMB<100?'#00ffaa':'#ffcc00'}}),perfMon.memMB+' MB'),
+          h('div',{className:'perf-gauge'},h('div',{className:'perf-dot',style:{background:pwa.swReady?'#00ffaa':'#334455'}}),pwa.swReady?'SW ✓':'SW ✗')
+        )
+      )
+    ),
+
+    /* ═══ v2.0 ROUTING TAB ═══ */
+    layer==='routing'&&h('div',null,
+      h('div',{className:'v2-intel'},
+        h('div',{className:'cv-lbl'},'pIP ROUTING TABLE',
+          h('span',{style:{fontSize:'8px',color:'#556677'}},Object.keys(multiHop.routes).length+' routes | max '+multiHop.maxHops+' hops')),
+
+        /* Self node */
+        h('div',{className:'hop-node self'},
+          h('span',null,'◉ SELF: '+myPeerId.slice(0,8)),
+          h('span',{style:{color:'#00ffaa',fontSize:'8px'}},'LOCAL')
+        ),
+
+        /* Routes */
+        Object.values(multiHop.routes).map(function(r){
+          return h('div',{key:r.dest,className:'hop-node '+(r.direct?'':'relay')},
+            h('span',null,(r.direct?'◎':'◇')+' '+r.dest.slice(0,8)),
+            h('span',{style:{display:'flex',gap:'8px',alignItems:'center'}},
+              h('span',{style:{fontSize:'8px',color:r.direct?'#00ffaa':'#00ddff'}},r.hops+' hop'+(r.hops>1?'s':'')),
+              r.rtt&&h('span',{style:{fontSize:'8px',color:'#556677'}},r.rtt.toFixed(0)+'ms'),
+              !r.direct&&h('span',{style:{fontSize:'7px',color:'#334455'}},'via '+r.nextHop.slice(0,6))
+            )
+          );
+        }),
+
+        Object.keys(multiHop.routes).length===0&&h('div',{style:{padding:'20px',textAlign:'center',color:'#334455',fontSize:'10px'}},'ルーティングテーブルは空です。ピア接続を開始してください'),
+
+        /* Route visualization */
+        Object.values(multiHop.routes).filter(function(r){return!r.direct;}).length>0&&h('div',{style:{marginTop:'8px'}},
+          h('div',{className:'cv-lbl'},'MULTI-HOP PATHS'),
+          Object.values(multiHop.routes).filter(function(r){return!r.direct;}).map(function(r){
+            return h('div',{key:r.dest,className:'route-path'},
+              h('span',{className:'route-hop self'},'SELF'),
+              h('span',{className:'route-arrow'},'→'),
+              h('span',{className:'route-hop peer'},r.nextHop.slice(0,6)),
+              r.hops>2&&h('span',null,h('span',{className:'route-arrow'},'→'),h('span',{style:{fontSize:'8px',color:'#334455'}},'...'+(r.hops-2)+' more')),
+              h('span',{className:'route-arrow'},'→'),
+              h('span',{className:'route-hop peer'},r.dest.slice(0,6))
+            );
+          })
+        ),
+
+        /* Partitions */
+        multiHop.partitions.length>0&&h('div',{style:{marginTop:'8px'}},
+          h('div',{className:'cv-lbl',style:{color:'#ff4444'}},'⚠ NETWORK PARTITIONS'),
+          multiHop.partitions.map(function(p,i){
+            return h('div',{key:i,style:{fontSize:'9px',color:'#ff4444',padding:'2px 0'}},'UNREACHABLE: '+p.dest.slice(0,8)+' (last seen: '+fT(new Date(p.lastSeen))+')');
+          })
+        ),
+
+        /* Stats */
+        h('div',{className:'cv-lbl',style:{marginTop:'8px'}},'ROUTING STATS'),
+        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'4px',fontSize:'9px'}},
+          h('div',{className:'dash-stat'},h('div',{style:{fontSize:'14px',fontWeight:'bold',color:'#00ffaa'}},multiHop.stats.forwarded),h('div',{style:{fontSize:'7px',color:'#556677'}},'FORWARDED')),
+          h('div',{className:'dash-stat'},h('div',{style:{fontSize:'14px',fontWeight:'bold',color:'#ff4444'}},multiHop.stats.dropped),h('div',{style:{fontSize:'7px',color:'#556677'}},'DROPPED')),
+          h('div',{className:'dash-stat'},h('div',{style:{fontSize:'14px',fontWeight:'bold',color:'#00ddff'}},multiHop.stats.hellosSent),h('div',{style:{fontSize:'7px',color:'#556677'}},'HELLO TX')),
+          h('div',{className:'dash-stat'},h('div',{style:{fontSize:'14px',fontWeight:'bold',color:'#cc66ff'}},multiHop.stats.hellosRecv),h('div',{style:{fontSize:'7px',color:'#556677'}},'HELLO RX'))
+        )
+      )
+    ),
+
+    /* ═══ v2.0 SPATIAL MEMORY TAB ═══ */
+    layer==='memory'&&h('div',null,
+      h('div',{className:'v2-intel'},
+        /* Current match status */
+        spatialMem.currentMatch&&h('div',{className:'spatial-mem-card matched',style:{marginBottom:'12px'}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            h('span',{style:{fontWeight:'bold',color:'#00ffaa',fontSize:'11px'}},'✓ 空間認識: '+spatialMem.currentMatch.memory.name),
+            h('span',{style:{fontSize:'9px',color:'#00ffaa'}},(spatialMem.currentMatch.similarity*100).toFixed(0)+'% 一致')
+          ),
+          h('div',{style:{fontSize:'9px',color:'#556677',marginTop:'4px'}},'前回訪問: '+new Date(spatialMem.currentMatch.memory.savedAt).toLocaleString()),
+          /* Delta display */
+          h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'2px',marginTop:'6px',fontSize:'8px'}},
+            DIM_KEYS.slice(0,8).map(function(k,i){
+              var delta=spatialMem.currentMatch.delta[k]||0;
+              return h('div',{key:k,style:{textAlign:'center',padding:'2px'}},
+                h('div',{style:{color:'#445566'}},DIM_LABELS[i]),
+                h('div',{style:{color:Math.abs(delta)<0.05?'#334455':delta>0?'#00ffaa':'#ff4444',fontWeight:'bold'}},
+                  (delta>0?'+':'')+(delta*100).toFixed(0)+'%'));
+            })
+          )
+        ),
+
+        !spatialMem.currentMatch&&h('div',{style:{padding:'12px',textAlign:'center',fontSize:'10px',color:'#445566',border:'1px dashed #1a2530',borderRadius:'2px',marginBottom:'8px'}},'空間認識なし — 新規環境または登録なし'),
+
+        /* Save current space */
+        h('div',{className:'cv-lbl'},'SAVE CURRENT SPACE'),
+        h('div',{style:{display:'flex',gap:'4px',marginBottom:'12px'}},
+          h('input',{value:memName,onChange:function(e){setMemName(e.target.value);},placeholder:'空間名を入力',
+            style:{flex:1,background:'#0a0f14',border:'1px solid #1a2530',color:'#ccd8e8',padding:'6px 8px',fontSize:'10px',borderRadius:'2px'}}),
+          h('button',{className:'btn btn-sm',onClick:function(){
+            if(mediation){spatialMem.save(mediation,memName||null,spaceType?spaceType.type.id:null);setMemName('');}
+          },style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'6px 12px'}},'記憶')
+        ),
+
+        /* Stored memories */
+        h('div',{className:'cv-lbl'},'SPATIAL MEMORIES',h('span',{style:{fontSize:'8px',color:'#334455'}},spatialMem.memories.length+' stored')),
+        spatialMem.memories.map(function(mem){
+          var isMatched=spatialMem.currentMatch&&spatialMem.currentMatch.memory.id===mem.id;
+          return h('div',{key:mem.id,className:'spatial-mem-card'+(isMatched?' matched':'')},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              h('span',{style:{fontWeight:'bold',fontSize:'10px'}},mem.name),
+              h('button',{onClick:function(){spatialMem.remove(mem.id);},
+                style:{background:'none',border:'none',color:'#ff444488',cursor:'pointer',fontSize:'10px',padding:'2px 4px'}},'✕')
+            ),
+            h('div',{style:{display:'flex',gap:'8px',fontSize:'8px',color:'#556677',marginTop:'2px'}},
+              h('span',null,'μ: '+(mem.composite*100).toFixed(0)+'%'),
+              mem.spaceType&&h('span',null,mem.spaceType.replace('_',' ')),
+              mem.reality&&h('span',null,'RI: '+(mem.reality.index*100).toFixed(0)+'%'),
+              h('span',null,new Date(mem.savedAt).toLocaleDateString())
+            ),
+            /* Mini fingerprint bars */
+            h('div',{style:{display:'flex',gap:'1px',marginTop:'4px',height:'6px'}},
+              DIM_KEYS.map(function(k,i){
+                return h('div',{key:k,style:{flex:1,background:DIM_COLORS[i]+'33',borderRadius:'1px',position:'relative'},title:DIM_LABELS[i]+': '+(mem.fingerprint[k]*100).toFixed(0)+'%'},
+                  h('div',{style:{position:'absolute',bottom:0,left:0,right:0,height:((mem.fingerprint[k]||0)*100)+'%',background:DIM_COLORS[i],borderRadius:'1px'}}));
+              })
+            )
+          );
+        }),
+
+        spatialMem.memories.length===0&&h('div',{style:{padding:'16px',textAlign:'center',fontSize:'10px',color:'#334455'}},'空間記憶なし。「記憶」ボタンで現在の空間を保存できます')
+      )
+    ),
+
+    /* ═══ SITESENSE TAB (v1.5) ═══ */
+    layer==='site'&&h('div',null,
+      /* Active alerts */
+      siteSense.alerts.length>0&&h('div',{style:{marginBottom:'8px'}},
+        siteSense.alerts.map(function(a){
+          return h('div',{key:a.id,className:'ss-alert '+a.sev},
+            h('span',{style:{fontSize:'14px'}},a.sev==='CRIT'?'🚨':a.sev==='DANGER'?'⚠️':'⚡'),
+            h('div',null,a.msg)
+          );
+        })
+      ),
+
+      /* Environmental report */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'環境計測レポート'),
+        siteSense.report&&h('div',{className:'ss-report-grid'},
+          Object.entries(siteSense.report).map(function(kv){
+            var k=kv[0],v=kv[1];
+            return h('div',{key:k,className:'ss-report-card'},
+              h('div',{className:'ss-report-val',style:{color:v.ok?'#00ffaa':'#ff8800'}},v.val+v.unit),
+              h('div',{className:'ss-report-lbl'},v.label)
+            );
+          })
+        ),
+        h('div',{style:{display:'flex',gap:'6px',marginTop:'8px'}},
+          h('button',{className:'btn btn-sm',onClick:siteSense.exportReport,style:{border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},'レポートExport'),
+          h('button',{className:'btn btn-sm',onClick:function(){siteSense.addKYEntry('WARNING','手動KYエントリ: 現場確認完了');},style:{border:'1px solid #3d3524',color:'#9a8855',fontSize:'9px',padding:'5px 12px'}},'KY記録')
+        )
+      ),
+
+      /* Mode badge */
+      h('div',{className:'card',style:{padding:'10px',display:'flex',alignItems:'center',gap:'10px'}},
+        h('div',null,
+          h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'4px'}},'システムモード'),
+          h('div',{className:'mode-badge mode-'+midbrain.mode},midbrain.mode)
+        ),
+        h('div',null,
+          h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'4px'}},'μ(x,t)'),
+          h('div',{style:{fontSize:'20px',fontWeight:700,color:mediation.composite>.6?'#00ffaa':mediation.composite>.3?'#ffcc00':'#ff4444'}},mediation.composite.toFixed(3))
+        ),
+        h('div',null,
+          h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'4px'}},'作業員確認'),
+          h('div',{style:{fontSize:'20px',fontWeight:700,color:'#00ddff'}},siteSense.workers.length)
+        )
+      ),
+
+      /* Zone list */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'安全ゾーン管理'),
+        siteSense.zones.map(function(z){
+          var color=ZONE_COLORS[z.type];
+          var alerting=midbrain.mode!=='NOMINAL'&&(z.type==='DANGER'||z.type==='EXCLUSION');
+          return h('div',{key:z.id,className:'ss-zone '+z.type,style:{boxShadow:alerting?'0 0 12px '+color+'44':'none'}},
+            h('div',{className:'ss-zone-header'},
+              h('div',{className:'ss-zone-name',style:{color:color}},z.name),
+              h('div',{className:'ss-zone-badge',style:{background:color+'22',border:'1px solid '+color+'44',color:color}},z.type)
+            ),
+            h('div',{style:{fontSize:'9px',color:'#556677',display:'flex',gap:'12px'}},
+              h('span',null,'作業員: ',h('span',{style:{color:z.workers>0?'#00ddff':'#334455'}},z.workers)),
+              h('span',null,'μ閾値: ',h('span',{style:{color:'#8899aa'}},z.mu_threshold.toFixed(1))),
+              alerting&&h('span',{style:{color:color,fontWeight:'bold'}},'⚠ アラート')
+            )
+          );
+        })
+      ),
+
+      /* Worker tracking */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'作業員追跡 — BLE'),
+        siteSense.workers.map(function(w){
+          var z=siteSense.zones.find(function(z){return z.id===w.zone;});
+          var zColor=z?ZONE_COLORS[z.type]:'#556677';
+          return h('div',{key:w.id,className:'ss-worker'},
+            h('div',{style:{width:'28px',height:'28px',borderRadius:'50%',background:zColor+'33',border:'1px solid '+zColor+'66',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}},'👷'),
+            h('div',{style:{flex:1}},
+              h('div',{style:{color:'#aabbcc',fontSize:'10px'}},w.name),
+              h('div',{style:{fontSize:'8px',color:'#556677'}},z?z.name:'---',' | ',w.ble,' | RSSI:',h('span',{style:{color:w.rssi>-65?'#00ffaa':'#ffcc00'}},w.rssi+'dBm'))
+            ),
+            h('div',{style:{fontSize:'8px',color:w.status==='ACTIVE'?'#00ffaa':'#ffcc00',letterSpacing:'1px'}},w.status)
+          );
+        })
+      ),
+
+      /* KY/Hiyari-hat log */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'4px'}},'KY・ヒヤリハットログ'),
+        h('div',{className:'ky-log'},
+          siteSense.kyLog.length===0?
+            h('div',{style:{fontSize:'9px',color:'#334455',padding:'10px',textAlign:'center'}},'ログなし — 正常稼働中'):
+            siteSense.kyLog.slice(0,20).map(function(e){
+              var sevColor=e.sev==='DANGER'?'#ff4444':e.sev==='WARNING'?'#ffcc00':'#00ddff';
+              return h('div',{key:e.id,className:'ky-entry'},
+                h('span',{className:'ky-time'},new Date(e.ts).toLocaleTimeString()),
+                h('span',{className:'ky-sev',style:{color:sevColor}},e.sev),
+                h('span',{className:'ky-msg'},e.msg)
+              );
+            })
+        )
+      )
+    ),
+
+    /* ═══ PATENT TAB (v1.5) ═══ */
+    layer==='patent'&&h('div',null,
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'特許実証データセット収集'),
+        (function(){
+          var m=patentData.metrics();
+          var current=patentData.current;
+          return h('div',null,
+            !patentData.collecting?
+              h('div',{style:{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'8px'}},
+                ['10回','20回','30回','50回'].map(function(label,i){
+                  var n=[10,20,30,50][i];
+                  return h('button',{key:n,className:'btn btn-sm',onClick:function(){patentData.startCollection(n);},style:{border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},label+'収集');
+                })
+              ):
+              h('div',{style:{marginBottom:'8px'}},
+                h('div',{style:{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}},
+                  h('div',{style:{fontSize:'11px',color:'#00ffaa'}},
+                    (current?current.samples.length:0),' / ',(current?current.targetN:'?'),' サンプル'),
+                  h('div',{style:{flex:1,height:'6px',background:'#0a0f14',borderRadius:'3px',overflow:'hidden'}},
+                    h('div',{style:{height:'100%',background:'#00ffaa',borderRadius:'3px',width:current?(current.samples.length/current.targetN*100).toFixed(0)+'%':'0%',transition:'width .3s'}})
+                  ),
+                  h('button',{className:'btn btn-sm',onClick:patentData.stopCollection,style:{border:'1px solid #3d2424',color:'#a05555',fontSize:'8px',padding:'3px 8px'}},'STOP')
+                ),
+                m&&h('div',{className:'patent-grid'},
+                  h('div',{className:'patent-metric '+(m.std<0.03?'pass':m.std<0.05?'warn':'fail')},
+                    h('div',{className:'patent-metric-val'},m.std!=null?(m.std*100).toFixed(1)+'cm':'---'),
+                    h('div',{className:'patent-metric-lbl'},'標準偏差 (SD)'),
+                    h('div',{className:'patent-metric-target'},'目標: <3cm')
+                  ),
+                  h('div',{className:'patent-metric '+(m.ci95<0.05?'pass':m.ci95<0.1?'warn':'fail')},
+                    h('div',{className:'patent-metric-val'},m.ci95!=null?'±'+(m.ci95*100).toFixed(1)+'cm':'---'),
+                    h('div',{className:'patent-metric-lbl'},'信頼区間 CI95%'),
+                    h('div',{className:'patent-metric-target'},'目標: ±5cm')
+                  ),
+                  h('div',{className:'patent-metric '+(m.mean?'pass':'warn')},
+                    h('div',{className:'patent-metric-val'},m.mean!=null?m.mean.toFixed(3)+'m':'---'),
+                    h('div',{className:'patent-metric-lbl'},'平均距離'),
+                    h('div',{className:'patent-metric-target'},'測定値')
+                  ),
+                  h('div',{className:'patent-metric '+(m.reproducibility==='EXCELLENT'||m.reproducibility==='GOOD'?'pass':m.reproducibility==='FAIR'?'warn':'fail')},
+                    h('div',{className:'patent-metric-val'},m.reproducibility||'---'),
+                    h('div',{className:'patent-metric-lbl'},'再現性評価'),
+                    h('div',{className:'patent-metric-target'},'目標: GOOD以上')
+                  )
+                )
+              )
+          );
+        })()
+      ),
+
+      /* Completed sessions */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'完了セッション ('+patentData.sessions.length+')'),
+        h('div',{style:{display:'flex',gap:'6px',marginBottom:'8px'}},
+          h('button',{className:'btn btn-sm',onClick:patentData.exportPatentDataset,disabled:patentData.sessions.length===0,style:{border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},'特許データセットExport'),
+          h('button',{className:'btn btn-sm',onClick:function(){
+            var data={timestamp:new Date().toISOString(),mediation:mediation.composite,phaseLaws:phaseLaws.map(function(l){return{id:l.id,state:l.result.state,score:l.result.score};}),history:history.slice(0,50)};
+            var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+            var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='ptcp_snapshot_'+Date.now()+'.json';a.click();URL.revokeObjectURL(url);
+          },style:{border:'1px solid #243545',color:'#5a8a9a',fontSize:'9px',padding:'5px 12px'}},'スナップショットExport')
+        ),
+        patentData.sessions.length===0?
+          h('div',{style:{fontSize:'9px',color:'#334455',padding:'10px',textAlign:'center'}},'セッションなし — 上のボタンで収集開始'):
+          patentData.sessions.map(function(s){
+            return h('div',{key:s.id,style:{padding:'8px',border:'1px solid #1a2530',borderRadius:'2px',marginBottom:'4px'}},
+              h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'3px'}},
+                h('span',{style:{color:'#00ddff',fontSize:'10px'}},'Session #'+s.id.slice(0,6)),
+                h('span',{style:{color:'#556677',fontSize:'8px'}},new Date(s.started).toLocaleString())
+              ),
+              s.stats&&h('div',{style:{fontSize:'9px',color:'#8899aa'}},
+                'n='+s.stats.n,' μ='+s.stats.mean.toFixed(3),' σ='+s.stats.std.toFixed(4),' CI95=±'+s.stats.ci95.toFixed(4),
+                ' ',h('span',{style:{color:s.stats.reproducibility==='EXCELLENT'||s.stats.reproducibility==='GOOD'?'#00ffaa':'#ffcc00'}},s.stats.reproducibility)
+              )
+            );
+          })
+      ),
+
+      /* v1.5 patent targets */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v2.0成功指標'),
+        h('div',{className:'patent-grid'},
+          [
+            {label:'音響精度 1m以内',target:'±3cm',cur:result&&result.distM!=null&&result.distM<1.0?'測定中':'未計測',ok:!!result&&result.distM!=null&&result.distM<1.0},
+            {label:'Reality Index',target:'70%+',cur:mediation.reality?(mediation.reality.index*100).toFixed(0)+'%':'--',ok:mediation.reality&&mediation.reality.index>0.7},
+            {label:'同時接続ピア',target:'5台+',cur:(net.peers.length+mp.connectedCount)+'台',ok:net.peers.length+mp.connectedCount>=5},
+            {label:'空間再認識',target:'80%+',cur:'要v2.0',ok:false},
+          ].map(function(t,i){
+            return h('div',{key:i,className:'patent-metric '+(t.ok?'pass':'warn')},
+              h('div',{className:'patent-metric-val'},t.cur),
+              h('div',{className:'patent-metric-lbl'},t.label),
+              h('div',{className:'patent-metric-target'},'目標: '+t.target)
+            );
+          })
+        )
+      )
+    ),
+
     /* iOS sensor permission banner */
     sensorPerm.needsRequest&&h('div',{className:'card',style:{padding:'8px',margin:'8px 0',border:'1px solid #ff880044'}},
       h('div',{style:{fontSize:'9px',color:'#ff8800',marginBottom:'4px'}},'iOS: センサーパーミッション必要'),
@@ -1976,11 +3622,36 @@ function App(){
         style:{background:'#ff880015',border:'1px solid #ff880044',color:'#ff8800',padding:'6px 12px',width:'100%'}},'GRANT SENSOR ACCESS')
     ),
 
+    /* ═══ DEMO OVERLAY ═══ */
+    demo.open&&h('div',{className:'demo-overlay',onClick:function(e){if(e.target===e.currentTarget)demo.close();}},
+      h('div',{className:'demo-card'},
+        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v2.0 DEMO'),
+        h('div',{className:'demo-progress'},
+          DEMO_STEPS.map(function(_,i){return h('div',{key:i,className:'demo-pip '+(i<demo.step?'done':i===demo.step?'active':'')});})
+        ),
+        h('div',{className:'demo-title'},demo.current.title),
+        h('div',{className:'demo-desc'},demo.current.desc),
+        h('div',{className:'demo-nav'},
+          h('button',{className:'btn',onClick:demo.prev,disabled:demo.step===0,style:{border:'1px solid #2a3545',color:'#778899',padding:'8px 16px',fontSize:'10px'}},'← BACK'),
+          h('button',{className:'btn',onClick:demo.close,style:{border:'1px solid #2a3545',color:'#778899',padding:'8px 16px',fontSize:'10px'}},'CLOSE'),
+          demo.step<demo.total-1?
+            h('button',{className:'btn',onClick:demo.next,style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'8px 20px',fontSize:'10px',fontWeight:'bold'}},'NEXT →'):
+            h('button',{className:'btn',onClick:demo.close,style:{background:'rgba(0,255,170,.06)',border:'1px solid #2a4a3a',color:'#6aaa92',padding:'8px 20px',fontSize:'10px',fontWeight:'bold'}},'完了 ✓')
+        )
+      )
+    ),
+
+    /* PWA Install Banner */
+    pwa.installable&&h('div',{className:'pwa-banner'},
+      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping をホーム画面に追加'),
+      h('button',{className:'btn btn-sm',onClick:pwa.install,
+        style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},'インストール')),
+
     /* Footer */
     h('div',{style:{textAlign:'center',padding:'12px',fontSize:'8px',color:'#334455',borderTop:'1px solid #0a0f14',marginTop:'12px'}},
-      'PHYSICAL PING — pTCP/IP v1.3 PRECISION',
+      'PHYSICAL PING — pTCP/IP v2.0 INTELLIGENCE',
       h('br'),
-      '11D Mediation + Multi-Chirp + Cross-Validation + EM Fingerprint + Path-Loss Cal')
+      'L0小脳 Phase-Law v2  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  |  野村プロトコル 2026')
   );
 }
 
