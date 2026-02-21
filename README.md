@@ -1,290 +1,250 @@
-# Physical Ping — pTCP/IP v2.0 INTELLIGENCE
+# Physical Ping — pTCP/IP v2.1 HARDWARE
 
-> ⚠️ **EXPERIMENTAL** — 本ソフトウェアは研究・実験段階にあります。
-> 産業利用には追加の検証とキャリブレーションが必要です。
+**スマホの外へ：ESP32常設ノード + ゲートウェイ + ハイブリッドネットワーク**
 
-**物理空間のための TCP/IP — 11次元センサーフュージョンによる空間 Mediation 計測システム**
-
----
-
-## 概要
-
-Physical Ping は、スマートフォンのセンサー群を統合し、物理空間における情報伝達容易性を定量化するシステムです。音響ソナー、電磁場検出、BLE メッシュ、GPS、加速度・ジャイロ等の 11 次元センサーデータを融合し、**Mediation Coefficient μ(x,t)** として空間の「情報透過度」をリアルタイムに算出します。
-
-v2.0 INTELLIGENCE では、Phase-Law Engine の適応型閾値、空間の自動分類・記憶・予測、マルチホップルーティングを実装し、**空間が自ら状況を理解し適応する**知能化層を追加しました。
-
-### ステータス
-
-| 項目 | 状態 |
-|---|---|
-| コア計測（11D センサーフュージョン） | ✅ 動作 |
-| Phase-Law Engine v2（12法則 + 適応型閾値） | ✅ 動作 |
-| 空間知能（予測・記憶・異常検知） | 🧪 実験中 |
-| マルチホップルーティング（pIP） | 🧪 実験中 |
-| SiteSense 建設現場モード | ✅ プロトタイプ |
-| 特許実証データ収集 | ✅ 動作 |
-| PWA / オフライン対応 | 🧪 実験中 |
+Physical Ping は、スマートフォンの物理センサーを活用して「物理的な距離・環境・存在」をネットワーク的に計測・可視化するシングルファイル Web アプリケーションです。v2.1 では ESP32 常設ノードによるハードウェアレイヤーを追加し、スマホ単体を超えた常設センサーネットワークを構築します。
 
 ---
 
-## クイックスタート
+## バージョン履歴
 
-```
-1. physical-ping-v2_0.html をブラウザで開く（Chrome Android 推奨）
-2. マイク・位置情報のアクセスを許可
-3. 「PING」ボタンで音響距離計測を開始
-4. タブを切り替えて各機能を確認
-```
-
-外部サーバー不要。単一 HTML ファイル（約 264KB）で完結します。
-
-### 推奨環境
-
-- **Chrome Android 90+**（Reality Index 最大化のため推奨）
-- Chrome Desktop 90+（一部センサー制限あり）
-- Safari iOS 16+（Web Bluetooth 非対応、センサー許可要求あり）
-
-### ファイル構成
-
-```
-physical-ping-v2_0.html    単一ファイルアプリケーション（React + WebAudio + WebRTC）
-ROADMAP-v2_0.md            v1.0a → v2.0 開発ロードマップ
-README.md                  本ファイル
-```
+| Version | コードネーム | 主な追加機能 |
+|---------|-------------|-------------|
+| v1.0 | MEASURE | 音響測距、BLE スキャン、基本 UI |
+| v1.5 | APPLICATION | スペクトラム解析、ヒートマップ、タイムライン、プロファイル管理 |
+| v2.0 | INTELLIGENCE | L1 中脳 FSM、L3 大脳 Claude API、空間記憶、マルチホップルーティング |
+| **v2.1** | **HARDWARE** | **ESP32 Fleet 管理、ゲートウェイ、ハイブリッドネットワーク、OTA** |
 
 ---
 
 ## アーキテクチャ
 
-### 人工神経系 4 層モデル
+### レイヤー構成（Phase-Law Architecture）
 
 ```
-L0  小脳（Phase-Law Engine v2）
-    └─ 12法則のリアルタイム評価 + 環境適応型閾値
-    └─ 反射的な空間結合状態の判定
-
-L1  中脳（Midbrain）
-    └─ Reflex Gate：危険値の即座遮断
-    └─ Salience Filter：重要度フィルタリング
-    └─ Mode FSM：NOMINAL → ALERT → CRITICAL → EMERGENCY
-    └─ Embodiment Core：物理的制約の検証
-
-L2  空間知能（Spatial Intelligence）← v2.0 新設
-    └─ 予測エンジン：Holt 二重指数平滑法
-    └─ 空間記憶：フィンガープリント認識
-    └─ 異常検知：Phase-Law 状態遷移監視
-    └─ 空間分類器：環境タイプ自動推定
-    └─ マルチホップルーティング：pIP プロトコル
-
-L3  大脳（Claude API Cerebrum）
-    └─ 自然言語による計測状態の意味解釈
-    └─ 中脳でフィルタリングされたデータのみ受信
+L3  大脳 ── Claude API 統合（自然言語による環境解釈）
+L2  空間知能 ── SiteSense（場の環境認識・スコアリング）
+L1  中脳 ── Midbrain FSM（Reflex / Salience / Mode 状態機械）
+L0  小脳 ── Phase-Law Engine v2（12 相律による物理計測）
+HW  ── ESP32 Fleet（常設センサーノード + ゲートウェイ + メッシュ）
 ```
 
-### 11 次元センサーフュージョン
+### 16 タブ UI
 
-| # | 次元 | センサーソース | 計測対象 |
-|---|---|---|---|
-| 1 | Acoustic | WebAudio チャープ信号 | 音響距離・反射環境 |
-| 2 | EM Field | Magnetometer / DeviceOrientation | 電磁場強度・方位 |
-| 3 | Photonic | AmbientLightSensor | 環境光量 |
-| 4 | Kinetic | Accelerometer / DeviceMotion | 運動・振動 |
-| 5 | RF Density | シミュレーション（WiFi RTT 調査中）| 電波密度 |
-| 6 | NFC | Web NFC API（対応環境のみ）| 近接通信 |
-| 7 | Thermal | CPU 負荷推定 | 温度環境 |
-| 8 | Spatial | Geolocation API | GPS 座標 |
-| 9 | BLE Mesh | Web Bluetooth API | BLE デバイス密度 |
-| 10 | Network | pTCP ネットワーク状態 | 通信品質 |
-| 11 | Collaborative | WebRTC P2P メッシュ | ピア接続数 |
-
-各次元には **REAL / EST / SIM / N/A** の 4 層ソース分類が付与され、**Reality Index ρ(x,t)** として計測の実データ比率を定量化します。
-
-### Phase-Law Engine v2（12 法則）
-
-| ID | 法則名 | 評価対象 | v2.0 変更 |
-|---|---|---|---|
-| PL-001 | Acoustic-Spatial Coupling | 音響×空間の結合度 | 適応型閾値 |
-| PL-002 | EM Continuity | 電磁場の連続性 | 適応型閾値 |
-| PL-003 | Spectral Openness | 周波数帯の開放度 | 適応型閾値 |
-| PL-004 | Kinetic Stability | 運動の安定性 | 適応型閾値 |
-| PL-005 | RF Density | 電波密度 | — |
-| PL-006 | Sensor Completeness | センサー網羅度 | — |
-| PL-007 | Network Connectivity | ネットワーク接続性 | — |
-| PL-008 | Thermal-Photonic Coupling | 温度×光の結合度 | 適応型閾値 |
-| PL-009 | Cross-Modal Coherence | モード間整合性 | 適応型閾値 |
-| PL-010 | Spatial Consistency | 空間的一貫性 | **v2.0 新規** |
-| PL-011 | Temporal Stability | 時間的安定性 | **v2.0 新規** |
-| PL-012 | Environmental Context | 環境特性化度 | **v2.0 新規** |
-
-**適応型閾値**: 計測履歴（最大 200 サンプル）から各法則の平均・標準偏差を算出し、COUPLED / PARTIAL / DECOUPLED の境界値を指数移動平均で自動調整。IndexedDB に永続化。
+| # | タブ | 機能概要 |
+|---|------|---------|
+| 1 | MEASURE | チャープ音響測距（20kHz 超音波 + マイク） |
+| 2 | PRECISION | マルチチャープ同時発信、BLE パスロス、EM フィンガープリント |
+| 3 | SPECTRUM | RF スペクトラム解析（WiFi 2.4/5GHz, BLE, Sub-GHz シミュレーション） |
+| 4 | PEERS | BLE デバイスリスト、WebRTC P2P 接続管理 |
+| 5 | HEATMAP | Canvas ベース環境ヒートマップ描画 |
+| 6 | TIMELINE | センサーデータ時系列グラフ + CSV エクスポート |
+| 7 | DASHBOARD | 統合ダッシュボード（全センサー一覧 + スナップショット） |
+| 8 | PROFILES | 環境プロファイル保存・比較 |
+| 9 | NETWORK | pTCP メッシュネットワーク（BroadcastChannel + WebRTC） |
+| 10 | MIDBRAIN | L1 中脳 FSM ビジュアライザー |
+| 11 | INTELLIGENCE | L3 大脳 Claude API 対話 |
+| 12 | ROUTING | マルチホップルーティングテーブル |
+| 13 | MEMORY | 空間記憶（IndexedDB 永続化） |
+| 14 | **HARDWARE** | **ESP32 Fleet 管理、トポロジー可視化、OTA** |
+| 15 | SITE | SiteSense 環境認識スコア |
+| 16 | PATENT | Phase-Law 特許・認証データ |
 
 ---
 
-## v2.0 新機能
+## v2.1 HARDWARE — 新機能詳細
 
-### 空間分類器（Space Classifier）
+### ESP32 Fleet 管理 (`useESP32Fleet`)
 
-11 次元のセンサーパターンから環境タイプを自動推定します。
+常設 ESP32 ノードのフリート（艦隊）を統合管理します。
 
-- **OFFICE** — 中〜高 RF、高 BLE、高ネットワーク、低運動
-- **FACTORY** — 高 EM、高ノイズ、高温度、高運動
-- **OUTDOOR** — 高光量、GPS 有効、低 EM 干渉
-- **SEMI-OUTDOOR** — 中間的パターン
-- **RESIDENTIAL** — 低 RF、低 BLE、中光量
-- **UNDERGROUND** — GPS 無効、低光量、中 EM
+**ノードタイプ：**
 
-### 予測エンジン（Prediction Engine）
+| タイプ | 説明 | センサー |
+|--------|------|---------|
+| 🔬 SENSOR | 固定環境センサー | 温度、湿度、気圧、音響、電磁場、照度 |
+| 🌐 GATEWAY | WiFi/MQTT ブリッジ | ― （通信中継専用） |
+| 📡 RELAY | BLE/ESP-NOW メッシュ中継 | ― （中継専用） |
+| 📍 ANCHOR | 三辺測量アンカー | 位置座標 (x, y, z) |
 
-Holt の二重指数平滑法（α=0.3, β=0.1）により μ(x,t) の次時刻値を予測。下降トレンド（Δ < -3%/cycle）検出時に早期警告を発報。
+**Fleet 機能：**
 
-### 空間記憶（Spatial Memory）
+- ノードのプロビジョニング（名前・タイプ・設置場所を指定して追加）
+- リアルタイムステータス監視（online / degraded / offline / provisioning）
+- バッテリー残量・RSSI・稼働時間トラッキング
+- センサーデータ集約（mean / min / max / std dev）
+- OTA ファームウェア更新（プログレスバー付き）
+- ハードウェアメッセージバス（SENSOR\_DATA, HEARTBEAT, ROUTE\_ADV, OTA\_CHECK, MU\_REPORT）
 
-11 次元の値をフィンガープリントとして IndexedDB に保存。再訪時にコサイン類似度ベースで自動認識（閾値: 70%）し、前回との差分を表示します。
+**デフォルトノード構成（シミュレーション）：**
 
-### 異常検知（Anomaly Detector）
+| ノード名 | タイプ | ファームウェア |
+|----------|--------|--------------|
+| Lab-Sensor-01 | sensor | 2.1.0 |
+| Lab-Sensor-02 | sensor | 2.0.9 |
+| Gateway-Main | gateway | 2.1.1 |
+| Relay-Corridor | relay | 2.1.0 |
+| Anchor-North | anchor | 2.1.0 |
+| Outdoor-Sensor | sensor | 2.1.1 |
 
-以下のイベントをリアルタイムで検知し、推奨アクションを自動生成します：
+### ハイブリッドネットワーク (`useHybridNetwork`)
 
-- Phase-Law 状態遷移（COUPLED → DECOUPLED 等）
-- μ 急降下（> 15%: CRITICAL、> 8%: WARNING）
-- Reality Index 低下（> 15%）
+7 種のプロトコルを統合し、スマホ・ESP32・クラウドを横断するトポロジーを構築します。
 
-重大異常は IndexedDB に永続化されます。
+| プロトコル | 用途 | 到達距離 |
+|-----------|------|---------|
+| BLE 5.0 | 近距離デバイス検出 | ~100m |
+| ESP-NOW | ESP32 間低遅延通信 | ~200m |
+| WiFi | LAN 内通信 | ~50m |
+| LoRa | 長距離 IoT 通信 | ~10km |
+| MQTT | クラウドブローカー経由 | WAN |
+| WebRTC | ブラウザ P2P | WAN |
+| BroadcastChannel | 同一端末タブ間 | 端末内 |
 
-### マルチホップルーティング（pIP Protocol）
+**ネットワーク統計：** 総ノード数、総リンク数、アクティブリンク数、平均レイテンシ、ヘルススコア
 
-距離ベクトル方式の簡易ルーティングプロトコルを実装。直接接続のないピア間で TTL ベースのパケット転送（最大 5 ホップ）を行います。HELLO パケットによる隣接発見とルーティングテーブルの自動更新、ネットワークパーティション検出を含みます。
+### トポロジーキャンバス (`TopologyCanvas`)
 
-### 動的重み最適化（Dynamic Weight Optimizer）
+Canvas API による物理ネットワークトポロジーをリアルタイム描画します。
 
-センサーデータのソース分類（REAL / EST / SIM / N/A）に基づき、11 次元の重み wᵢ を自動最適化。実測データを持つ次元の重みを増幅し、シミュレーションデータの影響を低減します。
+- 中央に THIS\_DEVICE（スマホ）
+- 内側リングに ESP32 ノード群
+- 外側にクラウド接続ノード
+- プロトコル別の色分けリンク
+- ステータス（active / degraded）による表示切替
 
----
+### ゲートウェイ状態カード
 
-## UI タブ一覧
+Gateway ノードの詳細ステータスを表示します。
 
-| タブ | 内容 |
-|---|---|
-| MEASURE | 音響距離計測（PING / BURST / CALIBRATE） |
-| PRECISION | マルチチャープ計測・EM フィンガープリント・BLE パスロス |
-| SPECTRUM | RF スペクトラム表示 |
-| PEERS | WebRTC P2P メッシュ管理 |
-| HEATMAP | 空間 Mediation ヒートマップ（2D） |
-| TIMELINE | 11 次元時系列グラフ |
-| DASHBOARD | レーダーチャート・統計サマリー |
-| PROFILES | 空間プロファイル保存・比較 |
-| NETWORK | pTCP ネットワーク・QoS |
-| MIDBRAIN | 中脳モニター（FSM / Salience / Embodiment） |
-| **INTELLIGENCE** | **v2.0** 空間分類・予測・適応閾値・異常検知・タイムライン |
-| **ROUTING** | **v2.0** pIP ルーティングテーブル・マルチホップパス |
-| **MEMORY** | **v2.0** 空間記憶・フィンガープリント認識 |
-| SITE | SiteSense 建設現場安全管理 |
-| PATENT | 特許実証データ収集・レポート生成 |
+- アップリンク状態（WiFi SSID・IP / MQTT ブローカー / LoRa 周波数）
+- パケット中継数
+- 接続ノード数
+
+### v2.1 成功指標
+
+| 指標 | 目標値 |
+|------|--------|
+| ESP32 ノード接続 | 5 台以上 |
+| ゲートウェイ稼働 | 1 台以上 |
+| ハイブリッドプロトコル | 3 種以上 |
+| ネットワーク健全性 | 80%以上 |
+| Fleet 平均バッテリー | 50%以上 |
+| OTA ファームウェア統一 | 100% |
 
 ---
 
 ## 技術スタック
 
-単一 HTML ファイル内に全依存を含みます。ビルドツール不要。
+| 項目 | 技術 |
+|------|------|
+| UI フレームワーク | React 18.2.0（CDN、`createElement` ベース、JSX 不使用） |
+| フォント | IBM Plex Mono（Google Fonts） |
+| 圧縮 | LZ-String 1.5.0 |
+| 永続化 | IndexedDB（anchors, calibration, profiles, spatial\_memory, routing\_table, anomaly\_log, adaptive\_thresholds） |
+| 通信 | BroadcastChannel, WebRTC DataChannel |
+| 描画 | Canvas API（トポロジー、レーダー、ヒートマップ） |
+| 音響 | Web Audio API（AudioContext + AnalyserNode） |
+| センサー | DeviceOrientation, DeviceMotion, Magnetometer, AmbientLightSensor, Geolocation |
+| PWA | Service Worker + Install Prompt |
 
-- **React 18** (CDN) — UI コンポーネント
-- **WebAudio API** — チャープ信号生成・相互相関・マッチドフィルタ
-- **WebRTC DataChannel** — P2P リアルタイム通信
-- **Web Bluetooth API** — BLE デバイススキャン
-- **IndexedDB** — ローカル永続化（anchors, calibration, profiles, spatial_memory, routing_table, anomaly_log, adaptive_thresholds）
-- **Canvas API** — ヒートマップ・レーダーチャート・時系列グラフ
-- **Geolocation / DeviceOrientation / DeviceMotion API** — 空間・慣性センサー
-- **LZ-String** — WebRTC SDP 圧縮（QR ハンドシェイク用）
-- **Service Worker** — オフラインキャッシュ（実験的）
-
----
-
-## 既知の制限事項
-
-| 制限 | 詳細 | 緩和策 |
-|---|---|---|
-| センサーの SIM 依存 | RF Density・NFC・一部 Thermal はシミュレーションデータ | Chrome Android で REAL 比率を最大化 |
-| 音響計測の環境依存 | 高騒音環境で精度が低下 | 環境ノイズ適応 + マルチチャープ計測 |
-| BLE の距離精度 | RSSI ベースのため ±1-3m 程度 | パスロスモデル校正で改善 |
-| 単一ファイル制約 | 264KB / 3,663 行で保守性に限界 | v2.x でモジュール分割を検討 |
-| WebRTC NAT 越え | シンメトリック NAT 環境で接続失敗 | TURN フォールバック未実装 |
-| 空間分類器の精度 | ルールベースのためエッジケースに弱い | 計測履歴ベースの学習を今後導入予定 |
-| 予測エンジン | 短期予測のみ（2 秒先） | 長期トレンド分析は v2.x で対応 |
+**外部依存：** CDN 経由の 3 ファイルのみ。それ以外はゼロ依存のシングル HTML ファイル（4,312 行）。
 
 ---
 
-## データの永続化
+## 使い方
 
-IndexedDB `ptcp_anchors` (v4) に以下のオブジェクトストアを保持：
+### 基本起動
 
-| ストア | 用途 | キー |
-|---|---|---|
-| `anchors` | 空間アンカー座標 | `id` |
-| `calibration` | キャリブレーションデータ | `key` |
-| `profiles` | 空間プロファイル | `id` |
-| `spatial_memory` | 空間記憶フィンガープリント | `id` |
-| `routing_table` | pIP ルーティングテーブル | `dest` |
-| `anomaly_log` | 異常検知ログ（インデックス: `ts`）| auto-increment |
-| `adaptive_thresholds` | 適応型閾値パラメータ | `lawId` |
+```
+# ローカルファイルとしてブラウザで直接開く
+open physical-ping-v2_1.html
 
-ブラウザのストレージをクリアするとすべてのデータが失われます。重要なデータは JSON エクスポート機能で別途保存してください。
+# または任意の HTTP サーバーで配信
+python3 -m http.server 8000
+# → http://localhost:8000/physical-ping-v2_1.html
+```
+
+### HARDWARE タブの操作
+
+1. **Fleet Summary** — オンライン/劣化/オフラインのノード数とバッテリー状況を確認
+2. **Hybrid Network Topology** — トポロジーキャンバスでネットワーク全体像を把握
+3. **Gateway Status** — ゲートウェイのアップリンク接続状態を監視
+4. **Aggregated Sensor Data** — 全ノードのセンサー集約値（平均・最小・最大・標準偏差）を確認
+5. **Node Fleet** — 個別ノードの詳細表示、OTA 更新、ノード削除
+6. **Provision** — 新規ノードの追加（名前・タイプ・設置場所を入力）
+7. **Message Bus** — メッセージタイプ別フィルタリングでハードウェア通信をモニタリング
+
+### デモモード
+
+ヘッダーの ▶ DEMO ボタンでガイド付きウォークスルーを開始。v2.1 では以下のステップが追加されています。
+
+- Step 5: ESP32 常設ノード（sensor / gateway / relay / anchor）
+- Step 6: ハイブリッドネットワーク（7 プロトコル統合トポロジー）
+- Step 7: OTA & Fleet 管理（ファームウェア更新・バッテリー監視・データ集約）
 
 ---
 
-## ライセンスと帰属
+## Phase-Law Engine v2
+
+12 の物理法則を基盤とした計測・判定エンジンです。各法則は独立にスコアリングされ、パテントタブで統合されます。
+
+| ID | 法則名 |
+|----|--------|
+| PL-01 | 音速距離法則 |
+| PL-02 | ドップラー速度法則 |
+| PL-03 | 逆二乗減衰法則 |
+| PL-04 | 多重反射残響法則 |
+| PL-05 | BLE 経路損失法則 |
+| PL-06 | 電磁指紋法則 |
+| PL-07 | 温度補正法則 |
+| PL-08 | 地磁気偏角法則 |
+| PL-09 | 環境光変動法則 |
+| PL-10 | 加速度重力法則 |
+| PL-11 | GPS 精度法則 |
+| PL-12 | 時間安定性法則 |
 
 ---
 
-## 変更履歴
+## データ永続化
 
-### v2.0 INTELLIGENCE（2026-02）
+IndexedDB `ptcp_anchors` データベースに以下のオブジェクトストアを保持します。
 
-- Phase-Law Engine v2: 12 法則（PL-010〜PL-012 新設）+ 適応型閾値
-- 空間分類器: 6 タイプの環境自動推定
-- 予測エンジン: Holt 二重指数平滑法による μ(x,t) 予測
-- 空間記憶: 11D フィンガープリント認識・差分検出
-- 異常検知: Phase-Law 遷移 / μ 急降下 / RI 低下の検出 + 推奨アクション
-- マルチホップルーティング: pIP 距離ベクトルプロトコル
-- 動的重み最適化: REAL/SIM ソース分類に基づく自動重み配分
-- 環境変化タイムライン: 10 秒間隔サンプリング
-- PWA 対応: Service Worker + マニフェスト（実験的）
-- パフォーマンスモニター: FPS / メモリ / SW 状態
-- UI カラーパレット: 暗色テーマに調和する低彩度ボタン
+| Store | 用途 | Key |
+|-------|------|-----|
+| anchors | 測距アンカーポイント | id |
+| calibration | EM フィンガープリント、BLE パスロス校正値 | key |
+| profiles | 環境プロファイルスナップショット | id |
+| spatial\_memory | 空間記憶エントリ | id |
+| routing\_table | マルチホップルーティングテーブル | dest |
+| anomaly\_log | 異常検知ログ | id (auto) |
+| adaptive\_thresholds | 適応的閾値 | lawId |
 
-### v1.5 APPLICATION（2026-01）
+---
 
-- 人工中脳層（L1 Midbrain）: Reflex Gate / Salience Filter / Mode FSM / Embodiment Core
-- Claude API 統合（L3 大脳）
-- SiteSense 建設現場モード
-- 特許実証データ収集エンジン
-- デモモード
+## ファイル構成
 
-### v1.3 PRECISION
+```
+physical-ping-v2_1.html    ← 全機能を含むシングルファイル（4,312 行）
+README.md                  ← 本ドキュメント
+```
 
-- マルチチャープ並列計測
-- EM フィールドフィンガープリント
-- BLE パスロスモデル校正
-- 次元間クロスバリデーション
-- 測定品質スコア
+依存ファイルは存在しません。HTML ファイル 1 つで完結します。
 
-### v1.2 VISUALIZATION
+---
 
-- μ(x,t) 時系列ストレージ・グラフ
-- 空間ヒートマップ（2D Canvas）
-- インタラクティブレーダーチャート
-- 空間プロファイル保存・比較・エクスポート
+## ブラウザ対応
 
-### v1.1 CONNECTIVITY
+| ブラウザ | 対応状況 |
+|---------|---------|
+| Chrome / Edge (mobile & desktop) | ✅ フル対応 |
+| Safari (iOS) | ⚠ DeviceOrientation 権限要求あり、Magnetometer API 非対応 |
+| Firefox | ⚠ Web Bluetooth / AmbientLightSensor 非対応 |
 
-- WebRTC DataChannel P2P
-- マルチピアメッシュ
-- 空間アンカー IndexedDB 永続化
-- 3 段フォールバック（WebRTC → BroadcastChannel → Simulation）
+音響測距・BLE スキャン・WebRTC は HTTPS 環境またはlocalhost が必要です。
 
-### v1.0a（初期）
+---
 
-- 11 次元センサーフュージョン
-- Phase-Law Engine（8 法則）
-- pTCP/IP プロトコルスタック
-- Matched Filter + Kalman Filter 音響距離計測
-- Reality Index ρ(x,t)
+## ライセンス
+
+Phase-Law Architecture および pTCP/IP プロトコルは独自設計です。
