@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v2.0 INTELLIGENCE</title>
+<title>Physical Ping — pTCP v2.1 HARDWARE</title>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGh5c2ljYWwgUGluZyIsInNob3J0X25hbWUiOiJwVENQIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBmMTQiLCJ0aGVtZV9jb2xvciI6IiMwMGZmYWEiLCJpY29ucyI6W119">
 <meta name="theme-color" content="#00ffaa">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -336,6 +336,56 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .adaptive-th-bar{flex:1;height:8px;background:#0a0f14;border-radius:4px;overflow:hidden;position:relative}
 .adaptive-th-fill{height:100%;border-radius:4px;transition:width .5s}
 .adaptive-th-marker{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffffff88;border-radius:1px;transition:left .5s}
+/* ═══ v2.1 HARDWARE STYLES ═══ */
+.hw-node{padding:12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:6px;position:relative;overflow:hidden;transition:all .3s}
+.hw-node::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.hw-node.online::before{background:#00ffaa}
+.hw-node.degraded::before{background:#ffcc00;animation:pulse 2s infinite}
+.hw-node.offline::before{background:#ff4444}
+.hw-node.provisioning::before{background:#00ddff;animation:pulse 1.2s infinite}
+.hw-node-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.hw-node-id{font-size:10px;font-weight:700;color:#ccd8e8;letter-spacing:1px}
+.hw-node-type{font-size:7px;letter-spacing:2px;padding:2px 6px;border-radius:1px;font-weight:600}
+.hw-node-type.sensor{background:rgba(0,255,170,.1);border:1px solid #00ffaa33;color:#00ffaa}
+.hw-node-type.gateway{background:rgba(0,221,255,.1);border:1px solid #00ddff33;color:#00ddff}
+.hw-node-type.relay{background:rgba(204,102,255,.1);border:1px solid #cc66ff33;color:#cc66ff}
+.hw-node-type.anchor{background:rgba(255,136,0,.1);border:1px solid #ff880033;color:#ff8800}
+.hw-node-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:4px;margin-top:6px}
+.hw-node-stat{text-align:center;padding:4px;background:#0a0f14;border-radius:1px}
+.hw-node-stat-v{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.hw-node-stat-l{font-size:7px;letter-spacing:1px;color:#445566;margin-top:1px}
+.hw-sensor-bar{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:9px}
+.hw-sensor-bg{flex:1;height:4px;background:#0a0f14;border-radius:2px;overflow:hidden}
+.hw-sensor-fill{height:100%;border-radius:2px;transition:width .4s}
+.gw-card{padding:14px;border:1px solid #00ddff22;border-radius:2px;background:rgba(0,221,255,.02);margin-bottom:8px;position:relative;overflow:hidden}
+.gw-card::before{content:'GATEWAY';position:absolute;top:4px;right:8px;font-size:7px;letter-spacing:2px;color:#00ddff33}
+.gw-uplink{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #0a0f14;font-size:9px}
+.gw-uplink-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1.5px;font-weight:600;border-radius:2px}
+.gw-uplink-badge.active{background:rgba(0,255,170,.1);border:1px solid #00ffaa33;color:#00ffaa}
+.gw-uplink-badge.standby{background:rgba(255,204,0,.08);border:1px solid #ffcc0033;color:#ffcc00}
+.gw-uplink-badge.down{background:rgba(255,68,68,.08);border:1px solid #ff444433;color:#ff4444}
+.topo-wrap{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:#000;margin-bottom:14px;position:relative}
+.topo-wrap canvas{display:block;width:100%}
+.hybrid-proto{display:flex;align-items:center;gap:4px;padding:3px 8px;font-size:8px;border-radius:1px;margin:2px;letter-spacing:1px}
+.hybrid-proto.ble{background:rgba(68,136,255,.1);border:1px solid #4488ff33;color:#4488ff}
+.hybrid-proto.wifi{background:rgba(0,255,170,.1);border:1px solid #00ffaa33;color:#00ffaa}
+.hybrid-proto.lora{background:rgba(255,136,0,.1);border:1px solid #ff880033;color:#ff8800}
+.hybrid-proto.mqtt{background:rgba(0,221,255,.1);border:1px solid #00ddff33;color:#00ddff}
+.hybrid-proto.webrtc{background:rgba(204,102,255,.1);border:1px solid #cc66ff33;color:#cc66ff}
+.hybrid-proto.bc{background:rgba(255,204,0,.08);border:1px solid #ffcc0033;color:#ffcc00}
+.fw-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1px;border-radius:1px}
+.fw-badge.current{background:rgba(0,255,170,.08);border:1px solid #00ffaa33;color:#00ffaa}
+.fw-badge.update{background:rgba(255,204,0,.08);border:1px solid #ffcc0033;color:#ffcc00;animation:pulse 2s infinite}
+.hw-provision-form{padding:12px;border:1px solid #00ddff22;border-radius:2px;background:rgba(0,0,0,.3);margin-bottom:8px}
+.hw-provision-form input,.hw-provision-form select{background:#0a0f14;border:1px solid #1a2530;color:#8899aa;padding:6px 8px;font-size:11px;font-family:inherit;border-radius:2px;width:100%;margin-bottom:6px}
+.hw-fleet-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:6px;margin-bottom:10px}
+.hw-fleet-card{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);text-align:center}
+.hw-fleet-card-v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.hw-fleet-card-l{font-size:8px;letter-spacing:1.5px;color:#556677;margin-top:2px}
+.hw-ota-progress{height:6px;background:#0a0f14;border-radius:3px;overflow:hidden;margin:4px 0}
+.hw-ota-bar{height:100%;border-radius:3px;transition:width .5s;background:linear-gradient(90deg,#00ddff,#00ffaa)}
+.hw-msg-row{display:grid;grid-template-columns:50px 28px 52px 1fr 40px;padding:4px 8px;font-size:9px;border-bottom:1px solid rgba(26,37,48,.3);align-items:center;animation:fadeIn .15s ease}
+.hw-msg-row:nth-child(even){background:rgba(255,255,255,.005)}
 </style>
 </head>
 <body>
@@ -2266,11 +2316,11 @@ function usePatentData(history,mediation,phaseLaws){
   var exportPatentDataset=useCallback(function(){
     if(!sessions.length&&!current)return;
     var dataset={
-      protocol:'pTCP_v2.0_Patent_Calibration',version:'2.0.0',generated:new Date().toISOString(),
+      protocol:'pTCP_v2.1_Patent_Calibration',version:'2.1.0',generated:new Date().toISOString(),
       deviceId:DEVICE_ID,deviceName:DEVICE_NAME,
       sessions:sessions,currentSession:current,
       summary:{totalSessions:sessions.length,totalSamples:sessions.reduce(function(s,sess){return s+(sess.stats?sess.stats.n:0);},0)},
-      certStatement:'このデータセットはPhysical Ping pTCP v2.0 INTELLIGENCEによって自動生成され、CRC32完全性検証済みです。野村プロトコル / Phase-Law Architecture v2 準拠。'
+      certStatement:'このデータセットはPhysical Ping pTCP v2.1 HARDWAREによって自動生成され、CRC32完全性検証済みです。野村プロトコル / Phase-Law Architecture v2.1 + ESP32 Fleet 準拠。'
     };
     var blob=new Blob([JSON.stringify(dataset,null,2)],{type:'application/json'});
     var url=URL.createObjectURL(blob);var a=document.createElement('a');
@@ -2296,12 +2346,13 @@ function usePatentData(history,mediation,phaseLaws){
 /* ═══════════════════════════════════════════════════════════ */
 var DEMO_STEPS=[
   {title:'Physical Pingへようこそ',desc:'pTCP/IP for Physical Space — 物理空間のインターネットプロトコル。\n\n11次元センサーフュージョンにより、スマートフォンが空間の「伝達係数 μ(x,t)」をリアルタイムで計測します。'},
-  {title:'L0 小脳 — Phase-Law Engine',desc:'Phase-Law Engine（小脳）が8つの物理法則を常時評価。\n\nCOUPLED → PARTIAL → DECOUPLED の3段階で空間の結合状態を判定します。\n\n⬇ MESUREタブで計測を開始してください。'},
+  {title:'L0 小脳 — Phase-Law Engine',desc:'Phase-Law Engine（小脳）が12の物理法則を常時評価。\n\nCOUPLED → PARTIAL → DECOUPLED の3段階で空間の結合状態を判定します。\n\n⬇ MESUREタブで計測を開始してください。'},
   {title:'L1 中脳 — Midbrain',desc:'人工中脳が小脳からのデータをフィルタリング。\n\n● Reflex Gate: 危険を即時検知・遮断\n● Salience Filter: 重要信号だけを大脳へ\n● Mode FSM: NOMINAL→ALERT→CRITICAL→EMERGENCY\n● Embodiment Core: 物理制約の検証\n\n⬇ MIDBAINタブで状態を確認できます。'},
-  {title:'L3 大脳 — Claude API',desc:'重要な変化を検知すると、中脳がClaude（大脳）を起動。\n\nセンサーデータを自然言語の状況報告に変換します。「考える前に動く」中脳が、「どう考えるか」を制御します。\n\n⬇ MIDBAINタブの「大脳クエリ」ボタンを試してください。'},
-  {title:'SiteSense — 建設現場応用',desc:'工業グレードの安全管理ダッシュボード。\n\n● ゾーン管理（安全/注意/危険/立入禁止）\n● 作業員BLEトラッキング\n● KY/ヒヤリハット自動記録\n● 環境計測レポート自動生成\n\n⬇ SITEタブで確認できます。'},
-  {title:'特許実証データ',desc:'計測データを特許出願用フォーマットで自動生成。\n\n● 再現性検証（目標: ±3cm以内）\n● 統計的信頼区間（CI95%）\n● 環境条件メタデータ付き\n\n⬇ PATENTタブでデータ収集を開始できます。'},
-  {title:'デモ完了',desc:'Physical Ping v2.0 INTELLIGENCE\n\n小脳（Phase-Law v2 適応型）→ 中脳（Salience Filter / Mode FSM）→ 空間知能（予測・記憶・異常検知）→ 大脳（Claude API）\n\nこれは空間が自ら適応する人工神経系の完成形です。'},
+  {title:'L3 大脳 — Claude API',desc:'重要な変化を検知すると、中脳がClaude（大脳）を起動。\n\nセンサーデータを自然言語の状況報告に変換します。「考える前に動く」中脳が、「どう考えるか」を制御します。'},
+  {title:'v2.1 HARDWARE — ESP32常設ノード',desc:'スマホの外へ。ESP32マイコンを常設ノードとして設置。\n\n● センサーノード: 温度/湿度/気圧/音響/EM/照度\n● ゲートウェイ: ESP32→WiFi/MQTT/LoRaブリッジ\n● 中継ノード: BLE/ESP-NOWメッシュリレー\n● アンカー: 三辺測量用固定位置ノード\n\n⬇ HARDWAREタブでノード管理が可能です。'},
+  {title:'ハイブリッドネットワーク',desc:'複数の通信プロトコルを自動統合。\n\n● BLE 5.0 — 近距離デバイス間\n● ESP-NOW — 超低遅延M2M\n● WiFi — ゲートウェイ接続\n● LoRa — 長距離（5km+）低電力\n● MQTT — クラウドブリッジ\n● WebRTC — ブラウザP2P\n\nトポロジーキャンバスで全接続を可視化。'},
+  {title:'OTA & Fleet管理',desc:'リモートでファームウェア更新と監視。\n\n● OTA（Over-The-Air）ファームウェア更新\n● バッテリー監視 & Deep Sleep制御\n● Fleet全体のセンサーデータ集約\n● リアルタイムメッセージバス監視'},
+  {title:'デモ完了',desc:'Physical Ping v2.1 HARDWARE\n\n小脳（Phase-Law v2）→ 中脳（Salience Filter）→ 空間知能（予測・記憶・異常検知）→ 大脳（Claude API）→ HW Layer（ESP32 Fleet + Hybrid Network）\n\n物理空間のインターネットが、スマートフォンの外へ拡張されました。\n野村プロトコル / Phase-Law Architecture v2.1 — 野村孝生 2026'},
 ];
 
 function useDemo(){
@@ -2315,9 +2366,366 @@ function useDemo(){
 }
 
 
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.1 ESP32 NODE TYPES & FIRMWARE                          */
+/* ═══════════════════════════════════════════════════════════ */
+var ESP_NODE_TYPES=[
+  {id:'sensor',label:'SENSOR',ja:'センサーノード',color:'#00ffaa',desc:'Fixed sensor: temp/humidity/acoustic/EM'},
+  {id:'gateway',label:'GATEWAY',ja:'ゲートウェイ',color:'#00ddff',desc:'ESP32→WiFi/MQTT bridge'},
+  {id:'relay',label:'RELAY',ja:'中継ノード',color:'#cc66ff',desc:'BLE/ESP-NOW mesh relay'},
+  {id:'anchor',label:'ANCHOR',ja:'アンカー',color:'#ff8800',desc:'Fixed position for trilateration'}
+];
+var ESP_FW_VERSIONS=[
+  {ver:'2.1.0',date:'2026-02-21',changes:'Initial pTCP hardware node firmware'},
+  {ver:'2.1.1',date:'2026-02-21',changes:'OTA update support + deep sleep'},
+  {ver:'2.0.9',date:'2026-02-15',changes:'Legacy beta firmware'}
+];
+var ESP_LATEST_FW='2.1.1';
+var ESP_SENSORS=['temperature','humidity','pressure','acoustic','emField','light','proximity','vibration'];
+var ESP_PROTOS=['BLE','ESP-NOW','WiFi','LoRa','MQTT'];
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.1 ESP32 FLEET MANAGER                                   */
+/*  Register, monitor, and OTA-update fixed sensor nodes       */
+/* ═══════════════════════════════════════════════════════════ */
+function useESP32Fleet(){
+  var _nodes=useState([]),nodes=_nodes[0],setNodes=_nodes[1];
+  var _msgs=useState([]),msgs=_msgs[0],setMsgs=_msgs[1];
+  var _provisioning=useState(false),provisioning=_provisioning[0],setProvisioning=_provisioning[1];
+  var _otaTarget=useState(null),otaTarget=_otaTarget[0],setOtaTarget=_otaTarget[1];
+  var _otaProgress=useState(0),otaProgress=_otaProgress[0],setOtaProgress=_otaProgress[1];
+  var simRef=useRef(null);
+  var MAX_MSGS=200;
+
+  /* Simulated ESP32 nodes (would connect via WebSocket/MQTT in production) */
+  var defaultNodes=[
+    {id:'ESP32-A1F0',name:'Lab-Sensor-01',type:'sensor',firmware:'2.1.1',status:'online',
+     ip:'192.168.1.101',mac:'A4:CF:12:A1:F0:01',rssi:-42,battery:87,uptime:172800,
+     lastSeen:Date.now(),location:'Lab Room A',lat:null,lng:null,
+     sensors:{temperature:{val:23.4,unit:'°C'},humidity:{val:58,unit:'%'},pressure:{val:1013.2,unit:'hPa'},acoustic:{val:42,unit:'dB'},emField:{val:48.2,unit:'μT'},light:{val:320,unit:'lux'}},
+     config:{interval:5000,deepSleep:false,txPower:9,channel:1}},
+    {id:'ESP32-B2E1',name:'Lab-Sensor-02',type:'sensor',firmware:'2.1.0',status:'online',
+     ip:'192.168.1.102',mac:'A4:CF:12:B2:E1:02',rssi:-55,battery:64,uptime:86400,
+     lastSeen:Date.now(),location:'Lab Room B',lat:null,lng:null,
+     sensors:{temperature:{val:25.1,unit:'°C'},humidity:{val:52,unit:'%'},pressure:{val:1013.0,unit:'hPa'},acoustic:{val:38,unit:'dB'},emField:{val:52.7,unit:'μT'},light:{val:180,unit:'lux'}},
+     config:{interval:5000,deepSleep:false,txPower:9,channel:1}},
+    {id:'ESP32-GW01',name:'Gateway-Main',type:'gateway',firmware:'2.1.1',status:'online',
+     ip:'192.168.1.1',mac:'A4:CF:12:GW:01:00',rssi:-30,battery:null,uptime:604800,
+     lastSeen:Date.now(),location:'Server Room',lat:null,lng:null,
+     sensors:{temperature:{val:26.8,unit:'°C'}},
+     config:{interval:1000,deepSleep:false,txPower:20,channel:1},
+     gateway:{uplinks:[
+       {proto:'WiFi',status:'active',ssid:'pTCP-Lab',ip:'192.168.1.1',bw:'72Mbps'},
+       {proto:'MQTT',status:'active',broker:'mqtt://iot.local:1883',topic:'ptcp/v2.1/#'},
+       {proto:'LoRa',status:'standby',freq:'920MHz',sf:7,bw:'125kHz'}
+     ],connectedNodes:2,packetsRelayed:14523,lastRelay:Date.now()}},
+    {id:'ESP32-R3C2',name:'Relay-Corridor',type:'relay',firmware:'2.1.1',status:'degraded',
+     ip:'192.168.1.103',mac:'A4:CF:12:R3:C2:03',rssi:-68,battery:41,uptime:43200,
+     lastSeen:Date.now()-5000,location:'Corridor Node',lat:null,lng:null,
+     sensors:{temperature:{val:22.1,unit:'°C'}},
+     config:{interval:2000,deepSleep:true,txPower:12,channel:1}},
+    {id:'ESP32-AN04',name:'Anchor-North',type:'anchor',firmware:'2.0.9',status:'online',
+     ip:'192.168.1.104',mac:'A4:CF:12:AN:04:00',rssi:-48,battery:92,uptime:259200,
+     lastSeen:Date.now(),location:'North Wall',lat:null,lng:null,
+     sensors:{temperature:{val:21.8,unit:'°C'},acoustic:{val:35,unit:'dB'}},
+     config:{interval:3000,deepSleep:false,txPower:9,channel:1},
+     anchor:{x:0,y:10,z:2.5,calibrated:true,lastCalib:Date.now()-86400000}},
+    {id:'ESP32-F5D3',name:'Outdoor-Sensor',type:'sensor',firmware:'2.1.0',status:'offline',
+     ip:'192.168.1.105',mac:'A4:CF:12:F5:D3:05',rssi:null,battery:12,uptime:0,
+     lastSeen:Date.now()-120000,location:'Rooftop',lat:35.155,lng:136.916,
+     sensors:{temperature:{val:null},humidity:{val:null},light:{val:null}},
+     config:{interval:10000,deepSleep:true,txPower:20,channel:6}}
+  ];
+
+  /* Initialize with simulated nodes */
+  useEffect(function(){
+    setNodes(defaultNodes);
+    /* Simulate sensor updates */
+    simRef.current=setInterval(function(){
+      setNodes(function(prev){return prev.map(function(n){
+        if(n.status==='offline')return n;
+        var updated=Object.assign({},n,{lastSeen:Date.now(),uptime:n.uptime+5});
+        /* Drift sensor values */
+        if(updated.sensors){
+          var newSensors={};
+          Object.keys(updated.sensors).forEach(function(k){
+            var s=updated.sensors[k];
+            if(s.val!==null){
+              var drift=(Math.random()-0.5)*0.4;
+              newSensors[k]={val:Math.round((s.val+drift)*10)/10,unit:s.unit};
+            }else{newSensors[k]=s;}
+          });
+          updated.sensors=newSensors;
+        }
+        /* Battery drain */
+        if(updated.battery!==null)updated.battery=Math.max(0,updated.battery-(Math.random()*0.01));
+        /* RSSI jitter */
+        if(updated.rssi!==null)updated.rssi=Math.round(updated.rssi+(Math.random()-0.5)*3);
+        /* Degrade relay randomly */
+        if(n.id==='ESP32-R3C2')updated.status=Math.random()>0.3?'degraded':'online';
+        return updated;
+      });});
+      /* Generate message log */
+      setMsgs(function(prev){
+        var types=['SENSOR_DATA','HEARTBEAT','ROUTE_ADV','OTA_CHECK','MU_REPORT'];
+        var nodeIds=defaultNodes.filter(function(n){return n.status!=='offline';}).map(function(n){return n.id;});
+        var newMsg={ts:Date.now(),from:nodeIds[Math.floor(Math.random()*nodeIds.length)],
+          type:types[Math.floor(Math.random()*types.length)],
+          proto:['BLE','ESP-NOW','WiFi'][Math.floor(Math.random()*3)],
+          size:Math.floor(20+Math.random()*200),
+          rssi:Math.round(-30-Math.random()*50)};
+        return[newMsg].concat(prev).slice(0,MAX_MSGS);
+      });
+    },5000);
+    return function(){if(simRef.current)clearInterval(simRef.current);};
+  },[]);
+
+  /* Provision a new node */
+  var provision=useCallback(function(name,type,location){
+    setProvisioning(true);
+    var nodeId='ESP32-'+genId().slice(0,4).toUpperCase();
+    setTimeout(function(){
+      var node={id:nodeId,name:name||'Node-'+nodeId,type:type||'sensor',firmware:ESP_LATEST_FW,status:'provisioning',
+        ip:'192.168.1.'+Math.floor(110+Math.random()*140),mac:'A4:CF:12:'+genId().slice(0,2)+':'+genId().slice(0,2)+':'+genId().slice(0,2),
+        rssi:-40-Math.floor(Math.random()*30),battery:100,uptime:0,lastSeen:Date.now(),location:location||'Unassigned',
+        lat:null,lng:null,sensors:{temperature:{val:22+Math.random()*4,unit:'°C'}},
+        config:{interval:5000,deepSleep:false,txPower:9,channel:1}};
+      setNodes(function(prev){return prev.concat([node]);});
+      /* Simulate provisioning completing */
+      setTimeout(function(){
+        setNodes(function(prev){return prev.map(function(n){return n.id===nodeId?Object.assign({},n,{status:'online'}):n;});});
+        setProvisioning(false);
+      },3000);
+    },1500);
+  },[]);
+
+  /* Remove node */
+  var removeNode=useCallback(function(nodeId){
+    setNodes(function(prev){return prev.filter(function(n){return n.id!==nodeId;});});
+  },[]);
+
+  /* OTA firmware update */
+  var startOTA=useCallback(function(nodeId,targetFw){
+    setOtaTarget(nodeId);setOtaProgress(0);
+    var iv=setInterval(function(){
+      setOtaProgress(function(p){
+        if(p>=100){
+          clearInterval(iv);
+          setNodes(function(prev){return prev.map(function(n){return n.id===nodeId?Object.assign({},n,{firmware:targetFw||ESP_LATEST_FW}):n;});});
+          setOtaTarget(null);
+          return 100;
+        }
+        return p+Math.floor(5+Math.random()*12);
+      });
+    },400);
+  },[]);
+
+  /* Aggregate fleet stats */
+  var fleetStats=useMemo(function(){
+    var online=nodes.filter(function(n){return n.status==='online';}).length;
+    var degraded=nodes.filter(function(n){return n.status==='degraded';}).length;
+    var offline=nodes.filter(function(n){return n.status==='offline';}).length;
+    var prov=nodes.filter(function(n){return n.status==='provisioning';}).length;
+    var needsUpdate=nodes.filter(function(n){return n.firmware!==ESP_LATEST_FW;}).length;
+    var avgBatt=nodes.filter(function(n){return n.battery!==null;});
+    avgBatt=avgBatt.length>0?avgBatt.reduce(function(s,n){return s+n.battery;},0)/avgBatt.length:0;
+    var types={};nodes.forEach(function(n){types[n.type]=(types[n.type]||0)+1;});
+    return{total:nodes.length,online:online,degraded:degraded,offline:offline,provisioning:prov,
+      needsUpdate:needsUpdate,avgBattery:avgBatt,types:types,msgRate:msgs.length>1?(msgs.length/Math.max(1,(Date.now()-msgs[msgs.length-1].ts)/1000)).toFixed(1):0};
+  },[nodes,msgs]);
+
+  /* Get aggregated sensor data from all online nodes */
+  var aggregatedSensors=useMemo(function(){
+    var agg={};
+    nodes.filter(function(n){return n.status!=='offline'&&n.sensors;}).forEach(function(n){
+      Object.keys(n.sensors).forEach(function(k){
+        if(n.sensors[k].val===null)return;
+        if(!agg[k])agg[k]={vals:[],unit:n.sensors[k].unit,sources:[]};
+        agg[k].vals.push(n.sensors[k].val);
+        agg[k].sources.push(n.id);
+      });
+    });
+    var result={};
+    Object.keys(agg).forEach(function(k){
+      var vals=agg[k].vals;
+      var mean=vals.reduce(function(s,v){return s+v;},0)/vals.length;
+      var min=Math.min.apply(null,vals);var max=Math.max.apply(null,vals);
+      var std=vals.length>1?Math.sqrt(vals.reduce(function(s,v){return s+(v-mean)*(v-mean);},0)/(vals.length-1)):0;
+      result[k]={mean:mean,min:min,max:max,std:std,count:vals.length,unit:agg[k].unit,sources:agg[k].sources};
+    });
+    return result;
+  },[nodes]);
+
+  return{nodes:nodes,msgs:msgs,provisioning:provisioning,provision:provision,removeNode:removeNode,
+    otaTarget:otaTarget,otaProgress:otaProgress,startOTA:startOTA,
+    fleetStats:fleetStats,aggregatedSensors:aggregatedSensors};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.1 HYBRID NETWORK ENGINE                                 */
+/*  Unifies BLE, ESP-NOW, WiFi, LoRa, MQTT, WebRTC, BC        */
+/* ═══════════════════════════════════════════════════════════ */
+var HYBRID_PROTOCOLS=[
+  {id:'ble',label:'BLE 5.0',color:'#4488ff',range:'~100m',latency:'<20ms',throughput:'2Mbps',power:'Low'},
+  {id:'espnow',label:'ESP-NOW',color:'#22ee88',range:'~200m',latency:'<5ms',throughput:'1Mbps',power:'Very Low'},
+  {id:'wifi',label:'WiFi',color:'#00ffaa',range:'~50m',latency:'<5ms',throughput:'72Mbps',power:'High'},
+  {id:'lora',label:'LoRa',color:'#ff8800',range:'~5km',latency:'~1s',throughput:'50kbps',power:'Ultra Low'},
+  {id:'mqtt',label:'MQTT',color:'#00ddff',range:'∞ (Cloud)',latency:'~100ms',throughput:'Variable',power:'Medium'},
+  {id:'webrtc',label:'WebRTC',color:'#cc66ff',range:'∞ (P2P)',latency:'<50ms',throughput:'Variable',power:'Medium'},
+  {id:'bc',label:'BroadcastCh',color:'#ffcc00',range:'Same Tab',latency:'<1ms',throughput:'Fast',power:'None'}
+];
+
+function useHybridNetwork(espFleet,netPeers,mpPeers){
+  var _links=useState([]),links=_links[0],setLinks=_links[1];
+  var _stats=useState({totalNodes:0,totalLinks:0,avgLatency:0,healthScore:1}),stats=_stats[0],setStats=_stats[1];
+
+  /* Build topology from all sources */
+  useEffect(function(){
+    var newLinks=[];
+    var gwId='GATEWAY';
+    /* ESP32 nodes connect to gateway via BLE/ESP-NOW */
+    if(espFleet&&espFleet.nodes){
+      espFleet.nodes.forEach(function(n){
+        if(n.status==='offline')return;
+        if(n.type==='gateway'){gwId=n.id;}
+        else{
+          newLinks.push({from:n.id,to:'ESP32-GW01',proto:n.rssi&&n.rssi>-60?'espnow':'ble',
+            rssi:n.rssi,latency:n.rssi?Math.abs(n.rssi)/3:20,status:n.status==='online'?'active':'degraded'});
+        }
+      });
+      /* Gateway uplinks */
+      var gw=espFleet.nodes.find(function(n){return n.type==='gateway';});
+      if(gw&&gw.gateway){
+        gw.gateway.uplinks.forEach(function(u){
+          if(u.status==='active'){
+            newLinks.push({from:gw.id,to:'CLOUD_'+u.proto,proto:u.proto.toLowerCase(),
+              latency:u.proto==='WiFi'?5:u.proto==='MQTT'?80:500,status:'active'});
+          }
+        });
+      }
+    }
+    /* Browser peers connect via WebRTC/BC */
+    if(netPeers){
+      netPeers.forEach(function(p){
+        newLinks.push({from:'THIS_DEVICE',to:p.id,proto:p.simulated?'bc':'webrtc',
+          rssi:null,latency:p.rtt||20,status:'active'});
+      });
+    }
+    /* This device connects to gateway via WiFi */
+    newLinks.push({from:'THIS_DEVICE',to:'ESP32-GW01',proto:'wifi',latency:3,status:'active'});
+
+    setLinks(newLinks);
+
+    /* Compute stats */
+    var totalNodes=new Set();
+    newLinks.forEach(function(l){totalNodes.add(l.from);totalNodes.add(l.to);});
+    var activeLinks=newLinks.filter(function(l){return l.status==='active';});
+    var avgLat=activeLinks.length>0?activeLinks.reduce(function(s,l){return s+l.latency;},0)/activeLinks.length:0;
+    var health=activeLinks.length>0?activeLinks.length/Math.max(newLinks.length,1):0;
+    setStats({totalNodes:totalNodes.size,totalLinks:newLinks.length,activeLinks:activeLinks.length,avgLatency:avgLat,healthScore:health});
+  },[espFleet&&espFleet.nodes,netPeers,mpPeers]);
+
+  /* Protocol distribution */
+  var protoDist=useMemo(function(){
+    var dist={};
+    links.forEach(function(l){dist[l.proto]=(dist[l.proto]||0)+1;});
+    return dist;
+  },[links]);
+
+  return{links:links,stats:stats,protoDist:protoDist};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.1 TOPOLOGY CANVAS                                       */
+/*  Visualize hybrid network with all node types                */
+/* ═══════════════════════════════════════════════════════════ */
+function TopologyCanvas(props){
+  var ref=useRef(null);
+  var nodes=props.nodes||[];var links=props.links||[];var thisDevice=props.thisDevice;
+  useEffect(function(){
+    var cv=ref.current;if(!cv)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    var W=cv.offsetWidth*dpr,H=280*dpr;cv.width=W;cv.height=H;cv.style.height='280px';
+    ctx.fillStyle='#030508';ctx.fillRect(0,0,W,H);
+
+    /* Collect unique node IDs and assign positions */
+    var nodeSet={};var nodeList=[];
+    /* Add this device at center */
+    nodeSet['THIS_DEVICE']={id:'THIS_DEVICE',x:W*0.5,y:H*0.5,type:'phone',color:'#00ffaa',label:thisDevice||'THIS DEVICE'};
+    nodeList.push(nodeSet['THIS_DEVICE']);
+    /* Position ESP32 nodes in a ring */
+    var espNodes=nodes.filter(function(n){return n.id!=='THIS_DEVICE';});
+    var ringR=Math.min(W,H)*0.32;
+    espNodes.forEach(function(n,i){
+      var angle=-Math.PI/2+(Math.PI*2/Math.max(espNodes.length,1))*i;
+      var tc=ESP_NODE_TYPES.find(function(t){return t.id===n.type;})||ESP_NODE_TYPES[0];
+      nodeSet[n.id]={id:n.id,x:W*0.5+Math.cos(angle)*ringR,y:H*0.5+Math.sin(angle)*ringR,
+        type:n.type,color:tc.color,label:n.name||n.id,status:n.status};
+      nodeList.push(nodeSet[n.id]);
+    });
+    /* Cloud nodes on outer ring */
+    var cloudIdx=0;
+    links.forEach(function(l){
+      if(l.to&&l.to.indexOf('CLOUD_')===0&&!nodeSet[l.to]){
+        var angle=Math.PI*0.15+cloudIdx*Math.PI*0.3;
+        nodeSet[l.to]={id:l.to,x:W*0.5+Math.cos(angle)*ringR*1.5,y:H*0.1+cloudIdx*H*0.15,
+          type:'cloud',color:'#556677',label:l.to.replace('CLOUD_','')};
+        nodeList.push(nodeSet[l.to]);
+        cloudIdx++;
+      }
+    });
+
+    /* Draw links */
+    var protoColors={ble:'#4488ff',espnow:'#22ee88',wifi:'#00ffaa',lora:'#ff8800',mqtt:'#00ddff',webrtc:'#cc66ff',bc:'#ffcc00'};
+    links.forEach(function(l){
+      var from=nodeSet[l.from];var to=nodeSet[l.to];
+      if(!from||!to)return;
+      ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);
+      var col=protoColors[l.proto]||'#334455';
+      ctx.strokeStyle=l.status==='active'?col+'88':col+'33';
+      ctx.lineWidth=(l.status==='active'?1.5:1)*dpr;
+      if(l.status!=='active')ctx.setLineDash([4*dpr,4*dpr]);
+      ctx.stroke();ctx.setLineDash([]);
+      /* Protocol label at midpoint */
+      var mx=(from.x+to.x)/2,my=(from.y+to.y)/2;
+      ctx.fillStyle=col+'66';ctx.font=(6*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
+      ctx.fillText(l.proto.toUpperCase(),mx,my-4*dpr);
+    });
+
+    /* Draw nodes */
+    nodeList.forEach(function(n){
+      var r=(n.type==='phone'?10:n.type==='gateway'?9:n.type==='cloud'?7:7)*dpr;
+      /* Glow for this device */
+      if(n.id==='THIS_DEVICE'){
+        ctx.beginPath();ctx.arc(n.x,n.y,r*1.8,0,Math.PI*2);
+        ctx.fillStyle=n.color+'11';ctx.fill();
+      }
+      /* Node circle */
+      ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);
+      var fill=n.status==='offline'?'#1a2530':n.status==='degraded'?'#3d3524':n.color+'33';
+      ctx.fillStyle=fill;ctx.fill();
+      ctx.strokeStyle=n.status==='offline'?'#ff444466':n.color;ctx.lineWidth=1.5*dpr;ctx.stroke();
+      /* Label */
+      ctx.fillStyle=n.status==='offline'?'#556677':n.color;
+      ctx.font='bold '+(7*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
+      ctx.fillText(n.label,n.x,n.y+r+10*dpr);
+      /* Type icon */
+      var icon=n.type==='phone'?'📱':n.type==='gateway'?'🌐':n.type==='relay'?'📡':n.type==='anchor'?'📍':n.type==='cloud'?'☁':n.type==='sensor'?'🔬':'●';
+      ctx.font=(10*dpr)+'px sans-serif';ctx.fillText(icon,n.x,n.y+4*dpr);
+    });
+
+    /* Legend */
+    ctx.font=(7*dpr)+'px IBM Plex Mono';ctx.textAlign='left';
+    var lx=8*dpr,ly=H-8*dpr;
+    ctx.fillStyle='#33445588';ctx.fillText('pTCP/IP v2.1 HYBRID TOPOLOGY',lx,ly);
+  },[nodes,links,thisDevice]);
+  return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'280px',cursor:'crosshair'}});
+}
+
+
 function App(){
   /* Layers / Tabs */
-  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','site','patent'];
+  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','hardware','site','patent'];
   var _lay=useState('measure'),layer=_lay[0],setLayer=_lay[1];
 
   /* Audio state */
@@ -2392,6 +2800,15 @@ function App(){
     /* Route through existing pTCP transport */
     if(net.connected)net.send(JSON.stringify(data));
   });
+
+  /* v2.1 HARDWARE hooks */
+  var espFleet=useESP32Fleet();
+  var hybridNet=useHybridNetwork(espFleet,net.peers,mp.connectedCount);
+  var _hwProvName=useState(''),hwProvName=_hwProvName[0],setHwProvName=_hwProvName[1];
+  var _hwProvType=useState('sensor'),hwProvType=_hwProvType[0],setHwProvType=_hwProvType[1];
+  var _hwProvLoc=useState(''),hwProvLoc=_hwProvLoc[0],setHwProvLoc=_hwProvLoc[1];
+  var _hwShowProv=useState(false),hwShowProv=_hwShowProv[0],setHwShowProv=_hwShowProv[1];
+  var _hwMsgFilter=useState(null),hwMsgFilter=_hwMsgFilter[0],setHwMsgFilter=_hwMsgFilter[1];
 
   /* Load spatial memories and adaptive thresholds on mount */
   useEffect(function(){
@@ -2546,7 +2963,7 @@ function App(){
     /* Header */
     h('div',{className:'hdr'},
       h('div',{className:'hdr-title'},'PHYSICAL PING'),
-      h('div',{className:'hdr-ver'},'pTCP/IP v2.0 INTELLIGENCE  |  脳神経系統合 + 空間知能モード'),
+      h('div',{className:'hdr-ver'},'pTCP/IP v2.1 HARDWARE  |  ESP32常設ノード + ゲートウェイ + ハイブリッドネットワーク'),
       h('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
         h('div',{className:'hdr-sub'},net.deviceName),
         h('div',{style:{fontSize:'9px',color:midbrain.mode==='NOMINAL'?'#00ffaa':midbrain.mode==='ALERT'?'#ffcc00':'#ff4444',letterSpacing:'1px',fontWeight:'bold'}},midbrain.mode),
@@ -2568,7 +2985,8 @@ function App(){
       h('span',null,'μ(x,t) = ',h('span',{style:{color:'#00ffaa',fontWeight:'bold',fontSize:'14px'}},mediation.composite.toFixed(3))),
       h('span',null,'ρ = ',h('span',{style:{color:ri&&ri.index>.5?'#00ffaa':'#ffcc00'}},realityPct)),
       h('span',null,'TS: ',h('span',{style:{color:'#00ddff'}},timeSeries.count)),
-      h('span',null,'PEERS: ',h('span',{style:{color:net.peers.length+mp.connectedCount>0?'#00ffaa':'#556677'}},net.peers.length+mp.connectedCount))
+      h('span',null,'PEERS: ',h('span',{style:{color:net.peers.length+mp.connectedCount>0?'#00ffaa':'#556677'}},net.peers.length+mp.connectedCount)),
+      h('span',null,'ESP32: ',h('span',{style:{color:espFleet.fleetStats.online>0?'#00ddff':'#556677'}},espFleet.fleetStats.online+'/'+espFleet.fleetStats.total))
     ),
 
     /* ═══ MEASURE TAB ═══ */
@@ -3416,6 +3834,238 @@ function App(){
       )
     ),
 
+    /* ═══ HARDWARE TAB (v2.1) ═══ */
+    layer==='hardware'&&h('div',null,
+
+      /* Fleet Summary */
+      h('div',{className:'hw-fleet-summary'},
+        h('div',{className:'hw-fleet-card'},
+          h('div',{className:'hw-fleet-card-v',style:{color:'#00ffaa'}},espFleet.fleetStats.total),
+          h('div',{className:'hw-fleet-card-l'},'TOTAL NODES')),
+        h('div',{className:'hw-fleet-card'},
+          h('div',{className:'hw-fleet-card-v',style:{color:'#00ffaa'}},espFleet.fleetStats.online),
+          h('div',{className:'hw-fleet-card-l'},'ONLINE')),
+        h('div',{className:'hw-fleet-card'},
+          h('div',{className:'hw-fleet-card-v',style:{color:espFleet.fleetStats.degraded>0?'#ffcc00':'#334455'}},espFleet.fleetStats.degraded),
+          h('div',{className:'hw-fleet-card-l'},'DEGRADED')),
+        h('div',{className:'hw-fleet-card'},
+          h('div',{className:'hw-fleet-card-v',style:{color:espFleet.fleetStats.offline>0?'#ff4444':'#334455'}},espFleet.fleetStats.offline),
+          h('div',{className:'hw-fleet-card-l'},'OFFLINE')),
+        h('div',{className:'hw-fleet-card'},
+          h('div',{className:'hw-fleet-card-v',style:{color:espFleet.fleetStats.avgBattery>30?'#00ffaa':'#ff4444'}},Math.round(espFleet.fleetStats.avgBattery)+'%'),
+          h('div',{className:'hw-fleet-card-l'},'AVG BATTERY')),
+        h('div',{className:'hw-fleet-card'},
+          h('div',{className:'hw-fleet-card-v',style:{color:espFleet.fleetStats.needsUpdate>0?'#ffcc00':'#00ffaa'}},espFleet.fleetStats.needsUpdate),
+          h('div',{className:'hw-fleet-card-l'},'FW UPDATE'))
+      ),
+
+      /* Hybrid Network Topology */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('span',null,'HYBRID NETWORK TOPOLOGY'),
+          h('span',{style:{color:'#00ffaa'}},hybridNet.stats.totalNodes+' nodes / '+hybridNet.stats.activeLinks+' links')),
+        h('div',{className:'topo-wrap'},
+          h(TopologyCanvas,{nodes:espFleet.nodes,links:hybridNet.links,thisDevice:net.deviceName})),
+        /* Protocol distribution */
+        h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'6px'}},
+          HYBRID_PROTOCOLS.map(function(p){
+            var count=hybridNet.protoDist[p.id]||0;
+            return h('div',{key:p.id,className:'hybrid-proto '+p.id,style:{opacity:count>0?1:0.3}},
+              p.label,' (',count,')',
+              h('span',{style:{fontSize:'7px',color:'#445566',marginLeft:'4px'}},p.range));
+          })
+        ),
+        /* Network health */
+        h('div',{style:{marginTop:'8px',display:'flex',gap:'12px',fontSize:'9px',color:'#556677'}},
+          h('span',null,'Health: ',h('span',{style:{color:hybridNet.stats.healthScore>.8?'#00ffaa':'#ffcc00'}},(hybridNet.stats.healthScore*100).toFixed(0)+'%')),
+          h('span',null,'Avg Latency: ',h('span',{style:{color:'#00ddff'}},hybridNet.stats.avgLatency.toFixed(0)+'ms')),
+          h('span',null,'Msg Rate: ',h('span',{style:{color:'#cc66ff'}},espFleet.fleetStats.msgRate+'/s'))
+        )
+      ),
+
+      /* Gateway Status */
+      (function(){
+        var gw=espFleet.nodes.find(function(n){return n.type==='gateway';});
+        return gw?h('div',{className:'gw-card'},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
+            h('div',null,
+              h('div',{style:{fontSize:'12px',fontWeight:700,color:'#00ddff'}},gw.name),
+              h('div',{style:{fontSize:'8px',color:'#556677'}},gw.id,' | ',gw.ip,' | FW ',gw.firmware)),
+            h('div',{style:{fontSize:'9px',color:gw.status==='online'?'#00ffaa':'#ffcc00',fontWeight:'bold',letterSpacing:'1px'}},gw.status.toUpperCase())
+          ),
+          /* Uplinks */
+          h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'1.5px',marginBottom:'4px'}},'UPLINKS'),
+          gw.gateway&&gw.gateway.uplinks.map(function(u,i){
+            return h('div',{key:i,className:'gw-uplink'},
+              h('span',{className:'gw-uplink-badge '+u.status},u.status.toUpperCase()),
+              h('span',{style:{color:'#ccd8e8',fontWeight:600,minWidth:'50px'}},u.proto),
+              h('span',{style:{flex:1,color:'#556677'}},
+                u.ssid?'SSID: '+u.ssid:u.broker?u.broker:u.freq?u.freq+' SF'+u.sf:''),
+              u.bw&&h('span',{style:{color:'#445566'}},u.bw),
+              u.ip&&h('span',{style:{color:'#445566'}},u.ip)
+            );
+          }),
+          gw.gateway&&h('div',{style:{marginTop:'8px',fontSize:'8px',color:'#445566'}},
+            'Relayed: ',h('span',{style:{color:'#00ddff'}},gw.gateway.packetsRelayed.toLocaleString()),
+            ' pkts | Nodes: ',h('span',{style:{color:'#00ddff'}},gw.gateway.connectedNodes))
+        ):null;
+      })(),
+
+      /* Aggregated Sensor Data from Fleet */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px'}},'AGGREGATED FLEET SENSOR DATA'),
+        Object.keys(espFleet.aggregatedSensors).length>0?
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}},
+            Object.keys(espFleet.aggregatedSensors).map(function(k){
+              var s=espFleet.aggregatedSensors[k];
+              var color=k==='temperature'?'#ff8800':k==='humidity'?'#4488ff':k==='pressure'?'#cc66ff':k==='acoustic'?'#00ffaa':k==='emField'?'#cc66ff':k==='light'?'#ffcc00':'#8899aa';
+              return h('div',{key:k,style:{padding:'8px',border:'1px solid #1a2530',borderRadius:'2px',background:'rgba(0,0,0,.15)'}},
+                h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:'8px',marginBottom:'4px'}},
+                  h('span',{style:{color:color,letterSpacing:'1.5px',fontWeight:600}},k.toUpperCase()),
+                  h('span',{style:{color:'#445566'}},s.count+' nodes')),
+                h('div',{style:{fontSize:'16px',fontWeight:700,color:color}},s.mean.toFixed(1),h('span',{style:{fontSize:'9px',color:'#556677'}},s.unit)),
+                h('div',{style:{fontSize:'7px',color:'#445566',marginTop:'2px'}},'Range: '+s.min.toFixed(1)+'–'+s.max.toFixed(1)+s.unit+' | σ='+s.std.toFixed(2))
+              );
+            })
+          ):
+          h('div',{style:{fontSize:'9px',color:'#334455',textAlign:'center',padding:'12px'}},'No fleet sensor data yet')
+      ),
+
+      /* Node Fleet */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('span',null,'ESP32 NODE FLEET'),
+          h('button',{className:'btn btn-sm',onClick:function(){setHwShowProv(!hwShowProv);},
+            style:{background:'rgba(0,221,255,.03)',border:'1px solid #1a3545',color:'#5a8a9a',fontSize:'8px',padding:'4px 10px'}},
+            hwShowProv?'CANCEL':'+ PROVISION NODE')),
+
+        /* Provision form */
+        hwShowProv&&h('div',{className:'hw-provision-form'},
+          h('div',{style:{fontSize:'9px',color:'#00ddff',marginBottom:'6px'}},'NEW NODE PROVISIONING'),
+          h('input',{placeholder:'Node Name',value:hwProvName,onChange:function(e){setHwProvName(e.target.value);}}),
+          h('select',{value:hwProvType,onChange:function(e){setHwProvType(e.target.value);}},
+            ESP_NODE_TYPES.map(function(t){return h('option',{key:t.id,value:t.id},t.label+' — '+t.ja);})),
+          h('input',{placeholder:'Location',value:hwProvLoc,onChange:function(e){setHwProvLoc(e.target.value);}}),
+          h('button',{className:'btn',disabled:espFleet.provisioning,
+            onClick:function(){espFleet.provision(hwProvName,hwProvType,hwProvLoc);setHwProvName('');setHwProvLoc('');setHwShowProv(false);},
+            style:{width:'100%',padding:'10px',background:'rgba(0,221,255,.04)',border:'1px solid #00ddff33',color:espFleet.provisioning?'#556677':'#00ddff',fontSize:'11px',fontWeight:'bold'}},
+            espFleet.provisioning?'PROVISIONING...':'PROVISION & ACTIVATE')
+        ),
+
+        /* Node list */
+        espFleet.nodes.map(function(n){
+          var tc=ESP_NODE_TYPES.find(function(t){return t.id===n.type;})||ESP_NODE_TYPES[0];
+          var isOtaTarget=espFleet.otaTarget===n.id;
+          var needsUpdate=n.firmware!==ESP_LATEST_FW;
+          var age=Date.now()-n.lastSeen;
+          return h('div',{key:n.id,className:'hw-node '+n.status},
+            h('div',{className:'hw-node-header'},
+              h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+                h('span',{className:'hw-node-id'},n.name),
+                h('span',{className:'hw-node-type '+n.type},tc.label)),
+              h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+                h('span',{className:'fw-badge '+(needsUpdate?'update':'current')},'FW '+n.firmware),
+                h('span',{style:{fontSize:'9px',color:n.status==='online'?'#00ffaa':n.status==='degraded'?'#ffcc00':'#ff4444',fontWeight:'bold'}},n.status.toUpperCase()))
+            ),
+            h('div',{style:{fontSize:'8px',color:'#445566',marginBottom:'6px'}},
+              n.id,' | ',n.mac||'--',' | ',n.ip||'no IP',
+              ' | ',n.location,
+              age>10000?' | last: '+Math.round(age/1000)+'s ago':''),
+
+            /* Sensor readings */
+            n.sensors&&h('div',{className:'hw-node-stats'},
+              Object.keys(n.sensors).map(function(sk){
+                var sv=n.sensors[sk];
+                var sColor=sk==='temperature'?'#ff8800':sk==='humidity'?'#4488ff':sk==='pressure'?'#cc66ff':sk==='acoustic'?'#00ffaa':sk==='emField'?'#cc66ff':sk==='light'?'#ffcc00':'#8899aa';
+                return h('div',{key:sk,className:'hw-node-stat'},
+                  h('div',{className:'hw-node-stat-v',style:{color:sv.val!==null?sColor:'#334455'}},sv.val!==null?sv.val.toFixed?sv.val.toFixed(1):sv.val:'--'),
+                  h('div',{className:'hw-node-stat-l'},sk.slice(0,5).toUpperCase()));
+              })
+            ),
+
+            /* Bottom row: battery, RSSI, uptime, actions */
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'6px',fontSize:'8px'}},
+              h('div',{style:{display:'flex',gap:'10px',color:'#556677'}},
+                n.battery!==null&&h('span',null,'🔋 ',h('span',{style:{color:n.battery>30?'#00ffaa':n.battery>10?'#ffcc00':'#ff4444'}},Math.round(n.battery)+'%')),
+                n.rssi!==null&&h('span',null,'📶 ',h('span',{style:{color:n.rssi>-50?'#00ffaa':n.rssi>-70?'#ffcc00':'#ff4444'}},n.rssi+'dBm')),
+                h('span',null,'⏱ ',Math.floor(n.uptime/3600)+'h')
+              ),
+              h('div',{style:{display:'flex',gap:'4px'}},
+                needsUpdate&&!isOtaTarget&&h('button',{className:'btn btn-sm',
+                  onClick:function(){espFleet.startOTA(n.id,ESP_LATEST_FW);},
+                  style:{fontSize:'7px',padding:'2px 6px',background:'#ffcc0011',border:'1px solid #ffcc0033',color:'#ffcc00'}},'OTA UPDATE'),
+                h('button',{className:'btn btn-sm',
+                  onClick:function(){if(confirm('Remove '+n.name+'?'))espFleet.removeNode(n.id);},
+                  style:{fontSize:'7px',padding:'2px 6px',border:'1px solid #ff444433',color:'#ff4444'}},'REMOVE'))
+            ),
+
+            /* OTA progress */
+            isOtaTarget&&h('div',{style:{marginTop:'6px'}},
+              h('div',{style:{fontSize:'8px',color:'#00ddff',marginBottom:'2px'}},'OTA FLASHING... '+Math.min(100,espFleet.otaProgress)+'%'),
+              h('div',{className:'hw-ota-progress'},
+                h('div',{className:'hw-ota-bar',style:{width:Math.min(100,espFleet.otaProgress)+'%'}}))
+            ),
+
+            /* Anchor-specific info */
+            n.anchor&&h('div',{style:{marginTop:'4px',fontSize:'8px',color:'#ff8800',background:'#ff880008',padding:'4px 6px',borderRadius:'2px'}},
+              'Anchor Position: (',n.anchor.x.toFixed(1)+', '+n.anchor.y.toFixed(1)+', '+n.anchor.z.toFixed(1)+') m',
+              n.anchor.calibrated?' ✓ Calibrated':' ⚠ Not calibrated')
+          );
+        })
+      ),
+
+      /* Message Bus */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px',display:'flex',justifyContent:'space-between'}},
+          h('span',null,'HARDWARE MESSAGE BUS'),
+          h('span',{style:{color:'#445566'}},espFleet.msgs.length+' msgs')),
+        /* Filter buttons */
+        h('div',{style:{display:'flex',gap:'4px',marginBottom:'6px',flexWrap:'wrap'}},
+          h('button',{className:'btn btn-sm'+(hwMsgFilter===null?' active':''),onClick:function(){setHwMsgFilter(null);},
+            style:{fontSize:'7px',padding:'2px 6px'}},'ALL'),
+          ['SENSOR_DATA','HEARTBEAT','ROUTE_ADV','OTA_CHECK','MU_REPORT'].map(function(t){
+            return h('button',{key:t,className:'btn btn-sm'+(hwMsgFilter===t?' active':''),onClick:function(){setHwMsgFilter(t);},
+              style:{fontSize:'7px',padding:'2px 6px'}},t.slice(0,6));
+          })
+        ),
+        /* Message rows */
+        h('div',{style:{maxHeight:'180px',overflow:'auto'}},
+          espFleet.msgs.filter(function(m){return!hwMsgFilter||m.type===hwMsgFilter;}).slice(0,40).map(function(m,i){
+            var tColor=m.type==='SENSOR_DATA'?'#00ffaa':m.type==='HEARTBEAT'?'#00ddff':m.type==='ROUTE_ADV'?'#cc66ff':m.type==='OTA_CHECK'?'#ffcc00':'#ff8800';
+            var pColor=m.proto==='BLE'?'#4488ff':m.proto==='ESP-NOW'?'#22ee88':'#00ffaa';
+            return h('div',{key:i,className:'hw-msg-row'},
+              h('span',{style:{color:'#445566'}},fT(new Date(m.ts))),
+              h('span',{style:{color:pColor,fontWeight:600}},m.proto),
+              h('span',{style:{color:'#556677'}},m.from.slice(-4)),
+              h('span',{style:{color:tColor}},m.type),
+              h('span',{style:{color:'#445566'}},m.size+'B')
+            );
+          })
+        )
+      ),
+
+      /* v2.1 Success Metrics */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v2.1 HARDWARE 成功指標'),
+        h('div',{className:'patent-grid'},
+          [
+            {label:'ESP32ノード接続',target:'5台+',cur:espFleet.fleetStats.online+'台',ok:espFleet.fleetStats.online>=5},
+            {label:'ゲートウェイ稼働',target:'1台+',cur:(espFleet.nodes.filter(function(n){return n.type==='gateway'&&n.status==='online';}).length)+'台',ok:espFleet.nodes.some(function(n){return n.type==='gateway'&&n.status==='online';})},
+            {label:'ハイブリッドプロトコル',target:'3種+',cur:Object.keys(hybridNet.protoDist).length+'種',ok:Object.keys(hybridNet.protoDist).length>=3},
+            {label:'ネットワーク健全性',target:'80%+',cur:(hybridNet.stats.healthScore*100).toFixed(0)+'%',ok:hybridNet.stats.healthScore>=0.8},
+            {label:'Fleet平均バッテリー',target:'50%+',cur:Math.round(espFleet.fleetStats.avgBattery)+'%',ok:espFleet.fleetStats.avgBattery>=50},
+            {label:'OTAファームウェア統一',target:'100%',cur:espFleet.fleetStats.needsUpdate===0?'100%':(100-espFleet.fleetStats.needsUpdate/Math.max(1,espFleet.fleetStats.total)*100).toFixed(0)+'%',ok:espFleet.fleetStats.needsUpdate===0}
+          ].map(function(t,i){
+            return h('div',{key:i,className:'patent-metric '+(t.ok?'pass':'warn')},
+              h('div',{className:'patent-metric-val'},t.cur),
+              h('div',{className:'patent-metric-lbl'},t.label),
+              h('div',{className:'patent-metric-target'},'目標: '+t.target)
+            );
+          })
+        )
+      )
+    ),
+
     /* ═══ SITESENSE TAB (v1.5) ═══ */
     layer==='site'&&h('div',null,
       /* Active alerts */
@@ -3597,13 +4247,13 @@ function App(){
 
       /* v1.5 patent targets */
       h('div',{className:'card',style:{padding:'10px'}},
-        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v2.0成功指標'),
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v2.1 PATENT成功指標'),
         h('div',{className:'patent-grid'},
           [
             {label:'音響精度 1m以内',target:'±3cm',cur:result&&result.distM!=null&&result.distM<1.0?'測定中':'未計測',ok:!!result&&result.distM!=null&&result.distM<1.0},
             {label:'Reality Index',target:'70%+',cur:mediation.reality?(mediation.reality.index*100).toFixed(0)+'%':'--',ok:mediation.reality&&mediation.reality.index>0.7},
             {label:'同時接続ピア',target:'5台+',cur:(net.peers.length+mp.connectedCount)+'台',ok:net.peers.length+mp.connectedCount>=5},
-            {label:'空間再認識',target:'80%+',cur:'要v2.0',ok:false},
+            {label:'ESP32 Fleet',target:'3台+',cur:espFleet.fleetStats.online+'台',ok:espFleet.fleetStats.online>=3},
           ].map(function(t,i){
             return h('div',{key:i,className:'patent-metric '+(t.ok?'pass':'warn')},
               h('div',{className:'patent-metric-val'},t.cur),
@@ -3625,7 +4275,7 @@ function App(){
     /* ═══ DEMO OVERLAY ═══ */
     demo.open&&h('div',{className:'demo-overlay',onClick:function(e){if(e.target===e.currentTarget)demo.close();}},
       h('div',{className:'demo-card'},
-        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v2.0 DEMO'),
+        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v2.1 DEMO'),
         h('div',{className:'demo-progress'},
           DEMO_STEPS.map(function(_,i){return h('div',{key:i,className:'demo-pip '+(i<demo.step?'done':i===demo.step?'active':'')});})
         ),
@@ -3643,15 +4293,15 @@ function App(){
 
     /* PWA Install Banner */
     pwa.installable&&h('div',{className:'pwa-banner'},
-      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping をホーム画面に追加'),
+      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping v2.1 をホーム画面に追加'),
       h('button',{className:'btn btn-sm',onClick:pwa.install,
         style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},'インストール')),
 
     /* Footer */
     h('div',{style:{textAlign:'center',padding:'12px',fontSize:'8px',color:'#334455',borderTop:'1px solid #0a0f14',marginTop:'12px'}},
-      'PHYSICAL PING — pTCP/IP v2.0 INTELLIGENCE',
+      'PHYSICAL PING — pTCP/IP v2.1 HARDWARE',
       h('br'),
-      'L0小脳 Phase-Law v2  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API')
+      'L0小脳 Phase-Law v2  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  ·  HW ESP32 Fleet  |  野村プロトコル 2026')
   );
 }
 
