@@ -4305,8 +4305,8 @@ function App(){
   );
 }
 
-/* Mount */
-ReactDOM.render(h(App),document.getElementById('root'));
+/* Mount — React 18 createRoot API */
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
 </script>
 </body>
 </html>
