@@ -3194,17 +3194,30 @@ function App(){
             ' | Match: '+(emFp.similarity*100).toFixed(0)+'%')),
         h('div',{style:{display:'flex',gap:'6px'}},
           h('button',{className:'btn btn-sm',
-            onClick:function(){if(!emFp.recording)emFp.startCapture(function(){return mag;});else emFp.stopCapture();},
-            disabled:!mag.available,
-            style:{flex:1,background:'#cc66ff15',border:'1px solid #cc66ff44',color:mag.available?'#cc66ff':'#556677',padding:'8px',fontSize:'9px'}},
+            onClick:function(){
+              if(emFp.recording){emFp.stopCapture();return;}
+              /* Request sensor permission first (iOS requires user gesture) */
+              if(sensorPerm.needsRequest){
+                sensorPerm.requestAll().then(function(){
+                  /* Wait a beat for useMag to pick up orientation events */
+                  setTimeout(function(){emFp.startCapture(function(){return mag;});},500);
+                });
+              }else{
+                emFp.startCapture(function(){return mag;});
+              }
+            },
+            disabled:!mag.available&&!sensorPerm.needsRequest,
+            style:{flex:1,background:'#cc66ff15',border:'1px solid #cc66ff44',color:(mag.available||sensorPerm.needsRequest)?'#cc66ff':'#556677',padding:'8px',fontSize:'9px'}},
             emFp.recording?('CAPTURING… '+emFp.sampleCount+'/30'):
+            sensorPerm.needsRequest?'GRANT SENSOR & CAPTURE EM':
             emFp.fingerprint?'RE-CAPTURE EM FP':'CAPTURE EM FINGERPRINT'),
           emFp.fingerprint&&h('button',{className:'btn btn-sm',
             onClick:function(){dbPut(CALIB_STORE,Object.assign({key:'em_fingerprint'},emFp.fingerprint));},
             style:{background:'#00ddff11',border:'1px solid #00ddff33',color:'#00ddff',padding:'8px',fontSize:'9px'}},
             'SAVE')
         ),
-        !mag.available&&h('div',{style:{fontSize:'8px',color:'#ff8800',marginTop:'4px'}},'⚠ Magnetometer not available on this device')
+        !mag.available&&h('div',{style:{fontSize:'8px',color:'#ff8800',marginTop:'4px'}},
+          sensorPerm.needsRequest?'📱 iOS: ボタンを押してセンサーアクセスを許可してください':'⚠ Magnetometer not available on this device')
       ),
 
       /* SIM → REAL MIGRATION GUIDE */
