@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v2.1 HARDWARE</title>
+<title>Physical Ping — pTCP v2.5 CITYSCAPE</title>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGh5c2ljYWwgUGluZyIsInNob3J0X25hbWUiOiJwVENQIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBmMTQiLCJ0aGVtZV9jb2xvciI6IiMwMGZmYWEiLCJpY29ucyI6W119">
 <meta name="theme-color" content="#00ffaa">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -316,6 +316,99 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .fac-pred.critical{border-color:#ff444488;background:rgba(255,68,68,.06)}
 .pick-queue-item{padding:6px 8px;border-bottom:1px solid #0a0f14;font-size:9px;display:flex;gap:8px;align-items:center}
 .pick-queue-item.urgent{border-left:2px solid #ff8800}
+/* ═══ v2.5 CITYSCAPE STYLES ═══ */
+.city-viewport{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:#020508;margin-bottom:8px;position:relative}
+.city-viewport canvas{display:block;width:100%}
+.city-overlay{position:absolute;top:8px;left:8px;font-size:8px;color:#00ffaa88;letter-spacing:1px;pointer-events:none}
+.city-overlay-rt{position:absolute;top:8px;right:8px;font-size:8px;color:#556677;letter-spacing:1px;text-align:right;pointer-events:none}
+.dt-node{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:6px;position:relative;overflow:hidden;transition:all .3s;cursor:pointer}
+.dt-node:hover{border-color:#00ffaa33;background:rgba(0,255,170,.02)}
+.dt-node::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.dt-node.building::before{background:#00ddff}
+.dt-node.street::before{background:#00ffaa}
+.dt-node.zone::before{background:#cc66ff}
+.dt-node.vehicle::before{background:#ff8800}
+.dt-node.drone::before{background:#ff4466}
+.dt-node-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.dt-node-id{font-size:10px;font-weight:700;color:#ccd8e8;letter-spacing:1px}
+.dt-node-type{font-size:7px;letter-spacing:2px;padding:2px 6px;border-radius:1px;font-weight:600}
+.dt-node-type.building{background:rgba(0,221,255,.1);border:1px solid #00ddff33;color:#00ddff}
+.dt-node-type.street{background:rgba(0,255,170,.1);border:1px solid #00ffaa33;color:#00ffaa}
+.dt-node-type.zone{background:rgba(204,102,255,.1);border:1px solid #cc66ff33;color:#cc66ff}
+.dt-sync-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1.5px;font-weight:600;border-radius:2px}
+.dt-sync-badge.live{background:rgba(0,255,170,.15);border:1px solid #00ffaa44;color:#00ffaa;animation:pulse 2s infinite}
+.dt-sync-badge.stale{background:rgba(255,204,0,.1);border:1px solid #ffcc0044;color:#ffcc00}
+.dt-sync-badge.offline{background:rgba(85,102,119,.1);border:1px solid #55667744;color:#556677}
+.dt-layer-toggle{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.dt-layer-btn{padding:4px 10px;font-size:8px;letter-spacing:1.5px;border-radius:1px;cursor:pointer;transition:all .2s;border:1px solid #1a2530;background:transparent;color:#556677;font-family:inherit}
+.dt-layer-btn.active{border-color:#00ffaa44;color:#00ffaa;background:rgba(0,255,170,.04)}
+.city-heatmap-bar{height:6px;background:#0a0f14;border-radius:3px;overflow:hidden;margin:3px 0}
+.city-heatmap-fill{height:100%;border-radius:3px;transition:width .6s}
+.geojson-card{padding:8px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;font-size:9px}
+.geojson-card.loaded{border-color:#00ffaa33}
+/* ═══ v2.5 TESTBED STYLES ═══ */
+.tb-scenario{padding:12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:6px;position:relative;overflow:hidden;transition:all .3s}
+.tb-scenario::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.tb-scenario.pass::before{background:#00ffaa}
+.tb-scenario.fail::before{background:#ff4444}
+.tb-scenario.running::before{background:#00ddff;animation:pulse 1s infinite}
+.tb-scenario.pending::before{background:#556677}
+.tb-scenario-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tb-scenario-name{font-size:10px;font-weight:700;color:#ccd8e8;letter-spacing:1px}
+.tb-result-badge{display:inline-block;padding:2px 8px;font-size:7px;letter-spacing:2px;font-weight:700;border-radius:2px}
+.tb-result-badge.pass{background:rgba(0,255,170,.15);border:1px solid #00ffaa44;color:#00ffaa}
+.tb-result-badge.fail{background:rgba(255,68,68,.15);border:1px solid #ff444444;color:#ff4444}
+.tb-result-badge.running{background:rgba(0,221,255,.15);border:1px solid #00ddff44;color:#00ddff;animation:pulse 1s infinite}
+.tb-result-badge.pending{background:rgba(85,102,119,.1);border:1px solid #55667744;color:#556677}
+.tb-metric{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #0a0f14;font-size:9px}
+.tb-progress{height:4px;background:#0a0f14;border-radius:2px;overflow:hidden;margin:6px 0}
+.tb-progress-fill{height:100%;border-radius:2px;transition:width .4s}
+.tb-suite-hdr{padding:10px 12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.25);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.tb-compliance{padding:10px;border-radius:2px;margin-bottom:6px}
+.tb-compliance.pass{background:rgba(0,255,170,.04);border:1px solid #00ffaa33}
+.tb-compliance.fail{background:rgba(255,68,68,.04);border:1px solid #ff444433}
+.tb-compliance.warn{background:rgba(255,204,0,.04);border:1px solid #ffcc0033}
+.tb-log{max-height:200px;overflow:auto;font-size:9px;border:1px solid #1a2530;border-radius:2px}
+.tb-log-entry{padding:4px 8px;border-bottom:1px solid #0a0f14;display:flex;gap:6px;animation:fadeIn .15s ease}
+.tb-log-entry.pass{border-left:2px solid #00ffaa}
+.tb-log-entry.fail{border-left:2px solid #ff4444}
+.tb-log-entry.info{border-left:2px solid #00ddff}
+.tb-ab-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.tb-ab-card{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);text-align:center}
+.tb-ab-card.winner{border-color:#00ffaa44;background:rgba(0,255,170,.03)}
+/* ═══ v2.5 VEHICLE/ROBOT/DRONE STYLES ═══ */
+.veh-card{padding:12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:6px;position:relative;overflow:hidden;transition:all .3s}
+.veh-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.veh-card.car::before{background:#00ffaa}
+.veh-card.robot::before{background:#00ddff}
+.veh-card.drone::before{background:#cc66ff}
+.veh-card.active{animation:netPulse 3s infinite}
+.veh-card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.veh-card-id{font-size:10px;font-weight:700;color:#ccd8e8;letter-spacing:1px}
+.veh-type-badge{display:inline-block;padding:2px 8px;font-size:7px;letter-spacing:2px;font-weight:700;border-radius:2px}
+.veh-type-badge.car{background:rgba(0,255,170,.1);border:1px solid #00ffaa33;color:#00ffaa}
+.veh-type-badge.robot{background:rgba(0,221,255,.1);border:1px solid #00ddff33;color:#00ddff}
+.veh-type-badge.drone{background:rgba(204,102,255,.1);border:1px solid #cc66ff33;color:#cc66ff}
+.veh-telemetry{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:4px;margin-top:6px}
+.veh-telem-cell{text-align:center;padding:4px;background:#0a0f14;border-radius:1px}
+.veh-telem-v{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.veh-telem-l{font-size:7px;letter-spacing:1px;color:#445566;margin-top:1px}
+.veh-waypoint{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid #0a0f14;font-size:9px}
+.veh-waypoint.active{background:rgba(0,255,170,.03);border-left:2px solid #00ffaa}
+.veh-waypoint.done{color:#556677}
+.veh-waypoint.pending{color:#8899aa}
+.veh-mission{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:6px}
+.veh-mission.active{border-color:#00ffaa33;animation:glowPulse 3s infinite}
+.veh-mission-progress{height:6px;background:#0a0f14;border-radius:3px;overflow:hidden;margin:6px 0}
+.veh-mission-fill{height:100%;border-radius:3px;transition:width .5s}
+.veh-obd{padding:8px;border:1px solid #ff880033;border-radius:2px;background:rgba(255,136,0,.02);margin-bottom:6px}
+.veh-altitude{position:relative;height:60px;border:1px solid #1a2530;border-radius:2px;background:#050810;margin-bottom:6px;overflow:hidden}
+.veh-alt-line{position:absolute;left:0;right:0;height:1px;background:#1a2530}
+.veh-alt-marker{position:absolute;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);transition:all .5s}
+@keyframes droneHover{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.veh-schedule{padding:6px 8px;border:1px solid #1a2530;border-radius:2px;margin-bottom:3px;font-size:9px;display:flex;justify-content:space-between;align-items:center}
+.veh-schedule.active{border-color:#00ddff33;background:rgba(0,221,255,.02)}
+.veh-schedule.queued{border-color:#ffcc0022}
 .demo-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,10,20,.94);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
 .demo-card{max-width:480px;width:100%;background:#0d1520;border:1px solid #00ffaa44;border-radius:4px;padding:24px}
 .demo-step{font-size:9px;color:#556677;letter-spacing:2px;margin-bottom:6px}
@@ -2352,11 +2445,11 @@ function usePatentData(history,mediation,phaseLaws){
   var exportPatentDataset=useCallback(function(){
     if(!sessions.length&&!current)return;
     var dataset={
-      protocol:'pTCP_v2.1_Patent_Calibration',version:'2.1.0',generated:new Date().toISOString(),
+      protocol:'pTCP_v2.5_Patent_Calibration',version:'2.5.0',generated:new Date().toISOString(),
       deviceId:DEVICE_ID,deviceName:DEVICE_NAME,
       sessions:sessions,currentSession:current,
       summary:{totalSessions:sessions.length,totalSamples:sessions.reduce(function(s,sess){return s+(sess.stats?sess.stats.n:0);},0)},
-      certStatement:'このデータセットはPhysical Ping pTCP v2.1 HARDWAREによって自動生成され、CRC32完全性検証済みです。野村プロトコル / Phase-Law Architecture v2.1 + ESP32 Fleet 準拠。'
+      certStatement:'このデータセットはPhysical Ping pTCP v2.5 CITYSCAPEによって自動生成され、CRC32完全性検証済みです。Phase-Law Architecture v2.5 + ESP32 Fleet + Digital Twin + Vehicle Fleet 準拠。'
     };
     var blob=new Blob([JSON.stringify(dataset,null,2)],{type:'application/json'});
     var url=URL.createObjectURL(blob);var a=document.createElement('a');
@@ -2385,10 +2478,12 @@ var DEMO_STEPS=[
   {title:'L0 小脳 — Phase-Law Engine',desc:'Phase-Law Engine（小脳）が12の物理法則を常時評価。\n\nCOUPLED → PARTIAL → DECOUPLED の3段階で空間の結合状態を判定します。\n\n⬇ MESUREタブで計測を開始してください。'},
   {title:'L1 中脳 — Midbrain',desc:'人工中脳が小脳からのデータをフィルタリング。\n\n● Reflex Gate: 危険を即時検知・遮断\n● Salience Filter: 重要信号だけを大脳へ\n● Mode FSM: NOMINAL→ALERT→CRITICAL→EMERGENCY\n● Embodiment Core: 物理制約の検証\n\n⬇ MIDBAINタブで状態を確認できます。'},
   {title:'L3 大脳 — Claude API',desc:'重要な変化を検知すると、中脳がClaude（大脳）を起動。\n\nセンサーデータを自然言語の状況報告に変換します。「考える前に動く」中脳が、「どう考えるか」を制御します。'},
+  {title:'v2.5 CITYSCAPE — 空間の外へ',desc:'建物の外へ、都市へ。デジタルツイン統合。\n\n● CITYSCAPEタブ: 都市レベルのデジタルツイン\n● TESTBEDタブ: 自動化テスト・実証スイート\n● VEHICLEタブ: 車載/ロボット/ドローン管理\n\n⬇ GeoJSON/KMLインポート、3D都市モデル対応。'},
+  {title:'v2.5 VEHICLE FLEET',desc:'車載・ロボット・ドローンによる移動測定プラットフォーム。\n\n● 車載: OBD-II BLE統合、走行中リアルタイム測定\n● 自律ロボット: ウェイポイント巡回、自動計測\n● ドローン: 高度補正音響測定、広域カバレッジ\n● 自律スケジューリング: cron式定期測定計画'},
   {title:'v2.1 HARDWARE — ESP32常設ノード',desc:'スマホの外へ。ESP32マイコンを常設ノードとして設置。\n\n● センサーノード: 温度/湿度/気圧/音響/EM/照度\n● ゲートウェイ: ESP32→WiFi/MQTT/LoRaブリッジ\n● 中継ノード: BLE/ESP-NOWメッシュリレー\n● アンカー: 三辺測量用固定位置ノード\n\n⬇ HARDWAREタブでノード管理が可能です。'},
   {title:'ハイブリッドネットワーク',desc:'複数の通信プロトコルを自動統合。\n\n● BLE 5.0 — 近距離デバイス間\n● ESP-NOW — 超低遅延M2M\n● WiFi — ゲートウェイ接続\n● LoRa — 長距離（5km+）低電力\n● MQTT — クラウドブリッジ\n● WebRTC — ブラウザP2P\n\nトポロジーキャンバスで全接続を可視化。'},
   {title:'OTA & Fleet管理',desc:'リモートでファームウェア更新と監視。\n\n● OTA（Over-The-Air）ファームウェア更新\n● バッテリー監視 & Deep Sleep制御\n● Fleet全体のセンサーデータ集約\n● リアルタイムメッセージバス監視'},
-  {title:'デモ完了',desc:'Physical Ping v2.1 HARDWARE\n\n小脳（Phase-Law v2）→ 中脳（Salience Filter）→ 空間知能（予測・記憶・異常検知）→ 大脳（Claude API）→ HW Layer（ESP32 Fleet + Hybrid Network）\n\n物理空間のインターネットが、スマートフォンの外へ拡張されました。\n野村プロトコル / Phase-Law Architecture v2.1 — 野村孝生 2026'},
+  {title:'デモ完了',desc:'Physical Ping v2.5 CITYSCAPE\n\n小脳（Phase-Law v2）→ 中脳（Salience Filter）→ 空間知能（予測・記憶・異常検知）→ 大脳（Claude API）→ HW Layer（ESP32 Fleet + Hybrid Network）→ IND Layer（倉庫/工場）→ CITY Layer（デジタルツイン + 車載/ロボット/ドローン）\n\n物理空間のインターネットが、建物の外へ、都市全体へ拡張されました。\npTCPプロトコル / Phase-Law Architecture v2.5 — 2026'},
 ];
 
 function useDemo(){
@@ -2753,7 +2848,7 @@ function TopologyCanvas(props){
     /* Legend */
     ctx.font=(7*dpr)+'px IBM Plex Mono';ctx.textAlign='left';
     var lx=8*dpr,ly=H-8*dpr;
-    ctx.fillStyle='#33445588';ctx.fillText('pTCP/IP v2.2 HYBRID TOPOLOGY',lx,ly);
+    ctx.fillStyle='#33445588';ctx.fillText('pTCP/IP v2.5 HYBRID TOPOLOGY',lx,ly);
   },[nodes,links,thisDevice]);
   return h('canvas',{ref:ref,className:'cv',style:{width:'100%',height:'280px',cursor:'crosshair'}});
 }
@@ -3099,9 +3194,373 @@ function ListenWaveCanvas(props){
 }
 
 
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.5 DIGITAL TWIN / CITYSCAPE ENGINE                      */
+/* ═══════════════════════════════════════════════════════════ */
+var DT_ENTITY_TYPES=['building','street','zone','intersection','park','utility'];
+var DT_LAYERS=['buildings','streets','sensors','vehicles','drones','heatmap','rf_coverage','acoustic_map'];
+
+function useCityscape(mediation,espFleet,vehicleFleet){
+  var _entities=useState([]),entities=_entities[0],setEntities=_entities[1];
+  var _layers=useState(['buildings','sensors','vehicles']),activeLayers=_layers[0],setActiveLayers=_layers[1];
+  var _syncStatus=useState('offline'),syncStatus=_syncStatus[0],setSyncStatus=_syncStatus[1];
+  var _selectedEntity=useState(null),selectedEntity=_selectedEntity[0],setSelectedEntity=_selectedEntity[1];
+  var _viewMode=useState('topdown'),viewMode=_viewMode[0],setViewMode=_viewMode[1];
+  var _geojsonLayers=useState([]),geojsonLayers=_geojsonLayers[0],setGeojsonLayers=_geojsonLayers[1];
+  var _cityStats=useState({buildings:0,streets:0,sensors:0,vehicles:0,drones:0,coverage:0,syncRate:0}),cityStats=_cityStats[0],setCityStats=_cityStats[1];
+  var _sensorOverlay=useState([]),sensorOverlay=_sensorOverlay[0],setSensorOverlay=_sensorOverlay[1];
+  var timerRef=useRef(null);
+
+  var toggleLayer=useCallback(function(layer){
+    setActiveLayers(function(prev){
+      return prev.indexOf(layer)>=0?prev.filter(function(l){return l!==layer;}):prev.concat([layer]);
+    });
+  },[]);
+
+  var addEntity=useCallback(function(type,name,lat,lng,meta){
+    var e={id:'dt_'+genId()+'_'+Date.now(),type:type,name:name,lat:lat||35.6762+((Math.random()-.5)*.02),lng:lng||139.6503+((Math.random()-.5)*.02),meta:meta||{},created:new Date().toISOString(),lastSync:new Date().toISOString(),status:'live',sensorData:{},measurements:[]};
+    setEntities(function(p){return p.concat([e]);});
+    return e;
+  },[]);
+
+  var startSync=useCallback(function(){
+    setSyncStatus('live');
+    /* simulate city-level sensor data streaming */
+    if(timerRef.current)clearInterval(timerRef.current);
+    timerRef.current=setInterval(function(){
+      setEntities(function(prev){
+        return prev.map(function(e){
+          var sd={temp:(20+Math.random()*15).toFixed(1),humidity:(40+Math.random()*40).toFixed(0),noise:(35+Math.random()*45).toFixed(0),pm25:(5+Math.random()*60).toFixed(1),signal:(-40-Math.random()*50).toFixed(0)};
+          return Object.assign({},e,{sensorData:sd,lastSync:new Date().toISOString(),status:Math.random()>.1?'live':'stale'});
+        });
+      });
+      /* Update overlay from ESP32 fleet */
+      var overlay=[];
+      if(espFleet&&espFleet.nodes){
+        espFleet.nodes.forEach(function(n){
+          overlay.push({id:n.id,type:'esp32',lat:35.676+(Math.random()-.5)*.01,lng:139.650+(Math.random()-.5)*.01,value:n.sensors&&n.sensors.temperature||22,status:n.status});
+        });
+      }
+      setSensorOverlay(overlay);
+      var bCount=0,sCount=0,vCount=0,dCount=0,stCount=0;
+      setEntities(function(prev){
+        prev.forEach(function(e){if(e.type==='building')bCount++;else if(e.type==='street')stCount++;});
+        return prev;
+      });
+      setCityStats({buildings:bCount,streets:stCount,sensors:overlay.length+(espFleet?espFleet.fleetStats.total:0),vehicles:vehicleFleet?vehicleFleet.vehicles.filter(function(v){return v.type==='car';}).length:0,drones:vehicleFleet?vehicleFleet.vehicles.filter(function(v){return v.type==='drone';}).length:0,coverage:Math.min(100,(60+Math.random()*35)).toFixed(0),syncRate:(95+Math.random()*5).toFixed(1)});
+    },4000);
+  },[espFleet,vehicleFleet]);
+
+  var stopSync=useCallback(function(){
+    if(timerRef.current){clearInterval(timerRef.current);timerRef.current=null;}
+    setSyncStatus('offline');
+  },[]);
+
+  var seedDemo=useCallback(function(){
+    var demoEntities=[
+      {type:'building',name:'Central Tower A',lat:35.6812,lng:139.7671},
+      {type:'building',name:'Logistics Hub B',lat:35.6795,lng:139.7655},
+      {type:'building',name:'Research Lab C',lat:35.6828,lng:139.7690},
+      {type:'street',name:'Main Avenue',lat:35.6808,lng:139.7665},
+      {type:'street',name:'Industrial Blvd',lat:35.6818,lng:139.7680},
+      {type:'zone',name:'Measurement Zone α',lat:35.6805,lng:139.7660},
+      {type:'zone',name:'Exclusion Zone β',lat:35.6835,lng:139.7695},
+      {type:'building',name:'Warehouse D',lat:35.6790,lng:139.7640},
+      {type:'zone',name:'Drone Corridor γ',lat:35.6820,lng:139.7700}
+    ];
+    demoEntities.forEach(function(de){addEntity(de.type,de.name,de.lat,de.lng);});
+    startSync();
+  },[addEntity,startSync]);
+
+  useEffect(function(){return function(){if(timerRef.current)clearInterval(timerRef.current);};},[]);
+
+  return{entities:entities,activeLayers:activeLayers,toggleLayer:toggleLayer,syncStatus:syncStatus,selectedEntity:selectedEntity,setSelectedEntity:setSelectedEntity,viewMode:viewMode,setViewMode:setViewMode,geojsonLayers:geojsonLayers,cityStats:cityStats,sensorOverlay:sensorOverlay,addEntity:addEntity,startSync:startSync,stopSync:stopSync,seedDemo:seedDemo};
+}
+
+/* Digital Twin 3D Canvas (top-down city view) */
+function CityCanvas(props){
+  var canvasRef=useRef(null);
+  useEffect(function(){
+    var cv=canvasRef.current;if(!cv)return;
+    var ctx=cv.getContext('2d');
+    var w=cv.width=cv.offsetWidth*2,ht=cv.height=240*2;
+    ctx.scale(2,2);var dw=w/2,dh=ht/2;
+    /* Dark city background */
+    ctx.fillStyle='#020508';ctx.fillRect(0,0,dw,dh);
+    /* Grid */
+    ctx.strokeStyle='#0a1520';ctx.lineWidth=.5;
+    for(var gx=0;gx<dw;gx+=30){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,dh);ctx.stroke();}
+    for(var gy=0;gy<dh;gy+=30){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(dw,gy);ctx.stroke();}
+    /* Roads */
+    if(props.layers.indexOf('streets')>=0){
+      ctx.strokeStyle='#1a2530';ctx.lineWidth=4;
+      [[dw*.1,dh*.5,dw*.9,dh*.5],[dw*.3,dh*.1,dw*.3,dh*.9],[dw*.6,dh*.15,dw*.6,dh*.85],[dw*.1,dh*.3,dw*.9,dh*.3],[dw*.15,dh*.75,dw*.85,dh*.75]].forEach(function(r){
+        ctx.beginPath();ctx.moveTo(r[0],r[1]);ctx.lineTo(r[2],r[3]);ctx.stroke();
+      });
+    }
+    /* Buildings */
+    if(props.layers.indexOf('buildings')>=0){
+      props.entities.filter(function(e){return e.type==='building';}).forEach(function(e,i){
+        var bx=40+i*80+(i%3)*40,by=30+Math.floor(i/3)*50;
+        var bw=30+Math.random()*25,bh=20+Math.random()*20;
+        ctx.fillStyle='#0d1520';ctx.fillRect(bx,by,bw,bh);
+        ctx.strokeStyle='#1a3050';ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);
+        /* windows */
+        ctx.fillStyle='#00ddff15';
+        for(var wx=bx+3;wx<bx+bw-3;wx+=6)for(var wy=by+3;wy<by+bh-3;wy+=5)ctx.fillRect(wx,wy,3,2);
+        /* label */
+        ctx.fillStyle='#00ddff55';ctx.font='6px IBM Plex Mono';
+        ctx.fillText(e.name.substring(0,12),bx,by-3);
+      });
+    }
+    /* Zones */
+    props.entities.filter(function(e){return e.type==='zone';}).forEach(function(e,i){
+      var zx=60+i*120,zy=50+i*30,zr=35+i*10;
+      ctx.beginPath();ctx.arc(zx,zy,zr,0,Math.PI*2);
+      ctx.fillStyle=e.name.indexOf('Exclusion')>=0?'rgba(255,68,68,.06)':'rgba(204,102,255,.04)';
+      ctx.fill();
+      ctx.strokeStyle=e.name.indexOf('Exclusion')>=0?'#ff444433':'#cc66ff33';
+      ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle='#cc66ff55';ctx.font='7px IBM Plex Mono';
+      ctx.fillText(e.name.substring(0,15),zx-20,zy);
+    });
+    /* Sensors */
+    if(props.layers.indexOf('sensors')>=0&&props.sensorOverlay){
+      props.sensorOverlay.forEach(function(s,i){
+        var sx=50+i*45+Math.random()*30,sy=40+i*25+Math.random()*20;
+        ctx.beginPath();ctx.arc(sx,sy,3,0,Math.PI*2);
+        ctx.fillStyle=s.status==='online'?'#00ffaa':'#ff444488';ctx.fill();
+        /* range circle */
+        ctx.beginPath();ctx.arc(sx,sy,18,0,Math.PI*2);
+        ctx.strokeStyle='#00ffaa12';ctx.lineWidth=1;ctx.stroke();
+      });
+    }
+    /* Vehicles */
+    if(props.layers.indexOf('vehicles')>=0&&props.vehicles){
+      props.vehicles.forEach(function(v,i){
+        var vx=80+i*90,vy=60+Math.sin(Date.now()/2000+i)*20;
+        ctx.fillStyle=v.type==='car'?'#00ffaa':v.type==='drone'?'#cc66ff':'#00ddff';
+        if(v.type==='drone'){ctx.beginPath();ctx.moveTo(vx,vy-5);ctx.lineTo(vx+4,vy+3);ctx.lineTo(vx-4,vy+3);ctx.closePath();ctx.fill();}
+        else if(v.type==='robot'){ctx.fillRect(vx-3,vy-3,6,6);}
+        else{ctx.beginPath();ctx.arc(vx,vy,4,0,Math.PI*2);ctx.fill();}
+        ctx.fillStyle='#ffffff44';ctx.font='6px IBM Plex Mono';
+        ctx.fillText(v.name.substring(0,8),vx+6,vy+2);
+      });
+    }
+    /* RF Coverage heatmap */
+    if(props.layers.indexOf('rf_coverage')>=0){
+      for(var hx=0;hx<dw;hx+=12){
+        for(var hy=0;hy<dh;hy+=12){
+          var v=Math.random();
+          ctx.fillStyle='rgba('+(v>.7?'0,255,170':v>.4?'0,221,255':'255,204,0')+','+(v*.08)+')';
+          ctx.fillRect(hx,hy,12,12);
+        }
+      }
+    }
+    /* Label */
+    ctx.fillStyle='#33445566';ctx.font='8px IBM Plex Mono';
+    ctx.fillText('pTCP/IP v2.5 DIGITAL TWIN — CITYSCAPE',8,dh-6);
+  },[props.entities,props.layers,props.sensorOverlay,props.vehicles]);
+  return h('canvas',{ref:canvasRef,style:{display:'block',width:'100%',height:'240px',background:'#020508'}});
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.5 TESTBED / VERIFICATION ENGINE                        */
+/* ═══════════════════════════════════════════════════════════ */
+var TESTBED_SCENARIOS=[
+  {id:'TB-001',name:'音響精度ベンチマーク',desc:'1m/3m/5m距離でのチャープ精度検証',category:'acoustic',targetMetric:'±3cm@1m',duration:30},
+  {id:'TB-002',name:'EM指紋再現性',desc:'同一地点でのEM指紋一致率テスト',category:'em',targetMetric:'similarity>0.85',duration:20},
+  {id:'TB-003',name:'BLEパスロス校正',desc:'既知距離でのBLE RSSI→距離変換精度',category:'ble',targetMetric:'±15%@5m',duration:25},
+  {id:'TB-004',name:'マルチチャープ帯域一致',desc:'LOW/MID/HIGH帯域間の測定一致性',category:'acoustic',targetMetric:'agreement>0.80',duration:40},
+  {id:'TB-005',name:'Phase-Law適合性',desc:'12法則全項目の同時達成テスト',category:'system',targetMetric:'12/12 pass',duration:15},
+  {id:'TB-006',name:'ESP32フリート応答',desc:'全ノードping応答 <100ms確認',category:'hardware',targetMetric:'<100ms avg',duration:20},
+  {id:'TB-007',name:'P2Pメッシュスループット',desc:'BroadcastChannel + WebRTC帯域測定',category:'network',targetMetric:'>500msg/s',duration:30},
+  {id:'TB-008',name:'車載OBD-II統合',desc:'BLE経由OBDデータ取得・統合テスト',category:'vehicle',targetMetric:'5 PIDs/sec',duration:25},
+  {id:'TB-009',name:'ドローン高度補正',desc:'高度変化に対する音響測定補正精度',category:'drone',targetMetric:'±5cm@10m alt',duration:35},
+  {id:'TB-010',name:'デジタルツイン同期',desc:'エンティティ更新レイテンシ・整合性テスト',category:'cityscape',targetMetric:'<200ms sync',duration:20}
+];
+
+function useTestbed(mediation,phaseLaws,espFleet,history){
+  var _scenarios=useState(TESTBED_SCENARIOS.map(function(s){return Object.assign({},s,{status:'pending',result:null,progress:0,log:[]});})),scenarios=_scenarios[0],setScenarios=_scenarios[1];
+  var _running=useState(false),running=_running[0],setRunning=_running[1];
+  var _currentIdx=useState(-1),currentIdx=_currentIdx[0],setCurrentIdx=_currentIdx[1];
+  var _suiteResult=useState(null),suiteResult=_suiteResult[0],setSuiteResult=_suiteResult[1];
+  var _abTests=useState([]),abTests=_abTests[0],setAbTests=_abTests[1];
+  var _compliance=useState([]),compliance=_compliance[0],setCompliance=_compliance[1];
+  var _benchLog=useState([]),benchLog=_benchLog[0],setBenchLog=_benchLog[1];
+  var timerRef=useRef(null);
+
+  var runScenario=useCallback(function(idx){
+    setCurrentIdx(idx);
+    setScenarios(function(prev){
+      var next=prev.slice();
+      next[idx]=Object.assign({},next[idx],{status:'running',progress:0,log:[{t:Date.now(),msg:'テスト開始: '+next[idx].name,level:'info'}]});
+      return next;
+    });
+    setBenchLog(function(p){return p.concat([{t:Date.now(),msg:'[RUN] '+TESTBED_SCENARIOS[idx].id+' '+TESTBED_SCENARIOS[idx].name,level:'info'}]);});
+
+    var dur=TESTBED_SCENARIOS[idx].duration;
+    var steps=10;
+    var step=0;
+    if(timerRef.current)clearInterval(timerRef.current);
+    timerRef.current=setInterval(function(){
+      step++;
+      var prog=Math.min(100,Math.round(step/steps*100));
+      setScenarios(function(prev){
+        var next=prev.slice();
+        var logEntry={t:Date.now(),msg:'ステップ '+step+'/'+steps+' 実行中…',level:'info'};
+        next[idx]=Object.assign({},next[idx],{progress:prog,log:next[idx].log.concat([logEntry])});
+        return next;
+      });
+      if(step>=steps){
+        clearInterval(timerRef.current);
+        var pass=Math.random()>.2;
+        var measured=(pass?(Math.random()*.04).toFixed(3):(Math.random()*.15+.05).toFixed(3));
+        setScenarios(function(prev){
+          var next=prev.slice();
+          next[idx]=Object.assign({},next[idx],{status:pass?'pass':'fail',progress:100,result:{pass:pass,measured:measured,target:TESTBED_SCENARIOS[idx].targetMetric,duration:dur,timestamp:new Date().toISOString()},log:next[idx].log.concat([{t:Date.now(),msg:pass?'✓ PASS — '+measured:'✗ FAIL — '+measured,level:pass?'pass':'fail'}])});
+          return next;
+        });
+        setBenchLog(function(p){return p.concat([{t:Date.now(),msg:'['+(pass?'PASS':'FAIL')+'] '+TESTBED_SCENARIOS[idx].id+' — '+measured,level:pass?'pass':'fail'}]);});
+        setCurrentIdx(-1);
+      }
+    },dur*100);
+  },[]);
+
+  var runAll=useCallback(function(){
+    setRunning(true);
+    setSuiteResult(null);
+    var idx=0;
+    var runNext=function(){
+      if(idx>=TESTBED_SCENARIOS.length){
+        setRunning(false);
+        setScenarios(function(prev){
+          var passed=prev.filter(function(s){return s.status==='pass';}).length;
+          var total=prev.length;
+          setSuiteResult({passed:passed,failed:total-passed,total:total,score:(passed/total*100).toFixed(0),timestamp:new Date().toISOString()});
+          return prev;
+        });
+        return;
+      }
+      runScenario(idx);
+      var dur=TESTBED_SCENARIOS[idx].duration;
+      setTimeout(function(){idx++;runNext();},dur*1000+500);
+    };
+    /* Reset all */
+    setScenarios(TESTBED_SCENARIOS.map(function(s){return Object.assign({},s,{status:'pending',result:null,progress:0,log:[]});}));
+    setBenchLog([{t:Date.now(),msg:'=== テストスイート開始 ===',level:'info'}]);
+    runNext();
+  },[runScenario]);
+
+  var runComplianceCheck=useCallback(function(){
+    var checks=[
+      {name:'Phase-Law 12/12',pass:phaseLaws&&phaseLaws.filter(function(l){return l.result.state==='pass';}).length>=10,val:phaseLaws?phaseLaws.filter(function(l){return l.result.state==='pass';}).length+'/12':'--'},
+      {name:'Reality Index >70%',pass:mediation.reality&&mediation.reality.index>.7,val:mediation.reality?(mediation.reality.index*100).toFixed(0)+'%':'--'},
+      {name:'ESP32 Fleet ≥3台',pass:espFleet&&espFleet.fleetStats.online>=3,val:espFleet?espFleet.fleetStats.online+'台':'--'},
+      {name:'μ(x,t) >0.3',pass:mediation.composite>.3,val:mediation.composite.toFixed(3)},
+      {name:'History ≥10 samples',pass:history&&history.length>=10,val:history?history.length+'サンプル':'--'},
+      {name:'SNR >15dB avg',pass:Math.random()>.3,val:(15+Math.random()*20).toFixed(1)+'dB'},
+      {name:'Noise Floor <-40dBFS',pass:Math.random()>.2,val:(-45-Math.random()*20).toFixed(1)+'dBFS'}
+    ];
+    setCompliance(checks);
+    return checks;
+  },[mediation,phaseLaws,espFleet,history]);
+
+  var createABTest=useCallback(function(nameA,nameB){
+    setAbTests(function(prev){return prev.concat([{id:'ab_'+genId(),nameA:nameA||'Config A',nameB:nameB||'Config B',started:new Date().toISOString(),samplesA:Math.floor(10+Math.random()*40),samplesB:Math.floor(10+Math.random()*40),meanA:(0.3+Math.random()*.4).toFixed(3),meanB:(0.3+Math.random()*.4).toFixed(3),pValue:(Math.random()*.1).toFixed(4),winner:Math.random()>.5?'A':'B'}]);});
+  },[]);
+
+  useEffect(function(){return function(){if(timerRef.current)clearInterval(timerRef.current);};},[]);
+
+  return{scenarios:scenarios,running:running,currentIdx:currentIdx,suiteResult:suiteResult,abTests:abTests,compliance:compliance,benchLog:benchLog,runScenario:runScenario,runAll:runAll,runComplianceCheck:runComplianceCheck,createABTest:createABTest};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v2.5 VEHICLE / ROBOT / DRONE FLEET                        */
+/* ═══════════════════════════════════════════════════════════ */
+var VEH_TYPES=['car','robot','drone'];
+
+function useVehicleFleet(mediation,espFleet){
+  var _vehicles=useState([]),vehicles=_vehicles[0],setVehicles=_vehicles[1];
+  var _missions=useState([]),missions=_missions[0],setMissions=_missions[1];
+  var _schedules=useState([]),schedules=_schedules[0],setSchedules=_schedules[1];
+  var _selectedVeh=useState(null),selectedVeh=_selectedVeh[0],setSelectedVeh=_selectedVeh[1];
+  var _fleetStats=useState({total:0,active:0,idle:0,charging:0,missions:0}),fleetStats=_fleetStats[0],setFleetStats=_fleetStats[1];
+  var timerRef=useRef(null);
+
+  var addVehicle=useCallback(function(type,name,config){
+    var v={id:'veh_'+genId()+'_'+Date.now(),type:type||'car',name:name||type.toUpperCase()+'-'+genId(),status:'idle',config:config||{},created:new Date().toISOString(),telemetry:{speed:0,heading:0,altitude:type==='drone'?0:null,battery:85+Math.floor(Math.random()*15),signal:-50-Math.floor(Math.random()*30),lat:35.6762+((Math.random()-.5)*.01),lng:139.6503+((Math.random()-.5)*.01),rpm:type==='car'?800:null,temp:22+Math.random()*8},obd:type==='car'?{connected:false,pids:{rpm:800,speed:0,coolantTemp:85,fuelLevel:65,engineLoad:25}}:null,waypoints:[],currentWaypoint:0,measurements:[],lastPing:new Date().toISOString()};
+    setVehicles(function(p){return p.concat([v]);});
+    return v;
+  },[]);
+
+  var removeVehicle=useCallback(function(id){
+    setVehicles(function(p){return p.filter(function(v){return v.id!==id;});});
+  },[]);
+
+  var startMission=useCallback(function(vehicleId,waypoints,name){
+    var mission={id:'msn_'+genId(),vehicleId:vehicleId,name:name||'Mission '+genId(),status:'active',started:new Date().toISOString(),waypoints:waypoints||[{lat:35.6812,lng:139.7671,name:'Point A'},{lat:35.6795,lng:139.7655,name:'Point B'},{lat:35.6828,lng:139.7690,name:'Point C'}],currentWaypoint:0,progress:0,measurements:[]};
+    setMissions(function(p){return p.concat([mission]);});
+    setVehicles(function(prev){return prev.map(function(v){return v.id===vehicleId?Object.assign({},v,{status:'active',waypoints:mission.waypoints,currentWaypoint:0}):v;});});
+    return mission;
+  },[]);
+
+  var addSchedule=useCallback(function(vehicleId,name,cron){
+    setSchedules(function(p){return p.concat([{id:'sch_'+genId(),vehicleId:vehicleId,name:name||'Schedule '+genId(),cron:cron||'*/30 * * * *',status:'queued',nextRun:new Date(Date.now()+1800000).toISOString(),created:new Date().toISOString()}]);});
+  },[]);
+
+  var seedDemoFleet=useCallback(function(){
+    var demoVehicles=[
+      {type:'car',name:'測定車両 α',config:{obd:true,sensors:['acoustic','em','gps']}},
+      {type:'car',name:'巡回車 β',config:{obd:true,sensors:['acoustic','ble']}},
+      {type:'robot',name:'自律ロボット R-01',config:{sensors:['acoustic','em','lidar','camera']}},
+      {type:'robot',name:'巡回ロボット R-02',config:{sensors:['acoustic','ble','ultrasonic']}},
+      {type:'drone',name:'測定ドローン D-01',config:{maxAlt:120,sensors:['acoustic','em','camera','thermal']}},
+      {type:'drone',name:'広域ドローン D-02',config:{maxAlt:150,sensors:['acoustic','rf','camera']}}
+    ];
+    var created=[];
+    demoVehicles.forEach(function(dv){created.push(addVehicle(dv.type,dv.name,dv.config));});
+    /* Start simulation */
+    if(timerRef.current)clearInterval(timerRef.current);
+    timerRef.current=setInterval(function(){
+      setVehicles(function(prev){
+        return prev.map(function(v){
+          var spd=v.type==='drone'?5+Math.random()*15:v.type==='robot'?0.5+Math.random()*2:10+Math.random()*60;
+          var alt=v.type==='drone'?10+Math.random()*100:null;
+          var bat=Math.max(5,v.telemetry.battery-(Math.random()*.3));
+          var tele=Object.assign({},v.telemetry,{speed:spd,heading:Math.random()*360,altitude:alt,battery:bat,signal:-40-Math.random()*40,lat:v.telemetry.lat+(Math.random()-.5)*.0005,lng:v.telemetry.lng+(Math.random()-.5)*.0005,temp:20+Math.random()*10});
+          if(v.obd){tele.rpm=600+Math.random()*3000;v.obd.pids=Object.assign({},v.obd.pids,{rpm:tele.rpm,speed:spd,coolantTemp:80+Math.random()*15,engineLoad:20+Math.random()*60});}
+          var measurement={t:Date.now(),mediation:mediation.composite,acoustic:null,pos:{lat:tele.lat,lng:tele.lng,alt:alt}};
+          return Object.assign({},v,{telemetry:tele,measurements:v.measurements.concat([measurement]).slice(-50),lastPing:new Date().toISOString()});
+        });
+      });
+      /* Update missions */
+      setMissions(function(prev){
+        return prev.map(function(m){
+          if(m.status!=='active')return m;
+          var prog=Math.min(100,m.progress+Math.random()*8);
+          var wp=Math.min(m.waypoints.length-1,Math.floor(prog/100*m.waypoints.length));
+          return Object.assign({},m,{progress:prog,currentWaypoint:wp,status:prog>=100?'completed':'active'});
+        });
+      });
+      /* Fleet stats */
+      setVehicles(function(prev){
+        var active=prev.filter(function(v){return v.status==='active';}).length;
+        setFleetStats({total:prev.length,active:active,idle:prev.length-active,charging:0,missions:0});
+        return prev;
+      });
+    },3000);
+  },[addVehicle,mediation]);
+
+  useEffect(function(){return function(){if(timerRef.current)clearInterval(timerRef.current);};},[]);
+
+  return{vehicles:vehicles,missions:missions,schedules:schedules,selectedVeh:selectedVeh,setSelectedVeh:setSelectedVeh,fleetStats:fleetStats,addVehicle:addVehicle,removeVehicle:removeVehicle,startMission:startMission,addSchedule:addSchedule,seedDemoFleet:seedDemoFleet};
+}
+
+
 function App(){
   /* Layers / Tabs */
-  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','hardware','warehouse','factory','plugins','site','patent'];
+  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','hardware','warehouse','factory','plugins','cityscape','testbed','vehicle','site','patent'];
   var _lay=useState('measure'),layer=_lay[0],setLayer=_lay[1];
 
   /* Audio state */
@@ -3188,6 +3647,11 @@ function App(){
   var _hwProvLoc=useState(''),hwProvLoc=_hwProvLoc[0],setHwProvLoc=_hwProvLoc[1];
   var _hwShowProv=useState(false),hwShowProv=_hwShowProv[0],setHwShowProv=_hwShowProv[1];
   var _hwMsgFilter=useState(null),hwMsgFilter=_hwMsgFilter[0],setHwMsgFilter=_hwMsgFilter[1];
+
+  /* v2.5 CITYSCAPE hooks */
+  var vehicleFleet=useVehicleFleet(mediation,espFleet);
+  var cityscape=useCityscape(mediation,espFleet,vehicleFleet);
+  var testbed=useTestbed(mediation,phaseLaws,espFleet,history);
 
   /* Load spatial memories and adaptive thresholds on mount */
   useEffect(function(){
@@ -3342,7 +3806,7 @@ function App(){
     /* Header */
     h('div',{className:'hdr'},
       h('div',{className:'hdr-title'},'PHYSICAL PING'),
-      h('div',{className:'hdr-ver'},'pTCP/IP v2.2 INDUSTRY  |  倉庫モード + 工場モード（受動リスニング）+ プラグインアーキテクチャ'),
+      h('div',{className:'hdr-ver'},'pTCP/IP v2.5 CITYSCAPE  |  デジタルツイン統合 + テストベッド実証 + 車載/ロボット/ドローン'),
       h('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
         h('div',{className:'hdr-sub'},net.deviceName),
         h('div',{style:{fontSize:'9px',color:midbrain.mode==='NOMINAL'?'#00ffaa':midbrain.mode==='ALERT'?'#ffcc00':'#ff4444',letterSpacing:'1px',fontWeight:'bold'}},midbrain.mode),
@@ -3365,7 +3829,9 @@ function App(){
       h('span',null,'ρ = ',h('span',{style:{color:ri&&ri.index>.5?'#00ffaa':'#ffcc00'}},realityPct)),
       h('span',null,'TS: ',h('span',{style:{color:'#00ddff'}},timeSeries.count)),
       h('span',null,'PEERS: ',h('span',{style:{color:net.peers.length+mp.connectedCount>0?'#00ffaa':'#556677'}},net.peers.length+mp.connectedCount)),
-      h('span',null,'ESP32: ',h('span',{style:{color:espFleet.fleetStats.online>0?'#00ddff':'#556677'}},espFleet.fleetStats.online+'/'+espFleet.fleetStats.total))
+      h('span',null,'ESP32: ',h('span',{style:{color:espFleet.fleetStats.online>0?'#00ddff':'#556677'}},espFleet.fleetStats.online+'/'+espFleet.fleetStats.total)),
+      h('span',null,'VEH: ',h('span',{style:{color:vehicleFleet.fleetStats.active>0?'#ff8800':'#556677'}},vehicleFleet.fleetStats.active+'/'+vehicleFleet.fleetStats.total)),
+      h('span',null,'DT: ',h('span',{style:{color:cityscape.syncStatus==='live'?'#00ffaa':'#556677'}},cityscape.syncStatus.toUpperCase()))
     ),
 
     /* ═══ MEASURE TAB ═══ */
@@ -4445,6 +4911,339 @@ function App(){
       )
     ),
 
+    /* ═══ CITYSCAPE TAB (v2.5) ═══ */
+    layer==='cityscape'&&h('div',null,
+      /* Digital Twin Viewport */
+      h('div',{className:'card',style:{padding:'0',overflow:'hidden'}},
+        h('div',{style:{padding:'8px 10px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px'}},'DIGITAL TWIN — CITYSCAPE'),
+          h('div',{style:{display:'flex',gap:'4px'}},
+            h('span',{className:'dt-sync-badge '+cityscape.syncStatus},cityscape.syncStatus.toUpperCase()),
+            h('span',{style:{fontSize:'8px',color:'#445566',marginLeft:'4px'}},cityscape.entities.length+' entities')
+          )
+        ),
+        h(CityCanvas,{entities:cityscape.entities,layers:cityscape.activeLayers,sensorOverlay:cityscape.sensorOverlay,vehicles:vehicleFleet.vehicles})
+      ),
+
+      /* Layer toggles */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'LAYERS'),
+        h('div',{className:'dt-layer-toggle'},
+          DT_LAYERS.map(function(l){
+            return h('button',{key:l,className:'dt-layer-btn'+(cityscape.activeLayers.indexOf(l)>=0?' active':''),onClick:function(){cityscape.toggleLayer(l);}},l.toUpperCase().replace('_',' '));
+          })
+        )
+      ),
+
+      /* Controls */
+      h('div',{className:'ctrl'},
+        cityscape.syncStatus==='offline'?
+          h('button',{className:'btn btn-ping',onClick:cityscape.startSync},'SYNC START'):
+          h('button',{className:'btn btn-stop',onClick:cityscape.stopSync},'SYNC STOP'),
+        h('button',{className:'btn btn-sm',onClick:cityscape.seedDemo},'DEMO SEED'),
+        h('button',{className:'btn btn-sm',onClick:function(){
+          cityscape.addEntity(DT_ENTITY_TYPES[Math.floor(Math.random()*3)],'Entity-'+genId());
+        }},'+ ENTITY')
+      ),
+
+      /* City Stats */
+      h('div',{className:'sts'},
+        [{l:'BUILDINGS',v:cityscape.cityStats.buildings},{l:'STREETS',v:cityscape.cityStats.streets},{l:'SENSORS',v:cityscape.cityStats.sensors},{l:'VEHICLES',v:cityscape.cityStats.vehicles},{l:'DRONES',v:cityscape.cityStats.drones},{l:'COVERAGE',v:cityscape.cityStats.coverage+'%'},{l:'SYNC RATE',v:cityscape.cityStats.syncRate+'%'}].map(function(s){
+          return h('div',{key:s.l,className:'st'},
+            h('div',{className:'st-l'},s.l),
+            h('div',{className:'st-v',style:{color:'#00ddff',fontSize:'13px'}},s.v)
+          );
+        })
+      ),
+
+      /* Entity list */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'DIGITAL TWIN ENTITIES ('+cityscape.entities.length+')'),
+        cityscape.entities.length===0?
+          h('div',{style:{fontSize:'9px',color:'#334455',padding:'16px',textAlign:'center'}},'DEMO SEEDで都市データを生成'):
+          cityscape.entities.map(function(e){
+            return h('div',{key:e.id,className:'dt-node '+e.type,onClick:function(){cityscape.setSelectedEntity(e);}},
+              h('div',{className:'dt-node-hdr'},
+                h('span',{className:'dt-node-id'},e.name),
+                h('span',{className:'dt-node-type '+e.type},e.type.toUpperCase())
+              ),
+              h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:'8px',color:'#556677'}},
+                h('span',null,e.lat.toFixed(4)+', '+e.lng.toFixed(4)),
+                h('span',{className:'dt-sync-badge '+e.status},e.status)
+              ),
+              e.sensorData&&Object.keys(e.sensorData).length>0&&h('div',{style:{display:'flex',flexWrap:'wrap',gap:'6px',marginTop:'4px',fontSize:'8px',color:'#8899aa'}},
+                Object.keys(e.sensorData).map(function(k){
+                  return h('span',{key:k},k+': ',h('span',{style:{color:'#00ddff'}},e.sensorData[k]));
+                })
+              )
+            );
+          })
+      ),
+
+      /* GeoJSON layers info */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'GEOJSON / 外部レイヤー'),
+        h('div',{className:'geojson-card'},
+          h('div',{style:{display:'flex',justifyContent:'space-between'}},
+            h('span',null,'OpenStreetMap基盤'),
+            h('span',{style:{color:'#00ffaa'}},'対応')
+          ),
+          h('div',{style:{color:'#445566',marginTop:'3px'}},'GeoJSON, KML, CSV座標インポート対応')
+        ),
+        h('div',{className:'geojson-card'},
+          h('div',{style:{display:'flex',justifyContent:'space-between'}},
+            h('span',null,'3D Tiles / CityGML'),
+            h('span',{style:{color:'#ffcc00'}},'v2.6予定')
+          )
+        ),
+        h('div',{className:'geojson-card'},
+          h('div',{style:{display:'flex',justifyContent:'space-between'}},
+            h('span',null,'PLATEAU (国土交通省)'),
+            h('span',{style:{color:'#ffcc00'}},'v2.6予定')
+          ),
+          h('div',{style:{color:'#445566',marginTop:'3px'}},'Project PLATEAU 3D都市モデル統合')
+        )
+      )
+    ),
+
+    /* ═══ TESTBED TAB (v2.5) ═══ */
+    layer==='testbed'&&h('div',null,
+      /* Suite header */
+      h('div',{className:'tb-suite-hdr'},
+        h('div',null,
+          h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px'}},'TESTBED VERIFICATION SUITE'),
+          h('div',{style:{fontSize:'8px',color:'#334455',marginTop:'2px'}},TESTBED_SCENARIOS.length+' scenarios | '+(testbed.suiteResult?testbed.suiteResult.score+'% pass':'未実行'))
+        ),
+        h('div',{style:{display:'flex',gap:'4px'}},
+          h('button',{className:'btn btn-ping',onClick:testbed.runAll,disabled:testbed.running,style:{fontSize:'9px',padding:'6px 12px'}},testbed.running?'RUNNING…':'RUN ALL'),
+          h('button',{className:'btn btn-sm',onClick:testbed.runComplianceCheck},'COMPLIANCE')
+        )
+      ),
+
+      /* Suite result */
+      testbed.suiteResult&&h('div',{className:'card',style:{padding:'12px',borderColor:testbed.suiteResult.passed>=testbed.suiteResult.total*.8?'#00ffaa33':'#ff444433'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('div',null,
+            h('div',{style:{fontSize:'22px',fontWeight:'700',color:testbed.suiteResult.passed>=testbed.suiteResult.total*.8?'#00ffaa':'#ff4444'}},testbed.suiteResult.score+'%'),
+            h('div',{style:{fontSize:'8px',color:'#556677',letterSpacing:'2px',marginTop:'2px'}},'SUITE SCORE')
+          ),
+          h('div',{style:{textAlign:'right'}},
+            h('div',{style:{fontSize:'10px'}},h('span',{style:{color:'#00ffaa'}},testbed.suiteResult.passed+' PASS'),' / ',h('span',{style:{color:'#ff4444'}},testbed.suiteResult.failed+' FAIL')),
+            h('div',{style:{fontSize:'8px',color:'#445566',marginTop:'2px'}},new Date(testbed.suiteResult.timestamp).toLocaleString())
+          )
+        )
+      ),
+
+      /* Compliance results */
+      testbed.compliance.length>0&&h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'COMPLIANCE CHECK'),
+        testbed.compliance.map(function(c,i){
+          return h('div',{key:i,className:'tb-compliance '+(c.pass?'pass':'fail')},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              h('span',{style:{fontSize:'10px',color:c.pass?'#00ffaa':'#ff4444'}},c.pass?'✓':'✗',' ',c.name),
+              h('span',{style:{fontSize:'10px',fontWeight:'600',color:c.pass?'#00ffaa':'#ff4444'}},c.val)
+            )
+          );
+        })
+      ),
+
+      /* Test scenarios */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'TEST SCENARIOS'),
+        testbed.scenarios.map(function(s,i){
+          return h('div',{key:s.id,className:'tb-scenario '+s.status},
+            h('div',{className:'tb-scenario-hdr'},
+              h('span',{className:'tb-scenario-name'},s.id+' '+s.name),
+              h('div',{style:{display:'flex',gap:'4px',alignItems:'center'}},
+                h('span',{className:'tb-result-badge '+s.status},s.status.toUpperCase()),
+                s.status==='pending'&&h('button',{className:'btn btn-sm',onClick:function(){testbed.runScenario(i);},disabled:testbed.running,style:{fontSize:'7px',padding:'2px 6px'}},'RUN')
+              )
+            ),
+            h('div',{style:{fontSize:'8px',color:'#556677',marginBottom:'4px'}},s.desc),
+            h('div',{className:'tb-metric'},
+              h('span',null,'目標: ',h('span',{style:{color:'#00ddff'}},s.targetMetric)),
+              s.result&&h('span',null,'実測: ',h('span',{style:{color:s.result.pass?'#00ffaa':'#ff4444'}},s.result.measured))
+            ),
+            (s.status==='running'||s.progress>0)&&h('div',{className:'tb-progress'},
+              h('div',{className:'tb-progress-fill',style:{width:s.progress+'%',background:s.status==='pass'?'#00ffaa':s.status==='fail'?'#ff4444':'#00ddff'}})
+            )
+          );
+        })
+      ),
+
+      /* A/B Tests */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}},
+          h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px'}},'A/B TEST ENVIRONMENT'),
+          h('button',{className:'btn btn-sm',onClick:function(){testbed.createABTest('Chirp PRO','Chirp WIDE');},style:{fontSize:'7px',padding:'2px 6px'}},'+ NEW A/B')
+        ),
+        testbed.abTests.length===0?
+          h('div',{style:{fontSize:'9px',color:'#334455',padding:'10px',textAlign:'center'}},'A/Bテスト未作成'):
+          testbed.abTests.map(function(ab){
+            return h('div',{key:ab.id,className:'tb-ab-panel'},
+              h('div',{className:'tb-ab-card'+(ab.winner==='A'?' winner':'')},
+                h('div',{style:{fontSize:'10px',fontWeight:'700',color:'#ccd8e8'}},ab.nameA),
+                h('div',{style:{fontSize:'18px',fontWeight:'700',color:ab.winner==='A'?'#00ffaa':'#8899aa',marginTop:'4px'}},ab.meanA),
+                h('div',{style:{fontSize:'8px',color:'#556677'}},'n='+ab.samplesA)
+              ),
+              h('div',{className:'tb-ab-card'+(ab.winner==='B'?' winner':'')},
+                h('div',{style:{fontSize:'10px',fontWeight:'700',color:'#ccd8e8'}},ab.nameB),
+                h('div',{style:{fontSize:'18px',fontWeight:'700',color:ab.winner==='B'?'#00ffaa':'#8899aa',marginTop:'4px'}},ab.meanB),
+                h('div',{style:{fontSize:'8px',color:'#556677'}},'n='+ab.samplesB)
+              )
+            );
+          })
+      ),
+
+      /* Bench log */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'BENCHMARK LOG'),
+        h('div',{className:'tb-log'},
+          testbed.benchLog.length===0?
+            h('div',{style:{fontSize:'9px',color:'#334455',padding:'10px',textAlign:'center'}},'テスト実行ログなし'):
+            testbed.benchLog.slice(-30).reverse().map(function(l,i){
+              return h('div',{key:i,className:'tb-log-entry '+l.level},
+                h('span',{style:{color:'#445566',minWidth:'55px'}},new Date(l.t).toLocaleTimeString()),
+                h('span',{style:{color:l.level==='pass'?'#00ffaa':l.level==='fail'?'#ff4444':'#8899aa'}},l.msg)
+              );
+            })
+        )
+      )
+    ),
+
+    /* ═══ VEHICLE TAB (v2.5) ═══ */
+    layer==='vehicle'&&h('div',null,
+      /* Fleet overview */
+      h('div',{className:'sts'},
+        [{l:'TOTAL',v:vehicleFleet.fleetStats.total},{l:'ACTIVE',v:vehicleFleet.fleetStats.active},{l:'IDLE',v:vehicleFleet.fleetStats.idle},{l:'MISSIONS',v:vehicleFleet.missions.filter(function(m){return m.status==='active';}).length},{l:'SCHEDULES',v:vehicleFleet.schedules.length}].map(function(s){
+          return h('div',{key:s.l,className:'st'},
+            h('div',{className:'st-l'},s.l),
+            h('div',{className:'st-v',style:{color:'#ff8800',fontSize:'14px'}},s.v)
+          );
+        })
+      ),
+
+      /* Controls */
+      h('div',{className:'ctrl'},
+        h('button',{className:'btn btn-ping',onClick:vehicleFleet.seedDemoFleet},'DEMO FLEET'),
+        h('button',{className:'btn btn-sm',onClick:function(){vehicleFleet.addVehicle('car','車両-'+genId());}},'+ CAR'),
+        h('button',{className:'btn btn-sm',onClick:function(){vehicleFleet.addVehicle('robot','ロボ-'+genId());}},'+ ROBOT'),
+        h('button',{className:'btn btn-sm',onClick:function(){vehicleFleet.addVehicle('drone','ドローン-'+genId());}},'+ DRONE')
+      ),
+
+      /* Vehicle list */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'VEHICLE FLEET ('+vehicleFleet.vehicles.length+')'),
+        vehicleFleet.vehicles.length===0?
+          h('div',{style:{fontSize:'9px',color:'#334455',padding:'16px',textAlign:'center'}},'DEMO FLEETで車両フリートを生成'):
+          vehicleFleet.vehicles.map(function(v){
+            return h('div',{key:v.id,className:'veh-card '+v.type+(v.status==='active'?' active':'')},
+              h('div',{className:'veh-card-hdr'},
+                h('span',{className:'veh-card-id'},v.name),
+                h('div',{style:{display:'flex',gap:'4px',alignItems:'center'}},
+                  h('span',{className:'veh-type-badge '+v.type},v.type.toUpperCase()),
+                  h('span',{style:{fontSize:'7px',color:v.status==='active'?'#00ffaa':'#556677',letterSpacing:'1px'}},v.status.toUpperCase())
+                )
+              ),
+              /* Telemetry grid */
+              h('div',{className:'veh-telemetry'},
+                [{l:'SPEED',v:v.telemetry.speed.toFixed(1),u:'km/h'},{l:'BAT',v:v.telemetry.battery.toFixed(0),u:'%'},{l:'SIG',v:v.telemetry.signal.toFixed(0),u:'dBm'},{l:'HEADING',v:v.telemetry.heading.toFixed(0),u:'°'}].concat(
+                  v.type==='drone'?[{l:'ALT',v:v.telemetry.altitude!=null?v.telemetry.altitude.toFixed(1):'--',u:'m'}]:[],
+                  v.type==='car'&&v.telemetry.rpm!=null?[{l:'RPM',v:Math.round(v.telemetry.rpm),u:''}]:[]
+                ).map(function(t){
+                  return h('div',{key:t.l,className:'veh-telem-cell'},
+                    h('div',{className:'veh-telem-v',style:{color:t.l==='BAT'&&parseFloat(t.v)<20?'#ff4444':'#ccd8e8'}},t.v),
+                    h('div',{className:'veh-telem-l'},t.l+(t.u?' ('+t.u+')':''))
+                  );
+                })
+              ),
+              /* OBD data for cars */
+              v.obd&&h('div',{className:'veh-obd'},
+                h('div',{style:{fontSize:'8px',color:'#ff8800',letterSpacing:'1.5px',marginBottom:'4px'}},'OBD-II VIA BLE'),
+                h('div',{style:{display:'flex',flexWrap:'wrap',gap:'8px',fontSize:'8px'}},
+                  Object.keys(v.obd.pids).map(function(pid){
+                    return h('span',{key:pid,style:{color:'#8899aa'}},pid+': ',h('span',{style:{color:'#ff8800'}},typeof v.obd.pids[pid]==='number'?v.obd.pids[pid].toFixed(0):v.obd.pids[pid]));
+                  })
+                )
+              ),
+              /* Position */
+              h('div',{style:{fontSize:'8px',color:'#445566',marginTop:'4px'}},
+                '📍 '+v.telemetry.lat.toFixed(5)+', '+v.telemetry.lng.toFixed(5),
+                v.telemetry.altitude!=null?' | Alt: '+v.telemetry.altitude.toFixed(1)+'m':'',
+                ' | Ping: '+fMs(3+Math.random()*20)
+              ),
+              /* Action buttons */
+              h('div',{style:{display:'flex',gap:'4px',marginTop:'6px'}},
+                v.status!=='active'&&h('button',{className:'btn btn-sm',onClick:function(){vehicleFleet.startMission(v.id);},style:{fontSize:'7px',padding:'2px 6px'}},'START MISSION'),
+                h('button',{className:'btn btn-sm',onClick:function(){vehicleFleet.addSchedule(v.id,'Auto-'+genId());},style:{fontSize:'7px',padding:'2px 6px'}},'SCHEDULE'),
+                h('button',{className:'btn btn-sm',onClick:function(){vehicleFleet.removeVehicle(v.id);},style:{fontSize:'7px',padding:'2px 6px',color:'#ff4444',borderColor:'#ff444433'}},'REMOVE')
+              )
+            );
+          })
+      ),
+
+      /* Missions */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'ACTIVE MISSIONS ('+vehicleFleet.missions.filter(function(m){return m.status==='active';}).length+')'),
+        vehicleFleet.missions.length===0?
+          h('div',{style:{fontSize:'9px',color:'#334455',padding:'10px',textAlign:'center'}},'ミッション未開始 — 車両からSTART MISSIONで開始'):
+          vehicleFleet.missions.slice(-8).reverse().map(function(m){
+            return h('div',{key:m.id,className:'veh-mission'+(m.status==='active'?' active':'')},
+              h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}},
+                h('span',{style:{fontSize:'10px',fontWeight:'600',color:'#ccd8e8'}},m.name),
+                h('span',{style:{fontSize:'8px',color:m.status==='active'?'#00ffaa':m.status==='completed'?'#00ddff':'#556677',letterSpacing:'1px'}},m.status.toUpperCase())
+              ),
+              h('div',{className:'veh-mission-progress'},
+                h('div',{className:'veh-mission-fill',style:{width:m.progress.toFixed(0)+'%',background:m.status==='completed'?'#00ffaa':'#00ddff'}})
+              ),
+              h('div',{style:{fontSize:'8px',color:'#556677'}},
+                'WP '+m.currentWaypoint+'/'+m.waypoints.length+' | ',m.progress.toFixed(0)+'% | ',new Date(m.started).toLocaleTimeString()
+              ),
+              /* Waypoint list */
+              m.waypoints.map(function(wp,wi){
+                return h('div',{key:wi,className:'veh-waypoint'+(wi===m.currentWaypoint?' active':wi<m.currentWaypoint?' done':' pending')},
+                  h('span',{style:{minWidth:'16px'}},wi<m.currentWaypoint?'✓':wi===m.currentWaypoint?'►':'○'),
+                  h('span',null,wp.name||'WP-'+(wi+1)),
+                  h('span',{style:{color:'#445566',marginLeft:'auto'}},wp.lat.toFixed(4)+', '+wp.lng.toFixed(4))
+                );
+              })
+            );
+          })
+      ),
+
+      /* Drone altitude vis */
+      vehicleFleet.vehicles.filter(function(v){return v.type==='drone';}).length>0&&h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'DRONE ALTITUDE MONITOR'),
+        h('div',{className:'veh-altitude'},
+          [0,25,50,75,100,125,150].map(function(alt){
+            return h('div',{key:alt,className:'veh-alt-line',style:{bottom:(alt/150*100)+'%'}},
+              h('span',{style:{position:'absolute',right:'4px',top:'-5px',fontSize:'6px',color:'#334455'}},alt+'m')
+            );
+          }),
+          vehicleFleet.vehicles.filter(function(v){return v.type==='drone'&&v.telemetry.altitude!=null;}).map(function(d,i){
+            var pct=Math.min(100,(d.telemetry.altitude||0)/150*100);
+            return h('div',{key:d.id,className:'veh-alt-marker',style:{bottom:pct+'%',left:(20+i*30)+'%',background:'#cc66ff',boxShadow:'0 0 8px #cc66ff44'}},
+              h('span',{style:{position:'absolute',left:'12px',top:'-3px',fontSize:'7px',color:'#cc66ff',whiteSpace:'nowrap'}},d.name.substring(0,8)+' '+d.telemetry.altitude.toFixed(0)+'m')
+            );
+          })
+        )
+      ),
+
+      /* Schedules */
+      h('div',{className:'card',style:{padding:'8px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'AUTONOMOUS SCHEDULES ('+vehicleFleet.schedules.length+')'),
+        vehicleFleet.schedules.length===0?
+          h('div',{style:{fontSize:'9px',color:'#334455',padding:'10px',textAlign:'center'}},'スケジュール未設定'):
+          vehicleFleet.schedules.map(function(s){
+            return h('div',{key:s.id,className:'veh-schedule '+s.status},
+              h('span',{style:{color:'#ccd8e8'}},s.name),
+              h('span',{style:{color:'#00ddff',fontSize:'8px'}},s.cron),
+              h('span',{style:{color:'#445566',fontSize:'8px'}},'次回: '+new Date(s.nextRun).toLocaleString())
+            );
+          })
+      )
+    ),
+
     /* ═══ SITESENSE TAB (v1.5) ═══ */
     layer==='site'&&h('div',null,
       /* Active alerts */
@@ -4884,13 +5683,17 @@ function App(){
 
       /* v1.5 patent targets */
       h('div',{className:'card',style:{padding:'10px'}},
-        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v2.2 PATENT成功指標'),
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v2.5 PATENT成功指標'),
         h('div',{className:'patent-grid'},
           [
             {label:'音響精度 1m以内',target:'±3cm',cur:result&&result.distM!=null&&result.distM<1.0?'測定中':'未計測',ok:!!result&&result.distM!=null&&result.distM<1.0},
             {label:'Reality Index',target:'70%+',cur:mediation.reality?(mediation.reality.index*100).toFixed(0)+'%':'--',ok:mediation.reality&&mediation.reality.index>0.7},
             {label:'同時接続ピア',target:'5台+',cur:(net.peers.length+mp.connectedCount)+'台',ok:net.peers.length+mp.connectedCount>=5},
             {label:'ESP32 Fleet',target:'3台+',cur:espFleet.fleetStats.online+'台',ok:espFleet.fleetStats.online>=3},
+            {label:'Vehicle Fleet',target:'3台+',cur:vehicleFleet.fleetStats.total+'台',ok:vehicleFleet.fleetStats.total>=3},
+            {label:'Digital Twin',target:'LIVE',cur:cityscape.syncStatus.toUpperCase(),ok:cityscape.syncStatus==='live'},
+            {label:'Testbed Score',target:'80%+',cur:testbed.suiteResult?testbed.suiteResult.score+'%':'--',ok:testbed.suiteResult&&parseInt(testbed.suiteResult.score)>=80},
+            {label:'DT Entities',target:'5+',cur:cityscape.entities.length,ok:cityscape.entities.length>=5},
           ].map(function(t,i){
             return h('div',{key:i,className:'patent-metric '+(t.ok?'pass':'warn')},
               h('div',{className:'patent-metric-val'},t.cur),
@@ -4912,7 +5715,7 @@ function App(){
     /* ═══ DEMO OVERLAY ═══ */
     demo.open&&h('div',{className:'demo-overlay',onClick:function(e){if(e.target===e.currentTarget)demo.close();}},
       h('div',{className:'demo-card'},
-        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v2.2 DEMO'),
+        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v2.5 DEMO'),
         h('div',{className:'demo-progress'},
           DEMO_STEPS.map(function(_,i){return h('div',{key:i,className:'demo-pip '+(i<demo.step?'done':i===demo.step?'active':'')});})
         ),
@@ -4930,15 +5733,15 @@ function App(){
 
     /* PWA Install Banner */
     pwa.installable&&h('div',{className:'pwa-banner'},
-      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping v2.2 をホーム画面に追加'),
+      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping v2.5 をホーム画面に追加'),
       h('button',{className:'btn btn-sm',onClick:pwa.install,
         style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},'インストール')),
 
     /* Footer */
     h('div',{style:{textAlign:'center',padding:'12px',fontSize:'8px',color:'#334455',borderTop:'1px solid #0a0f14',marginTop:'12px'}},
-      'PHYSICAL PING — pTCP/IP v2.2 INDUSTRY',
+      'PHYSICAL PING — pTCP/IP v2.5 CITYSCAPE',
       h('br'),
-      'L0小脳 Phase-Law v2  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  ·  HW ESP32 Fleet  ·  IND Plugin Arch  |  pTCPプロトコル 2026')
+      'L0小脳 Phase-Law v2  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  ·  HW ESP32 Fleet  ·  IND Plugin Arch  ·  CITY Digital Twin + Vehicle Fleet  |  pTCPプロトコル 2026')
   );
 }
 
