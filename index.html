@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v3.0 PLATFORM</title>
+<title>Physical Ping — pTCP v3.1 FEDERATION</title>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGh5c2ljYWwgUGluZyIsInNob3J0X25hbWUiOiJwVENQIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBmMTQiLCJ0aGVtZV9jb2xvciI6IiMwMGZmYWEiLCJpY29ucyI6W119">
 <meta name="theme-color" content="#00ffaa">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -512,6 +512,56 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .adaptive-th-bar{flex:1;height:8px;background:#0a0f14;border-radius:4px;overflow:hidden;position:relative}
 .adaptive-th-fill{height:100%;border-radius:4px;transition:width .5s}
 .adaptive-th-marker{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffffff88;border-radius:1px;transition:left .5s}
+/* ═══ v3.1 FEDERATION STYLES ═══ */
+.fed-mesh-wrap{border:1px solid #1a2530;border-radius:2px;overflow:hidden;background:#000;margin-bottom:14px;position:relative}
+.fed-mesh-wrap canvas{display:block;width:100%}
+.fed-instance{padding:12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:6px;position:relative;overflow:hidden;transition:all .3s}
+.fed-instance::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.fed-instance.self::before{background:#00ffaa}
+.fed-instance.connected::before{background:#00ddff}
+.fed-instance.syncing::before{background:#ffcc00;animation:pulse 1.2s infinite}
+.fed-instance.stale::before{background:#ff8800}
+.fed-instance.offline::before{background:#ff4444}
+.fed-instance.self{border-color:#00ffaa22;background:rgba(0,255,170,.03)}
+.fed-instance-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.fed-instance-id{font-size:10px;font-weight:700;color:#ccd8e8;letter-spacing:1px}
+.fed-instance-role{font-size:7px;letter-spacing:2px;padding:2px 6px;border-radius:1px;font-weight:600}
+.fed-instance-role.origin{background:rgba(0,255,170,.1);border:1px solid #00ffaa33;color:#00ffaa}
+.fed-instance-role.replica{background:rgba(0,221,255,.1);border:1px solid #00ddff33;color:#00ddff}
+.fed-instance-role.relay{background:rgba(204,102,255,.1);border:1px solid #cc66ff33;color:#cc66ff}
+.fed-instance-role.observer{background:rgba(255,204,0,.08);border:1px solid #ffcc0033;color:#ffcc00}
+.fed-instance-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:4px;margin-top:6px}
+.fed-instance-stat{text-align:center;padding:4px;background:#0a0f14;border-radius:1px}
+.fed-instance-stat-v{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.fed-instance-stat-l{font-size:7px;letter-spacing:1px;color:#445566;margin-top:1px}
+.crdt-register{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:10px;animation:fadeIn .25s ease}
+.crdt-register.conflict{border-color:#ffcc0033;background:rgba(255,204,0,.02);animation:pulse 2s infinite}
+.crdt-register.merged{border-color:#00ffaa22;background:rgba(0,255,170,.02)}
+.crdt-type-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1.5px;font-weight:600;border-radius:2px}
+.crdt-type-badge.gcounter{background:rgba(0,255,170,.1);border:1px solid #00ffaa33;color:#00ffaa}
+.crdt-type-badge.lww{background:rgba(0,221,255,.1);border:1px solid #00ddff33;color:#00ddff}
+.crdt-type-badge.orset{background:rgba(204,102,255,.1);border:1px solid #cc66ff33;color:#cc66ff}
+.crdt-type-badge.pncounter{background:rgba(255,136,0,.1);border:1px solid #ff880033;color:#ff8800}
+.crdt-type-badge.mvregister{background:rgba(255,204,0,.08);border:1px solid #ffcc0033;color:#ffcc00}
+.fed-sync-bar{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:9px}
+.fed-sync-track{flex:1;height:6px;background:#0a0f14;border-radius:3px;overflow:hidden;position:relative}
+.fed-sync-fill{height:100%;border-radius:3px;transition:width .5s}
+.fed-vector-clock{display:flex;gap:3px;align-items:center;flex-wrap:wrap;font-size:8px}
+.fed-vc-entry{padding:2px 6px;border:1px solid #1a2530;border-radius:2px;background:#0a0f14;font-variant-numeric:tabular-nums}
+.fed-vc-entry.self{border-color:#00ffaa33;color:#00ffaa}
+.fed-merge-log{max-height:180px;overflow:auto}
+.fed-merge-entry{padding:4px 8px;border-bottom:1px solid #0a0f14;font-size:9px;display:flex;gap:8px;align-items:center;animation:fadeIn .15s ease}
+.fed-merge-entry.merge{color:#00ffaa88}
+.fed-merge-entry.conflict{color:#ffcc00}
+.fed-merge-entry.reject{color:#ff444488}
+.fed-merge-entry.sync{color:#00ddff88}
+.fed-topo-edge{stroke-width:1.5;stroke-dasharray:4 3;animation:dashFlow 1s linear infinite}
+@keyframes dashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:7}}
+.fed-gossip{display:flex;gap:2px;align-items:center;font-size:8px}
+.fed-gossip-dot{width:4px;height:4px;border-radius:50%;animation:pulse 1.5s infinite}
+.fed-partition{padding:8px;border:1px solid #ff444433;border-radius:2px;background:rgba(255,68,68,.03);margin-bottom:6px;font-size:9px}
+.fed-partition.healed{border-color:#00ffaa33;background:rgba(0,255,170,.03)}
+.fed-causal-dot{width:8px;height:8px;border-radius:50%;border:2px solid;display:inline-block;vertical-align:middle;margin:0 2px}
 /* ═══ v2.1 HARDWARE STYLES ═══ */
 .hw-node{padding:12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:6px;position:relative;overflow:hidden;transition:all .3s}
 .hw-node::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
@@ -4430,9 +4480,515 @@ function usePhaseAutoDiscovery(mediation,phaseLaws,timeSeries){
   return{discovered:discovered,scanning:scanning,scanProgress:scanProgress,corrMatrix:corrMatrix,anomalyPatterns:anomalyPatterns,scanLog:scanLog,stats:stats,bufferCount:dataBufferRef.current.length,accumulate:accumulate,runDiscovery:runDiscovery,confirm:confirm,reject:reject,evaluateDiscovered:evaluateDiscovered,computeCorrelationMatrix:computeCorrelationMatrix,exportDiscoveries:exportDiscoveries};
 }
 
+/* ═══════════════════════════════════════════════════════════ */
+/*  v3.1 FEDERATION — CRDT ENGINE                             */
+/*  Conflict-Free Replicated Data Types for mesh state sync   */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* Vector Clock */
+function VectorClock(nodeId,initial){
+  this.clock=initial?Object.assign({},initial):{};
+  this.nodeId=nodeId;
+  if(!this.clock[nodeId])this.clock[nodeId]=0;
+}
+VectorClock.prototype.increment=function(){this.clock[this.nodeId]=(this.clock[this.nodeId]||0)+1;return this;};
+VectorClock.prototype.merge=function(other){
+  var keys=Object.keys(Object.assign({},this.clock,other));
+  var merged={};for(var i=0;i<keys.length;i++){var k=keys[i];merged[k]=Math.max(this.clock[k]||0,other[k]||0);}
+  this.clock=merged;return this;
+};
+VectorClock.prototype.compare=function(other){
+  var keys=Object.keys(Object.assign({},this.clock,other));
+  var lt=false,gt=false;
+  for(var i=0;i<keys.length;i++){var k=keys[i];var a=this.clock[k]||0,b=other[k]||0;if(a<b)lt=true;if(a>b)gt=true;}
+  if(lt&&gt)return 0;/* concurrent */
+  if(lt)return-1;if(gt)return 1;return 0;/* equal or same */
+};
+VectorClock.prototype.toJSON=function(){return Object.assign({},this.clock);};
+
+/* G-Counter (grow-only counter) */
+function GCounter(nodeId){this.counts={};this.nodeId=nodeId;this.counts[nodeId]=0;}
+GCounter.prototype.increment=function(n){this.counts[this.nodeId]=(this.counts[this.nodeId]||0)+(n||1);return this;};
+GCounter.prototype.value=function(){var s=0;for(var k in this.counts)s+=this.counts[k];return s;};
+GCounter.prototype.merge=function(other){
+  var keys=Object.keys(Object.assign({},this.counts,other));
+  for(var i=0;i<keys.length;i++){var k=keys[i];this.counts[k]=Math.max(this.counts[k]||0,other[k]||0);}
+  return this;
+};
+GCounter.prototype.toJSON=function(){return Object.assign({},this.counts);};
+
+/* PN-Counter (positive-negative counter) */
+function PNCounter(nodeId){this.p=new GCounter(nodeId);this.n=new GCounter(nodeId);}
+PNCounter.prototype.increment=function(v){if(v>=0)this.p.increment(v);else this.n.increment(-v);return this;};
+PNCounter.prototype.value=function(){return this.p.value()-this.n.value();};
+PNCounter.prototype.merge=function(other){this.p.merge(other.p||{});this.n.merge(other.n||{});return this;};
+PNCounter.prototype.toJSON=function(){return{p:this.p.toJSON(),n:this.n.toJSON()};};
+
+/* LWW-Register (Last-Writer-Wins Register) */
+function LWWRegister(nodeId,val){this.nodeId=nodeId;this.val=val||null;this.ts=Date.now();this.writer=nodeId;}
+LWWRegister.prototype.set=function(val){this.val=val;this.ts=Date.now();this.writer=this.nodeId;return this;};
+LWWRegister.prototype.merge=function(other){
+  if(other.ts>this.ts||(other.ts===this.ts&&other.writer>this.writer)){
+    this.val=other.val;this.ts=other.ts;this.writer=other.writer;
+  }
+  return this;
+};
+LWWRegister.prototype.toJSON=function(){return{val:this.val,ts:this.ts,writer:this.writer};};
+
+/* OR-Set (Observed-Remove Set) */
+function ORSet(nodeId){this.nodeId=nodeId;this.elements={};/* key => {tags: {uniqueTag: nodeId}} */this.tombstones={};}
+ORSet.prototype.add=function(elem){
+  var tag=this.nodeId+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  if(!this.elements[elem])this.elements[elem]={};
+  this.elements[elem][tag]=this.nodeId;
+  return this;
+};
+ORSet.prototype.remove=function(elem){
+  if(this.elements[elem]){
+    if(!this.tombstones[elem])this.tombstones[elem]={};
+    Object.assign(this.tombstones[elem],this.elements[elem]);
+    delete this.elements[elem];
+  }
+  return this;
+};
+ORSet.prototype.has=function(elem){return!!this.elements[elem]&&Object.keys(this.elements[elem]).length>0;};
+ORSet.prototype.values=function(){return Object.keys(this.elements).filter(function(k){return Object.keys(this.elements[k]).length>0;}.bind(this));};
+ORSet.prototype.merge=function(other){
+  var allKeys=Object.keys(Object.assign({},this.elements,other.elements||{}));
+  for(var i=0;i<allKeys.length;i++){
+    var k=allKeys[i];
+    var myTags=this.elements[k]||{};var otherTags=(other.elements||{})[k]||{};
+    var myTombs=this.tombstones[k]||{};var otherTombs=(other.tombstones||{})[k]||{};
+    var allTombs=Object.assign({},myTombs,otherTombs);
+    var merged={};
+    var tagKeys=Object.keys(Object.assign({},myTags,otherTags));
+    for(var j=0;j<tagKeys.length;j++){if(!allTombs[tagKeys[j]])merged[tagKeys[j]]=myTags[tagKeys[j]]||otherTags[tagKeys[j]];}
+    if(Object.keys(merged).length>0)this.elements[k]=merged;else delete this.elements[k];
+    if(Object.keys(allTombs).length>0)this.tombstones[k]=allTombs;
+  }
+  return this;
+};
+ORSet.prototype.toJSON=function(){return{elements:this.elements,tombstones:this.tombstones};};
+
+/* MV-Register (Multi-Value Register for conflict visibility) */
+function MVRegister(nodeId){this.nodeId=nodeId;this.values=[];/* {val, vc} */}
+MVRegister.prototype.set=function(val,vc){
+  this.values=[{val:val,vc:vc.toJSON?vc.toJSON():vc}];return this;
+};
+MVRegister.prototype.merge=function(other){
+  var all=this.values.concat(other.values||[]);
+  /* Remove dominated entries */
+  var kept=[];
+  for(var i=0;i<all.length;i++){
+    var dominated=false;
+    for(var j=0;j<all.length;j++){
+      if(i===j)continue;
+      var cmp=new VectorClock(this.nodeId,all[j].vc).compare(all[i].vc);
+      if(cmp===1){dominated=true;break;}
+    }
+    if(!dominated)kept.push(all[i]);
+  }
+  this.values=kept;return this;
+};
+MVRegister.prototype.toJSON=function(){return{values:this.values};};
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v3.1 FEDERATION — CRDT STATE MANAGER                      */
+/*  Manages a collection of CRDTs representing shared state   */
+/* ═══════════════════════════════════════════════════════════ */
+var CRDT_TYPES={GCOUNTER:'gcounter',PNCOUNTER:'pncounter',LWW:'lww',ORSET:'orset',MVREGISTER:'mvregister'};
+
+function useCRDTState(nodeId){
+  var _registers=useState({}),registers=_registers[0],setRegisters=_registers[1];
+  var _mergeLog=useState([]),mergeLog=_mergeLog[0],setMergeLog=_mergeLog[1];
+  var _conflictCount=useState(0),conflictCount=_conflictCount[0],setConflictCount=_conflictCount[1];
+  var _stats=useState({merges:0,conflicts:0,synced:0,keys:0,lastSync:null}),stats=_stats[0],setStats=_stats[1];
+  var vcRef=useRef(new VectorClock(nodeId));
+
+  /* Create or get a CRDT register */
+  var getOrCreate=useCallback(function(key,type,initialVal){
+    return registers[key]||{key:key,type:type,crdt:createCRDT(type,nodeId,initialVal),lastMerge:null,conflicts:0};
+  },[registers,nodeId]);
+
+  var set=useCallback(function(key,type,val){
+    vcRef.current.increment();
+    var reg=getOrCreate(key,type,val);
+    if(type===CRDT_TYPES.LWW){if(!reg.crdt)reg.crdt=new LWWRegister(nodeId,val);else reg.crdt.set(val);}
+    else if(type===CRDT_TYPES.GCOUNTER){if(!reg.crdt)reg.crdt=new GCounter(nodeId);reg.crdt.increment(val||1);}
+    else if(type===CRDT_TYPES.ORSET){if(!reg.crdt)reg.crdt=new ORSet(nodeId);reg.crdt.add(val);}
+    else if(type===CRDT_TYPES.MVREGISTER){if(!reg.crdt)reg.crdt=new MVRegister(nodeId);reg.crdt.set(val,vcRef.current);}
+    else if(type===CRDT_TYPES.PNCOUNTER){if(!reg.crdt)reg.crdt=new PNCounter(nodeId);reg.crdt.increment(val||1);}
+    reg.lastMerge=Date.now();
+    setRegisters(function(prev){var n=Object.assign({},prev);n[key]=reg;return n;});
+    return reg;
+  },[nodeId,getOrCreate]);
+
+  var mergeRemote=useCallback(function(key,type,remoteData,fromNode){
+    vcRef.current.increment();
+    var reg=getOrCreate(key,type);
+    var hadConflict=false;
+    if(!reg.crdt)reg.crdt=createCRDT(type,nodeId);
+    /* Detect concurrent writes (conflict) for LWW / MV */
+    if(type===CRDT_TYPES.LWW&&reg.crdt.ts&&remoteData.ts&&Math.abs(reg.crdt.ts-remoteData.ts)<100){
+      hadConflict=true;
+    }
+    if(type===CRDT_TYPES.MVREGISTER&&remoteData.values&&remoteData.values.length>1){
+      hadConflict=true;
+    }
+    reg.crdt.merge(remoteData);
+    reg.lastMerge=Date.now();
+    if(hadConflict){reg.conflicts=(reg.conflicts||0)+1;setConflictCount(function(c){return c+1;});}
+    setRegisters(function(prev){var n=Object.assign({},prev);n[key]=reg;return n;});
+    setMergeLog(function(prev){return[{ts:Date.now(),key:key,type:type,from:fromNode,conflict:hadConflict,level:hadConflict?'conflict':'merge'}].concat(prev).slice(0,100);});
+    setStats(function(prev){return Object.assign({},prev,{merges:prev.merges+1,conflicts:prev.conflicts+(hadConflict?1:0),synced:prev.synced+1,keys:Object.keys(registers).length,lastSync:Date.now()});});
+    return{reg:reg,conflict:hadConflict};
+  },[nodeId,registers,getOrCreate]);
+
+  var getSnapshot=useCallback(function(){
+    var snap={};for(var k in registers){
+      var r=registers[k];
+      snap[k]={type:r.type,data:r.crdt&&r.crdt.toJSON?r.crdt.toJSON():null,lastMerge:r.lastMerge};
+    }
+    return{vc:vcRef.current.toJSON(),registers:snap,nodeId:nodeId,ts:Date.now()};
+  },[registers,nodeId]);
+
+  var mergeSnapshot=useCallback(function(snap){
+    if(!snap||!snap.registers)return;
+    vcRef.current.merge(snap.vc||{});
+    for(var k in snap.registers){
+      var r=snap.registers[k];
+      mergeRemote(k,r.type,r.data,snap.nodeId);
+    }
+    setMergeLog(function(prev){return[{ts:Date.now(),key:'*snapshot*',type:'sync',from:snap.nodeId,conflict:false,level:'sync'}].concat(prev).slice(0,100);});
+  },[mergeRemote]);
+
+  return{registers:registers,mergeLog:mergeLog,conflictCount:conflictCount,stats:stats,vc:vcRef.current,
+    set:set,mergeRemote:mergeRemote,getSnapshot:getSnapshot,mergeSnapshot:mergeSnapshot};
+}
+
+function createCRDT(type,nodeId,val){
+  if(type===CRDT_TYPES.GCOUNTER)return new GCounter(nodeId);
+  if(type===CRDT_TYPES.PNCOUNTER)return new PNCounter(nodeId);
+  if(type===CRDT_TYPES.LWW)return new LWWRegister(nodeId,val);
+  if(type===CRDT_TYPES.ORSET)return new ORSet(nodeId);
+  if(type===CRDT_TYPES.MVREGISTER)return new MVRegister(nodeId);
+  return null;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v3.1 FEDERATION — MESH TOPOLOGY                           */
+/*  Multi-instance discovery, gossip protocol, partition       */
+/*  detection, and causal ordering                             */
+/* ═══════════════════════════════════════════════════════════ */
+var FED_CHANNEL='ptcp_v31_federation';
+var FED_PKT={DISCOVER:'FED_DISCOVER',ANNOUNCE:'FED_ANNOUNCE',STATE_SYNC:'FED_STATE_SYNC',STATE_ACK:'FED_STATE_ACK',GOSSIP:'FED_GOSSIP',HEARTBEAT:'FED_HB',PARTITION_PROBE:'FED_PROBE',PARTITION_HEAL:'FED_HEAL',LEAVE:'FED_LEAVE'};
+var FED_ROLES=['origin','replica','relay','observer'];
+
+function useFederation(nodeId,mediationRef,phaseLawsRef){
+  var _instances=useState([]),instances=_instances[0],setInstances=_instances[1];
+  var _connected=useState(false),connected=_connected[0],setConnected=_connected[1];
+  var _topology=useState({edges:[],partitions:[],gossipRound:0}),topology=_topology[0],setTopology=_topology[1];
+  var _syncStatus=useState('idle'),syncStatus=_syncStatus[0],setSyncStatus=_syncStatus[1];
+  var _role=useState('origin'),role=_role[0],setRole=_role[1];
+  var _partitions=useState([]),partitions=_partitions[0],setPartitions=_partitions[1];
+  var _eventLog=useState([]),eventLog=_eventLog[0],setEventLog=_eventLog[1];
+  var _gossipStats=useState({rounds:0,messages:0,fanout:3,interval:2000}),gossipStats=_gossipStats[0],setGossipStats=_gossipStats[1];
+  var _antiEntropy=useState({running:false,progress:0,repairs:0}),antiEntropy=_antiEntropy[0],setAntiEntropy=_antiEntropy[1];
+
+  var channelRef=useRef(null);
+  var instancesRef=useRef({});
+  var hbRef=useRef(null);
+  var gossipRef=useRef(null);
+  var startTimeRef=useRef(null);
+  var crdtState=useCRDTState(nodeId);
+
+  var logEvent=useCallback(function(level,msg,data){
+    setEventLog(function(prev){return[{ts:Date.now(),level:level,msg:msg,data:data}].concat(prev).slice(0,200);});
+  },[]);
+
+  var sendFed=useCallback(function(type,payload,target){
+    if(!channelRef.current)return;
+    var pkt={type:type,src:nodeId,target:target||'*',payload:payload||{},ts:Date.now(),seq:Math.random().toString(36).slice(2,8)};
+    try{channelRef.current.postMessage(pkt);}catch(e){}
+  },[nodeId]);
+
+  /* Connect to federation mesh */
+  var join=useCallback(function(){
+    if(connected)return;
+    try{
+      var ch=new BroadcastChannel(FED_CHANNEL);
+      channelRef.current=ch;
+      ch.onmessage=function(ev){
+        var pkt=ev.data;if(!pkt||!pkt.src||pkt.src===nodeId)return;
+        if(pkt.target!=='*'&&pkt.target!==nodeId)return;
+
+        /* DISCOVER — new instance asking who's here */
+        if(pkt.type===FED_PKT.DISCOVER){
+          sendFed(FED_PKT.ANNOUNCE,{name:pkt.payload.name,role:role,composite:mediationRef.current?mediationRef.current.composite:0});
+          instancesRef.current[pkt.src]={id:pkt.src,name:pkt.payload.name||pkt.src.slice(0,8),role:'replica',lastSeen:Date.now(),composite:0,syncPct:0,latency:0,vc:{},stateVersion:0,partitioned:false};
+          logEvent('sync','Instance joined: '+pkt.src.slice(0,8)+'…');
+        }
+        /* ANNOUNCE — response to discover */
+        if(pkt.type===FED_PKT.ANNOUNCE){
+          instancesRef.current[pkt.src]={id:pkt.src,name:pkt.payload.name||pkt.src.slice(0,8),role:pkt.payload.role||'replica',lastSeen:Date.now(),composite:pkt.payload.composite||0,syncPct:0,latency:Date.now()-pkt.ts,vc:{},stateVersion:0,partitioned:false};
+          logEvent('sync','Discovered: '+pkt.src.slice(0,8)+'…');
+          /* Send full state to new node */
+          sendFed(FED_PKT.STATE_SYNC,crdtState.getSnapshot(),pkt.src);
+        }
+        /* STATE_SYNC — full CRDT state from remote */
+        if(pkt.type===FED_PKT.STATE_SYNC){
+          setSyncStatus('syncing');
+          crdtState.mergeSnapshot(pkt.payload);
+          if(instancesRef.current[pkt.src])instancesRef.current[pkt.src].lastSeen=Date.now();
+          logEvent('merge','State merged from '+pkt.src.slice(0,8)+'… ('+Object.keys(pkt.payload.registers||{}).length+' keys)');
+          setSyncStatus('synced');
+          sendFed(FED_PKT.STATE_ACK,{keys:Object.keys(pkt.payload.registers||{}).length},pkt.src);
+        }
+        /* STATE_ACK */
+        if(pkt.type===FED_PKT.STATE_ACK){
+          if(instancesRef.current[pkt.src]){instancesRef.current[pkt.src].syncPct=100;instancesRef.current[pkt.src].lastSeen=Date.now();}
+          logEvent('sync','ACK from '+pkt.src.slice(0,8)+'… ('+pkt.payload.keys+' keys)');
+        }
+        /* GOSSIP — periodic state fragment */
+        if(pkt.type===FED_PKT.GOSSIP){
+          crdtState.mergeSnapshot(pkt.payload);
+          if(instancesRef.current[pkt.src]){
+            instancesRef.current[pkt.src].lastSeen=Date.now();
+            instancesRef.current[pkt.src].composite=pkt.payload.composite||instancesRef.current[pkt.src].composite;
+          }
+          setGossipStats(function(prev){return Object.assign({},prev,{messages:prev.messages+1});});
+        }
+        /* HEARTBEAT */
+        if(pkt.type===FED_PKT.HEARTBEAT){
+          if(instancesRef.current[pkt.src]){
+            instancesRef.current[pkt.src].lastSeen=Date.now();
+            instancesRef.current[pkt.src].composite=pkt.payload.composite||0;
+            instancesRef.current[pkt.src].latency=Date.now()-pkt.ts;
+          }
+        }
+        /* PARTITION_HEAL */
+        if(pkt.type===FED_PKT.PARTITION_HEAL){
+          if(instancesRef.current[pkt.src])instancesRef.current[pkt.src].partitioned=false;
+          setPartitions(function(prev){return prev.filter(function(p){return p.nodeId!==pkt.src;});});
+          logEvent('merge','Partition healed: '+pkt.src.slice(0,8)+'…');
+        }
+        /* LEAVE */
+        if(pkt.type===FED_PKT.LEAVE){
+          delete instancesRef.current[pkt.src];
+          logEvent('sync','Instance left: '+pkt.src.slice(0,8)+'…');
+        }
+
+        /* Update instances state */
+        setInstances(Object.values(instancesRef.current).filter(function(p){return Date.now()-p.lastSeen<60000;}));
+        /* Rebuild topology edges */
+        var edges=[];
+        var insts=Object.values(instancesRef.current);
+        for(var i=0;i<insts.length;i++){
+          edges.push({from:nodeId,to:insts[i].id,latency:insts[i].latency||0,active:Date.now()-insts[i].lastSeen<10000});
+        }
+        setTopology(function(prev){return Object.assign({},prev,{edges:edges});});
+      };
+
+      setConnected(true);
+      startTimeRef.current=Date.now();
+      /* Announce ourselves */
+      sendFed(FED_PKT.DISCOVER,{name:DEVICE_NAME,role:role});
+      logEvent('sync','Joined federation mesh');
+
+      /* Heartbeat interval */
+      hbRef.current=setInterval(function(){
+        sendFed(FED_PKT.HEARTBEAT,{composite:mediationRef.current?mediationRef.current.composite:0});
+        /* Check for stale instances → detect partitions */
+        var now=Date.now();var staleThresh=15000;
+        var insts=Object.values(instancesRef.current);
+        var newPartitions=[];
+        for(var i=0;i<insts.length;i++){
+          if(now-insts[i].lastSeen>staleThresh&&!insts[i].partitioned){
+            insts[i].partitioned=true;
+            newPartitions.push({nodeId:insts[i].id,detectedAt:now,healed:false});
+            logEvent('conflict','Partition suspected: '+insts[i].id.slice(0,8)+'… (no HB for '+(((now-insts[i].lastSeen)/1000)|0)+'s)');
+          }
+          if(now-insts[i].lastSeen>60000)delete instancesRef.current[insts[i].id];
+        }
+        if(newPartitions.length)setPartitions(function(prev){return prev.concat(newPartitions);});
+        setInstances(Object.values(instancesRef.current));
+      },5000);
+
+      /* Gossip interval — push state fragments */
+      gossipRef.current=setInterval(function(){
+        var snap=crdtState.getSnapshot();
+        snap.composite=mediationRef.current?mediationRef.current.composite:0;
+        sendFed(FED_PKT.GOSSIP,snap);
+        setGossipStats(function(prev){return Object.assign({},prev,{rounds:prev.rounds+1});});
+      },gossipStats.interval);
+
+      /* Simulate remote instances */
+      var simRoles=['replica','relay','observer','replica'];
+      var simNames=['Tokyo-Lab-α','Berlin-Edge-β','NYC-Relay-γ','Sydney-Obs-δ'];
+      for(var i=0;i<3+Math.floor(Math.random()*2);i++){
+        var sid='FED-'+genId()+'-'+genId();
+        instancesRef.current[sid]={id:sid,name:simNames[i%simNames.length],role:simRoles[i%simRoles.length],lastSeen:Date.now(),composite:.15+Math.random()*.7,syncPct:80+Math.floor(Math.random()*20),latency:5+Math.floor(Math.random()*120),vc:{},stateVersion:Math.floor(Math.random()*50)+1,partitioned:false};
+      }
+      setInstances(Object.values(instancesRef.current));
+      /* Simulate initial CRDT shared state */
+      crdtState.set('federation:pingCount',CRDT_TYPES.GCOUNTER,Math.floor(Math.random()*200)+50);
+      crdtState.set('federation:composite',CRDT_TYPES.LWW,mediationRef.current?mediationRef.current.composite:0.5);
+      crdtState.set('federation:activeNodes',CRDT_TYPES.ORSET,nodeId);
+      crdtState.set('federation:modeVote',CRDT_TYPES.MVREGISTER,'NOMINAL');
+      crdtState.set('federation:phaseLawViolations',CRDT_TYPES.PNCOUNTER,0);
+      /* Simulate live data ticking */
+      var simTick=setInterval(function(){
+        var insts=Object.values(instancesRef.current);
+        for(var i=0;i<insts.length;i++){
+          if(!insts[i].partitioned){
+            insts[i].lastSeen=Date.now()-Math.floor(Math.random()*3000);
+            insts[i].composite=Math.max(0,Math.min(1,insts[i].composite+(Math.random()-.5)*.06));
+            insts[i].latency=Math.max(1,insts[i].latency+Math.floor((Math.random()-.5)*20));
+            insts[i].syncPct=Math.min(100,Math.max(60,insts[i].syncPct+Math.floor((Math.random()-.5)*5)));
+          }
+        }
+        setInstances(Object.values(instancesRef.current));
+        /* Update shared CRDT counters */
+        crdtState.set('federation:pingCount',CRDT_TYPES.GCOUNTER,Math.floor(Math.random()*3));
+        crdtState.set('federation:composite',CRDT_TYPES.LWW,mediationRef.current?mediationRef.current.composite:0.5);
+      },4000);
+      return function(){clearInterval(simTick);};
+    }catch(e){logEvent('reject','Federation join failed: '+e.message);}
+  },[connected,nodeId,role,sendFed,crdtState,logEvent,gossipStats.interval]);
+
+  var leave=useCallback(function(){
+    sendFed(FED_PKT.LEAVE,{});
+    if(hbRef.current)clearInterval(hbRef.current);
+    if(gossipRef.current)clearInterval(gossipRef.current);
+    if(channelRef.current){try{channelRef.current.close();}catch(e){}}
+    channelRef.current=null;
+    instancesRef.current={};
+    setInstances([]);setConnected(false);setSyncStatus('idle');
+    logEvent('sync','Left federation mesh');
+  },[sendFed,logEvent]);
+
+  /* Anti-entropy repair sweep */
+  var runAntiEntropy=useCallback(function(){
+    setAntiEntropy({running:true,progress:0,repairs:0});
+    logEvent('sync','Anti-entropy sweep started');
+    var snap=crdtState.getSnapshot();
+    var keys=Object.keys(snap.registers);
+    var repairCount=0;
+    var step=0;
+    var iv=setInterval(function(){
+      step++;
+      var pct=Math.min(100,Math.round(step/(keys.length||1)*100));
+      if(step<=keys.length){
+        /* Simulate checking divergence and repairing */
+        if(Math.random()>.7){repairCount++;logEvent('merge','Repaired key: '+keys[step-1]);}
+      }
+      setAntiEntropy({running:step<=keys.length,progress:pct,repairs:repairCount});
+      if(step>keys.length){
+        clearInterval(iv);
+        sendFed(FED_PKT.STATE_SYNC,snap);
+        logEvent('sync','Anti-entropy complete: '+repairCount+' repairs');
+      }
+    },200);
+  },[crdtState,sendFed,logEvent]);
+
+  var forceSync=useCallback(function(){
+    setSyncStatus('syncing');
+    var snap=crdtState.getSnapshot();
+    snap.composite=mediationRef.current?mediationRef.current.composite:0;
+    sendFed(FED_PKT.STATE_SYNC,snap);
+    logEvent('sync','Force sync broadcast');
+    setTimeout(function(){setSyncStatus('synced');},500);
+  },[crdtState,sendFed,logEvent]);
+
+  return{instances:instances,connected:connected,topology:topology,syncStatus:syncStatus,
+    role:role,setRole:setRole,partitions:partitions,eventLog:eventLog,
+    gossipStats:gossipStats,antiEntropy:antiEntropy,crdtState:crdtState,
+    join:join,leave:leave,runAntiEntropy:runAntiEntropy,forceSync:forceSync,
+    uptime:startTimeRef.current?Math.floor((Date.now()-startTimeRef.current)/1000):0};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v3.1 FEDERATION — MESH TOPOLOGY CANVAS                    */
+/* ═══════════════════════════════════════════════════════════ */
+function FederationMeshCanvas(props){
+  var ref=useRef(null);
+  var selfId=props.selfId;var instances=props.instances||[];var topology=props.topology||{edges:[]};
+  useEffect(function(){
+    var cv=ref.current;if(!cv)return;
+    var ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    var W=cv.offsetWidth*dpr,H=220*dpr;cv.width=W;cv.height=H;cv.style.height='220px';
+    ctx.fillStyle='#030810';ctx.fillRect(0,0,W,H);
+
+    /* Grid */
+    ctx.strokeStyle='#0a1520';ctx.lineWidth=0.5*dpr;
+    for(var gx=0;gx<W;gx+=30*dpr){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+    for(var gy=0;gy<H;gy+=30*dpr){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+
+    /* Position nodes in a circle */
+    var allNodes=[{id:selfId,name:'SELF',role:'origin',composite:props.selfComposite||0,self:true}].concat(instances);
+    var cx=W/2,cy=H/2,radius=Math.min(W,H)*0.35;
+    var positions={};
+    allNodes.forEach(function(n,i){
+      var angle=(i/allNodes.length)*Math.PI*2-Math.PI/2;
+      positions[n.id]={x:cx+Math.cos(angle)*radius,y:cy+Math.sin(angle)*radius};
+    });
+
+    /* Draw edges */
+    (topology.edges||[]).forEach(function(e){
+      var from=positions[e.from],to=positions[e.to];
+      if(!from||!to)return;
+      var active=e.active!==false;
+      ctx.strokeStyle=active?'#00ddff33':'#ff444433';
+      ctx.lineWidth=active?1.5*dpr:1*dpr;
+      ctx.setLineDash(active?[]:[4*dpr,3*dpr]);
+      ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();
+      ctx.setLineDash([]);
+      /* Latency label */
+      if(e.latency){
+        var mx=(from.x+to.x)/2,my=(from.y+to.y)/2;
+        ctx.fillStyle='#44556688';ctx.font=(7*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
+        ctx.fillText(e.latency+'ms',mx,my-4*dpr);
+      }
+    });
+
+    /* Draw nodes */
+    allNodes.forEach(function(n){
+      var p=positions[n.id];if(!p)return;
+      var isSelf=n.self||n.id===selfId;
+      var r=isSelf?14*dpr:10*dpr;
+      /* Glow */
+      if(isSelf){
+        ctx.beginPath();ctx.arc(p.x,p.y,r+6*dpr,0,Math.PI*2);
+        ctx.fillStyle='rgba(0,255,170,.08)';ctx.fill();
+      }
+      /* Node circle */
+      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      var roleColor=isSelf?'#00ffaa':n.role==='replica'?'#00ddff':n.role==='relay'?'#cc66ff':n.role==='observer'?'#ffcc00':'#8899aa';
+      ctx.fillStyle=roleColor+'33';ctx.fill();
+      ctx.strokeStyle=roleColor;ctx.lineWidth=isSelf?2.5*dpr:1.5*dpr;ctx.stroke();
+      /* Composite indicator arc */
+      var comp=n.composite||0;
+      ctx.beginPath();ctx.arc(p.x,p.y,r+3*dpr,-Math.PI/2,-Math.PI/2+Math.PI*2*comp);
+      ctx.strokeStyle=roleColor+'88';ctx.lineWidth=2*dpr;ctx.stroke();
+      /* Label */
+      ctx.fillStyle=isSelf?'#00ffaa':'#8899aa';ctx.font='bold '+(isSelf?9:7)*dpr+'px IBM Plex Mono';ctx.textAlign='center';
+      ctx.fillText(isSelf?'SELF':n.name?n.name.slice(0,10):n.id.slice(0,6),p.x,p.y+r+12*dpr);
+      /* Role badge */
+      ctx.fillStyle=roleColor+'99';ctx.font=(6*dpr)+'px IBM Plex Mono';
+      ctx.fillText((n.role||'node').toUpperCase(),p.x,p.y+r+20*dpr);
+    });
+
+    /* Center label */
+    ctx.fillStyle='#22334466';ctx.font=(8*dpr)+'px IBM Plex Mono';ctx.textAlign='center';
+    ctx.fillText('FEDERATION MESH v3.1',W/2,H-10*dpr);
+  },[selfId,instances,topology,props.selfComposite]);
+
+  return h('canvas',{ref:ref,style:{width:'100%',height:'220px',display:'block',border:'1px solid #1a2530',borderRadius:'2px',background:'#030810'}});
+}
+
 function App(){
   /* Layers / Tabs */
-  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','hardware','warehouse','factory','plugins','cityscape','testbed','vehicle','site','patent','sdk','spatialdb','autodiscovery'];
+  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','hardware','warehouse','factory','plugins','cityscape','testbed','vehicle','site','patent','sdk','spatialdb','autodiscovery','federation'];
   var _lay=useState('measure'),layer=_lay[0],setLayer=_lay[1];
 
   /* Audio state */
@@ -4529,6 +5085,13 @@ function App(){
   var sdk=useSDKInfra();
   var spatialDB=useSpatialMediationDB(mediation,phaseLaws);
   var autoDiscovery=usePhaseAutoDiscovery(mediation,phaseLaws,timeSeries);
+
+  /* v3.1 FEDERATION hooks */
+  var mediationRef=useRef(mediation);
+  var phaseLawsRef=useRef(phaseLaws);
+  useEffect(function(){mediationRef.current=mediation;},[mediation]);
+  useEffect(function(){phaseLawsRef.current=phaseLaws;},[phaseLaws]);
+  var federation=useFederation(DEVICE_ID,mediationRef,phaseLawsRef);
 
   /* Load spatial memories and adaptive thresholds on mount */
   useEffect(function(){
@@ -4685,7 +5248,7 @@ function App(){
     /* Header */
     h('div',{className:'hdr'},
       h('div',{className:'hdr-title'},'PHYSICAL PING'),
-      h('div',{className:'hdr-ver'},'pTCP/IP v3.0 PLATFORM  |  SDK Infrastructure + Spatial Mediation DB + Phase-Law v3 Auto-Discovery'),
+      h('div',{className:'hdr-ver'},'pTCP/IP v3.1 FEDERATION  |  Multi-Instance Mesh + CRDT Shared State + Phase-Law Auto-Discovery'),
       h('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
         h('div',{className:'hdr-sub'},net.deviceName),
         h('div',{style:{fontSize:'9px',color:midbrain.mode==='NOMINAL'?'#00ffaa':midbrain.mode==='ALERT'?'#ffcc00':'#ff4444',letterSpacing:'1px',fontWeight:'bold'}},midbrain.mode),
@@ -4712,7 +5275,8 @@ function App(){
       h('span',null,'VEH: ',h('span',{style:{color:vehicleFleet.fleetStats.active>0?'#ff8800':'#556677'}},vehicleFleet.fleetStats.active+'/'+vehicleFleet.fleetStats.total)),
       h('span',null,'DT: ',h('span',{style:{color:cityscape.syncStatus==='live'?'#00ffaa':'#556677'}},cityscape.syncStatus.toUpperCase())),
       h('span',null,'SDB: ',h('span',{style:{color:spatialDB.dbStats.records>0?'#cc66ff':'#556677'}},spatialDB.dbStats.records)),
-      h('span',null,'AD: ',h('span',{style:{color:autoDiscovery.stats.discovered>0?'#ffcc00':'#556677'}},autoDiscovery.stats.confirmed+'/'+autoDiscovery.stats.discovered))
+      h('span',null,'AD: ',h('span',{style:{color:autoDiscovery.stats.discovered>0?'#ffcc00':'#556677'}},autoDiscovery.stats.confirmed+'/'+autoDiscovery.stats.discovered)),
+      h('span',null,'FED: ',h('span',{style:{color:federation.connected?'#00ddff':'#556677'}},federation.instances.length+(federation.connected?' ⚡':'')))
     ),
 
     /* ═══ MEASURE TAB ═══ */
@@ -6866,6 +7430,216 @@ function App(){
       )
     ),
 
+    /* ═══ FEDERATION TAB ═══ */
+    layer==='federation'&&h('div',null,
+      /* Federation Control */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('span',null,'FEDERATION MESH v3.1'),
+          h('span',{style:{color:federation.connected?'#00ffaa':'#556677'}},federation.connected?'CONNECTED':'DISCONNECTED')),
+        h('div',{style:{display:'flex',gap:'6px',marginBottom:'10px',flexWrap:'wrap'}},
+          !federation.connected?
+            h('button',{className:'btn',onClick:federation.join,
+              style:{background:'rgba(0,221,255,.03)',border:'1px solid #1a3545',color:'#4499bb',padding:'10px 24px',fontSize:'12px',fontWeight:'bold',letterSpacing:'2px'}},'JOIN FEDERATION'):
+            h('button',{className:'btn',onClick:federation.leave,
+              style:{background:'rgba(255,60,60,.03)',border:'1px solid #3d2424',color:'#a06060',padding:'10px 16px',fontSize:'11px'}},'LEAVE'),
+          federation.connected&&h('button',{className:'btn btn-sm',onClick:federation.forceSync,
+            style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82'}},'FORCE SYNC'),
+          federation.connected&&h('button',{className:'btn btn-sm',onClick:federation.runAntiEntropy,disabled:federation.antiEntropy.running,
+            style:{background:'rgba(204,102,255,.03)',border:'1px solid #332845',color:'#8a6699'}},
+            federation.antiEntropy.running?'SWEEPING '+federation.antiEntropy.progress+'%':'ANTI-ENTROPY')
+        ),
+        /* Role selector */
+        federation.connected&&h('div',{style:{display:'flex',gap:'4px',alignItems:'center',marginBottom:'8px'}},
+          h('span',{style:{fontSize:'9px',color:'#556677',letterSpacing:'1px',marginRight:'4px'}},'ROLE:'),
+          FED_ROLES.map(function(r){
+            return h('button',{key:r,className:'btn btn-sm'+(federation.role===r?' active':''),
+              style:{fontSize:'8px',padding:'3px 8px',border:'1px solid '+(federation.role===r?'#3a4a5a':'#1a2530'),
+                color:federation.role===r?'#ccd8e8':'#556677'},
+              onClick:function(){federation.setRole(r);}},r.toUpperCase());
+          })
+        ),
+        /* Gossip stats */
+        federation.connected&&h('div',{style:{display:'flex',gap:'12px',fontSize:'9px',color:'#556677'}},
+          h('span',null,'Gossip Rounds: ',h('span',{style:{color:'#00ddff'}},federation.gossipStats.rounds)),
+          h('span',null,'Messages: ',h('span',{style:{color:'#00ffaa'}},federation.gossipStats.messages)),
+          h('span',null,'Fanout: ',h('span',{style:{color:'#cc66ff'}},federation.gossipStats.fanout)),
+          h('span',null,'Uptime: ',h('span',{style:{color:'#8899aa'}},federation.uptime+'s'))
+        )
+      ),
+
+      /* Mesh Topology Canvas */
+      federation.connected&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px'}},'MESH TOPOLOGY'),
+        h(FederationMeshCanvas,{selfId:DEVICE_ID,instances:federation.instances,topology:federation.topology,selfComposite:mediation.composite})
+      ),
+
+      /* Federation Stats Grid */
+      federation.connected&&h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(100px,1fr))',gap:'4px',marginBottom:'8px'}},
+        [{l:'INSTANCES',v:federation.instances.length+1,c:'#00ddff'},{l:'SYNC STATUS',v:federation.syncStatus.toUpperCase(),c:federation.syncStatus==='synced'?'#00ffaa':federation.syncStatus==='syncing'?'#ffcc00':'#556677'},{l:'CRDT KEYS',v:Object.keys(federation.crdtState.registers).length,c:'#cc66ff'},{l:'MERGES',v:federation.crdtState.stats.merges,c:'#00ffaa'},{l:'CONFLICTS',v:federation.crdtState.conflictCount,c:federation.crdtState.conflictCount>0?'#ffcc00':'#556677'},{l:'PARTITIONS',v:federation.partitions.filter(function(p){return!p.healed;}).length,c:federation.partitions.length>0?'#ff4444':'#556677'}].map(function(s,i){
+          return h('div',{key:i,style:{textAlign:'center',padding:'8px',background:'#0a0f14',border:'1px solid #1a2530',borderRadius:'2px'}},
+            h('div',{style:{fontSize:'14px',fontWeight:'600',color:s.c,fontVariantNumeric:'tabular-nums'}},s.v),
+            h('div',{style:{fontSize:'7px',letterSpacing:'1.5px',color:'#445566',marginTop:'2px'}},s.l));
+        })
+      ),
+
+      /* Connected Instances */
+      federation.connected&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px'}},
+          'CONNECTED INSTANCES ('+federation.instances.length+')'),
+        /* Self node */
+        h('div',{className:'fed-instance self'},
+          h('div',{className:'fed-instance-hdr'},
+            h('span',{className:'fed-instance-id'},'⬡ '+DEVICE_NAME+' (SELF)'),
+            h('span',{className:'fed-instance-role origin'},'ORIGIN')),
+          h('div',{className:'fed-instance-stats'},
+            [{l:'μ(x,t)',v:mediation.composite.toFixed(3)},{l:'ROLE',v:federation.role.toUpperCase()},{l:'CRDT',v:Object.keys(federation.crdtState.registers).length},{l:'UPTIME',v:federation.uptime+'s'}].map(function(s,i){
+              return h('div',{key:i,className:'fed-instance-stat'},
+                h('div',{className:'fed-instance-stat-v',style:{color:'#00ffaa'}},s.v),
+                h('div',{className:'fed-instance-stat-l'},s.l));
+            })
+          )
+        ),
+        /* Remote instances */
+        federation.instances.map(function(inst){
+          var age=Math.floor((Date.now()-inst.lastSeen)/1000);
+          var statusClass=inst.partitioned?'offline':age<5?'connected':age<15?'syncing':'stale';
+          return h('div',{key:inst.id,className:'fed-instance '+statusClass},
+            h('div',{className:'fed-instance-hdr'},
+              h('span',{className:'fed-instance-id'},inst.name||inst.id.slice(0,12)),
+              h('span',{className:'fed-instance-role '+inst.role},inst.role.toUpperCase())),
+            h('div',{className:'fed-instance-stats'},
+              [{l:'μ(x,t)',v:inst.composite.toFixed(3)},{l:'SYNC',v:inst.syncPct+'%'},{l:'RTT',v:inst.latency+'ms'},{l:'AGE',v:age+'s'}].map(function(s,i){
+                return h('div',{key:i,className:'fed-instance-stat'},
+                  h('div',{className:'fed-instance-stat-v',style:{color:statusClass==='connected'?'#00ddff':statusClass==='syncing'?'#ffcc00':'#ff8800'}},s.v),
+                  h('div',{className:'fed-instance-stat-l'},s.l));
+              })
+            ),
+            /* Sync progress bar */
+            h('div',{className:'fed-sync-bar',style:{marginTop:'4px'}},
+              h('span',{style:{color:'#445566',minWidth:'40px'}},'SYNC'),
+              h('div',{className:'fed-sync-track'},
+                h('div',{className:'fed-sync-fill',style:{width:inst.syncPct+'%',background:inst.syncPct>=90?'#00ffaa':inst.syncPct>=50?'#ffcc00':'#ff8800'}})),
+              h('span',{style:{color:'#556677',minWidth:'30px',textAlign:'right'}},inst.syncPct+'%'))
+          );
+        })
+      ),
+
+      /* CRDT Shared State */
+      federation.connected&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px'}},'CRDT SHARED STATE'),
+        /* Vector Clock */
+        h('div',{style:{marginBottom:'8px'}},
+          h('div',{style:{fontSize:'8px',color:'#445566',letterSpacing:'1px',marginBottom:'4px'}},'VECTOR CLOCK'),
+          h('div',{className:'fed-vector-clock'},
+            Object.keys(federation.crdtState.vc.clock||{}).map(function(k){
+              var isSelf=k===DEVICE_ID;
+              return h('span',{key:k,className:'fed-vc-entry'+(isSelf?' self':'')},
+                (isSelf?'SELF':k.slice(0,6)+'…')+': '+(federation.crdtState.vc.clock[k]||0));
+            })
+          )
+        ),
+        /* CRDT Registers */
+        Object.keys(federation.crdtState.registers).length===0?
+          h('div',{style:{textAlign:'center',padding:'20px',color:'#334455',fontSize:'10px'}},'No CRDT registers yet. Join federation to sync state.'):
+          Object.keys(federation.crdtState.registers).map(function(key){
+            var reg=federation.crdtState.registers[key];
+            var val='—';
+            if(reg.crdt){
+              if(typeof reg.crdt.value==='function')val=reg.crdt.value();
+              else if(typeof reg.crdt.values==='function')val=reg.crdt.values().join(', ');
+              else if(reg.crdt.val!=null)val=typeof reg.crdt.val==='number'?reg.crdt.val.toFixed(4):String(reg.crdt.val);
+              else if(reg.crdt.values&&reg.crdt.values.length)val=reg.crdt.values.map(function(v){return v.val;}).join(' | ');
+            }
+            return h('div',{key:key,className:'crdt-register'+(reg.conflicts>0?' conflict':' merged')},
+              h('div',{style:{flex:1}},
+                h('div',{style:{display:'flex',alignItems:'center',gap:'6px',marginBottom:'2px'}},
+                  h('span',{style:{color:'#ccd8e8',fontSize:'10px',fontWeight:'600'}},key),
+                  h('span',{className:'crdt-type-badge '+reg.type},reg.type.toUpperCase()),
+                  reg.conflicts>0&&h('span',{style:{fontSize:'7px',color:'#ffcc00',marginLeft:'4px'}},'⚡'+reg.conflicts+' conflicts')
+                ),
+                h('div',{style:{fontSize:'10px',color:'#8899aa',fontVariantNumeric:'tabular-nums'}},String(val))
+              ),
+              h('div',{style:{fontSize:'8px',color:'#445566',textAlign:'right'}},
+                reg.lastMerge?new Date(reg.lastMerge).toLocaleTimeString():'—')
+            );
+          })
+      ),
+
+      /* Partition Detection */
+      federation.connected&&federation.partitions.length>0&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#ff4444',letterSpacing:'2px',marginBottom:'8px'}},'⚠ PARTITION EVENTS ('+federation.partitions.length+')'),
+        federation.partitions.slice(0,10).map(function(p,i){
+          return h('div',{key:i,className:'fed-partition'+(p.healed?' healed':'')},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+              h('span',null,p.nodeId.slice(0,12)+'…'),
+              h('span',{style:{color:p.healed?'#00ffaa':'#ff4444',fontSize:'8px',letterSpacing:'1px'}},p.healed?'HEALED':'PARTITIONED')
+            ),
+            h('div',{style:{fontSize:'8px',color:'#556677',marginTop:'2px'}},'Detected: '+new Date(p.detectedAt).toLocaleTimeString())
+          );
+        })
+      ),
+
+      /* Anti-Entropy Status */
+      federation.antiEntropy.running&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#cc66ff',letterSpacing:'2px',marginBottom:'6px'}},'ANTI-ENTROPY SWEEP'),
+        h('div',{className:'fed-sync-bar'},
+          h('span',{style:{color:'#cc66ff',minWidth:'60px'}},'PROGRESS'),
+          h('div',{className:'fed-sync-track'},
+            h('div',{className:'fed-sync-fill',style:{width:federation.antiEntropy.progress+'%',background:'#cc66ff'}})),
+          h('span',{style:{color:'#cc66ff',minWidth:'40px',textAlign:'right'}},federation.antiEntropy.progress+'%')),
+        h('div',{style:{fontSize:'9px',color:'#556677',marginTop:'4px'}},'Repairs: ',h('span',{style:{color:'#00ffaa'}},federation.antiEntropy.repairs))
+      ),
+
+      /* Merge Log */
+      federation.connected&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'8px',display:'flex',justifyContent:'space-between'}},
+          h('span',null,'MERGE / SYNC LOG'),
+          h('span',null,federation.crdtState.mergeLog.length+' events')),
+        h('div',{className:'fed-merge-log'},
+          federation.crdtState.mergeLog.length===0?
+            h('div',{style:{textAlign:'center',padding:'20px',color:'#334455',fontSize:'10px'}},'No merge events yet'):
+            federation.crdtState.mergeLog.slice(0,30).map(function(e,i){
+              return h('div',{key:i,className:'fed-merge-entry '+e.level},
+                h('span',{style:{color:'#556677',minWidth:'55px'}},new Date(e.ts).toLocaleTimeString()),
+                h('span',{style:{minWidth:'28px'}},e.level==='conflict'?'⚡':e.level==='merge'?'⇄':e.level==='sync'?'↻':'•'),
+                h('span',{style:{flex:1}},e.key),
+                e.from&&h('span',{style:{color:'#445566'}},'← '+(e.from||'').slice(0,8)+'…'));
+            })
+        )
+      ),
+
+      /* Federation Event Log */
+      federation.connected&&federation.eventLog.length>0&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'FEDERATION EVENT LOG'),
+        h('div',{style:{maxHeight:'200px',overflow:'auto'}},
+          federation.eventLog.slice(0,30).map(function(e,i){
+            return h('div',{key:i,style:{fontSize:'9px',padding:'3px 0',borderBottom:'1px solid #0a0f14',display:'flex',gap:'8px'}},
+              h('span',{style:{color:'#556677',minWidth:'55px'}},new Date(e.ts).toLocaleTimeString()),
+              h('span',{style:{color:e.level==='merge'?'#00ffaa':e.level==='conflict'?'#ffcc00':e.level==='reject'?'#ff4444':'#00ddff'}},e.msg));
+          })
+        )
+      ),
+
+      /* CRDT Theory Reference */
+      !federation.connected&&h('div',{className:'card',style:{padding:'16px'}},
+        h('div',{style:{textAlign:'center'}},
+          h('div',{style:{fontSize:'28px',opacity:.3,marginBottom:'10px'}},'⬡'),
+          h('div',{style:{fontSize:'11px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'FEDERATION MESH v3.1'),
+          h('div',{style:{fontSize:'10px',color:'#445566',lineHeight:'1.8',maxWidth:'440px',margin:'0 auto'}},
+            'マルチインスタンスのメッシュ接続とCRDT (Conflict-Free Replicated Data Types) による結果整合性。',
+            h('br'),h('br'),
+            '対応CRDT型: G-Counter, PN-Counter, LWW-Register, OR-Set, MV-Register',
+            h('br'),
+            'メッシュプロトコル: Gossip + Anti-Entropy + Partition Detection',
+            h('br'),
+            ' 因果順序: Vector Clock ベースの因果関係追跡',
+            h('br'),h('br'),
+            h('span',{style:{color:'#00ddff'}},'JOIN FEDERATION'),' を押してメッシュに参加')
+        )
+      )
+    ),
+
     /* iOS sensor permission banner */
     sensorPerm.needsRequest&&h('div',{className:'card',style:{padding:'8px',margin:'8px 0',border:'1px solid #ff880044'}},
       h('div',{style:{fontSize:'9px',color:'#ff8800',marginBottom:'4px'}},'iOS: センサーパーミッション必要'),
@@ -6876,7 +7650,7 @@ function App(){
     /* ═══ DEMO OVERLAY ═══ */
     demo.open&&h('div',{className:'demo-overlay',onClick:function(e){if(e.target===e.currentTarget)demo.close();}},
       h('div',{className:'demo-card'},
-        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v3.0 DEMO'),
+        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v3.1 DEMO'),
         h('div',{className:'demo-progress'},
           DEMO_STEPS.map(function(_,i){return h('div',{key:i,className:'demo-pip '+(i<demo.step?'done':i===demo.step?'active':'')});})
         ),
@@ -6894,15 +7668,15 @@ function App(){
 
     /* PWA Install Banner */
     pwa.installable&&h('div',{className:'pwa-banner'},
-      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping v3.0 をホーム画面に追加'),
+      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping v3.1 をホーム画面に追加'),
       h('button',{className:'btn btn-sm',onClick:pwa.install,
         style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},'インストール')),
 
     /* Footer */
     h('div',{style:{textAlign:'center',padding:'12px',fontSize:'8px',color:'#334455',borderTop:'1px solid #0a0f14',marginTop:'12px'}},
-      'PHYSICAL PING — pTCP/IP v3.0 PLATFORM',
+      'PHYSICAL PING — pTCP/IP v3.1 FEDERATION',
       h('br'),
-      'L0小脳 Phase-Law v3  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  ·  HW ESP32 Fleet  ·  IND Plugin Arch  ·  CITY Digital Twin  ·  SDK JS/Py/Rust  ·  Spatial MediationDB  ·  Phase-Law Auto-Discovery  |  pTCPプロトコル 2026')
+      'L0小脳 Phase-Law v3  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  ·  HW ESP32 Fleet  ·  IND Plugin Arch  ·  CITY Digital Twin  ·  SDK JS/Py/Rust  ·  Spatial MediationDB  ·  Phase-Law Auto-Discovery  ·  FEDERATION Mesh + CRDT  |  pTCPプロトコル 2026')
   );
 }
 
