@@ -1,510 +1,552 @@
-# Physical Ping — pTCP/IP v2.5 CITYSCAPE
+# Physical Ping — pTCP/IP v3.0 PLATFORM
 
-**物理空間ネットワーク測定プラットフォーム — 都市規模デジタルツイン統合**
-
----
-
-## 概要
-
-Physical Pingは、音響チャープ測距・電磁場指紋・BLEメッシュ・ESP32常設ノード・車載/ロボット/ドローンを統合し、物理空間のネットワーク特性をリアルタイムで11次元計測するWebアプリケーションである。v2.5 CITYSCAPEでは、建物内から都市空間へとスケールを拡大し、デジタルツイン統合・テストベッド実証・移動体フリート管理を実現した。
-
-```
-アーキテクチャスタック:
-┌─────────────────────────────────────────────────────┐
-│  CITY Layer   デジタルツイン + Vehicle Fleet (v2.5)   │
-├─────────────────────────────────────────────────────┤
-│  IND Layer    倉庫/工場 + プラグインアーキテクチャ (v2.2) │
-├─────────────────────────────────────────────────────┤
-│  HW Layer     ESP32 Fleet + Hybrid Network (v2.1)    │
-├─────────────────────────────────────────────────────┤
-│  L3 大脳      Claude API — 自然言語空間推論           │
-├─────────────────────────────────────────────────────┤
-│  L2 空間知能   予測 / 記憶 / 異常検知 (v2.0)         │
-├─────────────────────────────────────────────────────┤
-│  L1 中脳      Salience Filter + Reflex Gate (v1.5)   │
-├─────────────────────────────────────────────────────┤
-│  L0 小脳      Phase-Law v2 — 12法則 (v1.0–1.3)      │
-└─────────────────────────────────────────────────────┘
-```
+> A browser-based hybrid network measurement and environmental sensing platform that fuses acoustic ranging, electromagnetic field fingerprinting, and multi-device mesh networking into a unified 11-dimensional mediation framework.
 
 ---
 
-## 技術仕様
+## Abstract
 
-| 項目 | 値 |
-|------|-----|
-| 総行数 | 5,752行 (単一HTMLファイル) |
-| React | 18.2.0 (CDN, `createElement` ベース) |
-| 計測次元 | 11次元 (Acoustic / EM / Photonic / Kinetic / RF / NFC / Thermal / Spatial / BLE / Network / Collaborative) |
-| Phase-Law | 12法則 (PL-001 〜 PL-012) |
-| タブ数 | 22タブ |
-| 対応移動体 | 車載 (OBD-II) / 自律ロボット / ドローン |
+Physical Ping introduces the **Physical Transport Control Protocol (pTCP)**, a novel approach to network diagnostics that bridges the gap between traditional ICMP-based measurement and real-world physical-layer sensing. The system computes a continuous **Mediation Coefficient μ(x,t)** across 11 orthogonal dimensions — ranging from acoustic propagation delay and RF signal strength to kinetic sensor data and photonic ambient readings — and governs system behavior through a set of empirically derived **Phase-Laws**. Version 3.0 extends the platform with SDK infrastructure, a spatial mediation database, and automated Phase-Law discovery through statistical analysis.
 
----
+## Table of Contents
 
-## システムアーキテクチャ
-
-### 11次元仲介システム (Mediation System)
-
-物理空間の状態を11の独立次元で捕捉し、重み付き仲介係数 μ(x,t) を算出する。各次元には信号源ステータス (`real` / `est` / `sim` / `na`) が付与され、Reality Indexとして実センサー利用率を定量化する。
-
-```
-μ(x,t) = Σ wᵢ · dᵢ(x,t) / Σ wᵢ
-       i∈{acoustic, em, photonic, kinetic, rf, nfc, thermal, spatial, ble, network, collab}
-```
-
-各次元の信号源:
-
-| 次元 | Real (実測) | Est (推定) | Sim (模擬) |
-|------|------------|-----------|-----------|
-| Acoustic | マイクチャープ測距 | — | ランダム生成 |
-| EM Field | Magnetometer API | DeviceOrientation | ランダム生成 |
-| Photonic | AmbientLightSensor | 時刻ベース推定 | ランダム生成 |
-| Kinetic | DeviceMotion API | — | ランダム生成 |
-| RF Density | Web NFC / BLE | — | ランダム生成 |
-| NFC Field | Web NFC API | — | ランダム生成 |
-| Thermal | BLE温度計 | CPU負荷推定 | ランダム生成 |
-| Spatial | Geolocation API | — | ランダム生成 |
-| BLE Mesh | Web Bluetooth | — | ランダム生成 |
-| Network | BroadcastChannel / WebRTC | — | 模擬ピア |
-| Collaborative | マルチピア合意 | — | — |
-
-### Phase-Law フレームワーク (12法則)
-
-物理空間の整合性を検証する12の法則。各法則は `pass` / `marginal` / `fail` を返す。
-
-| ID | 法則名 | 検証内容 |
-|----|--------|---------|
-| PL-001 | Acoustic-Spatial Coupling | 音響距離と空間位置の整合 |
-| PL-002 | EM Continuity | 電磁場の連続性 |
-| PL-003 | Spectral Openness | 光環境の整合性 |
-| PL-004 | Kinetic Stability | 運動状態の安定性 |
-| PL-005 | RF Density | RF環境の密度評価 |
-| PL-006 | Sensor Completeness | センサー網羅率 |
-| PL-007 | Network Connectivity | ネットワーク接続性 |
-| PL-008 | Thermal-Photonic Coupling | 熱・光の相関 |
-| PL-009 | Cross-Modal Coherence | クロスモーダル整合 |
-| PL-010 | Spatial Consistency | 空間的一貫性 |
-| PL-011 | Temporal Stability | 時間的安定性 |
-| PL-012 | Environmental Context | 環境文脈の整合性 |
-
-### 4層知能アーキテクチャ
-
-```
-L3 大脳 (Cerebrum)     Claude API による自然言語空間推論
-   ↑ 意味的問い合わせ
-L2 空間知能 (Intelligence)  予測エンジン / 空間記憶 / 異常検知
-   ↑ フィルタ済みイベント
-L1 中脳 (Midbrain)     Salience Filter + Reflex Gate
-   ↑ 生データフロー
-L0 小脳 (Cerebellum)   Phase-Law v2 評価 + 11次元仲介
-```
-
-動作モード: `NOMINAL` → `ALERT` → `CRITICAL` → `EMERGENCY`
+- [Architecture Overview](#architecture-overview)
+- [11-Dimensional Mediation System](#11-dimensional-mediation-system)
+- [Phase-Law Framework](#phase-law-framework)
+- [v3.0 PLATFORM Systems](#v30-platform-systems)
+- [Cognitive Architecture](#cognitive-architecture)
+- [Hardware Integration](#hardware-integration)
+- [Industry Deployment Modes](#industry-deployment-modes)
+- [Technical Stack](#technical-stack)
+- [Getting Started](#getting-started)
+- [API Reference](#api-reference)
+- [Data Export Formats](#data-export-formats)
+- [Version History](#version-history)
+- [License](#license)
 
 ---
 
-## v2.5 新機能
+## Architecture Overview
 
-### 1. CITYSCAPE — デジタルツイン統合
+Physical Ping is a **single-file React SPA** (~6,900 lines) that runs entirely in the browser with zero server-side dependencies. The application is organized into **25 tabs** across six functional layers:
 
-建物内測定から都市全体へスケールを拡張するデジタルツイン基盤。
-
-**エンティティタイプ:**
-- `building` — 建物 (センサー配置、環境データ)
-- `street` — 道路 (交通量、RF環境)
-- `zone` — 計測ゾーン / 排除ゾーン
-- `intersection` — 交差点
-- `park` — 公園・緑地
-- `utility` — インフラ設備
-
-**8レイヤー可視化:**
-
-| レイヤー | 内容 |
-|---------|------|
-| buildings | 建物フットプリント + 窓灯表示 |
-| streets | 道路網 |
-| sensors | ESP32 + モバイルセンサーオーバーレイ |
-| vehicles | 車載 / ロボット / ドローン位置 |
-| drones | ドローン専用トラッキング |
-| heatmap | 環境ヒートマップ |
-| rf_coverage | RF カバレッジマップ |
-| acoustic_map | 音響環境マップ |
-
-**対応フォーマット:**
-- GeoJSON / KML / CSV座標 (現行対応)
-- 3D Tiles / CityGML (v2.6予定)
-- Project PLATEAU 国土交通省3D都市モデル (v2.6予定)
-
-**フック: `useCityscape(mediation, espFleet, vehicleFleet)`**
-
-```javascript
-// 主要API
-cityscape.addEntity(type, name, lat, lng, meta)  // エンティティ追加
-cityscape.startSync()                             // リアルタイム同期開始
-cityscape.stopSync()                              // 同期停止
-cityscape.toggleLayer(layerName)                  // レイヤー表示切替
-cityscape.seedDemo()                              // デモデータ生成
+```
+┌─────────────────────────────────────────────────────────────┐
+│  L3  Cerebrum         Claude API integration (LLM reasoning)│
+├─────────────────────────────────────────────────────────────┤
+│  L2  Spatial Intelligence   Routing / Digital Twin / Vehicle│
+├─────────────────────────────────────────────────────────────┤
+│  L1  Midbrain         Anomaly detection / Reflex gating     │
+├─────────────────────────────────────────────────────────────┤
+│  L0  Phase-Laws       12 governing laws + auto-discovery    │
+├─────────────────────────────────────────────────────────────┤
+│  HW  Hardware         ESP32 fleet / BLE / Sensors           │
+├─────────────────────────────────────────────────────────────┤
+│  IND Industry         Warehouse / Factory / Plugin Arch     │
+├─────────────────────────────────────────────────────────────┤
+│  CITY Cityscape       Digital Twin / Vehicle Fleet / Site   │
+├─────────────────────────────────────────────────────────────┤
+│  PLAT Platform        SDK / Spatial DB / Auto-Discovery     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 2. TESTBED — テストベッド実証
+### Tab Map (25 views)
 
-定量的なシステム検証を自動化するベンチマークスイート。
-
-**10テストシナリオ:**
-
-| ID | テスト名 | 合格基準 |
-|----|---------|---------|
-| TB-001 | 音響精度ベンチマーク | ±3cm @ 1m |
-| TB-002 | EM指紋再現性 | similarity > 0.85 |
-| TB-003 | BLEパスロス校正 | ±15% @ 5m |
-| TB-004 | マルチチャープ帯域一致 | agreement > 0.80 |
-| TB-005 | Phase-Law適合性 | 12/12 pass |
-| TB-006 | ESP32フリート応答 | < 100ms avg |
-| TB-007 | P2Pメッシュスループット | > 500 msg/s |
-| TB-008 | 車載OBD-II統合 | 5 PIDs/sec |
-| TB-009 | ドローン高度補正 | ±5cm @ 10m alt |
-| TB-010 | デジタルツイン同期 | < 200ms sync |
-
-**コンプライアンスチェック (7項目):**
-- Phase-Law 12/12 達成
-- Reality Index > 70%
-- ESP32 Fleet ≥ 3台
-- μ(x,t) > 0.3
-- History ≥ 10 samples
-- SNR > 15dB avg
-- Noise Floor < -40dBFS
-
-**A/Bテスト環境:** 異なるチャープ設定やセンサー構成を統計的に比較可能。p値算出による有意差検定。
-
-**フック: `useTestbed(mediation, phaseLaws, espFleet, history)`**
-
-```javascript
-testbed.runAll()                   // 全シナリオ実行
-testbed.runScenario(idx)           // 個別シナリオ実行
-testbed.runComplianceCheck()       // コンプライアンス判定
-testbed.createABTest(nameA, nameB) // A/Bテスト作成
-```
-
-### 3. VEHICLE — 車載/ロボット/ドローン
-
-移動体プラットフォームによる広域・動的計測。
-
-**3タイプの移動体:**
-
-| タイプ | テレメトリ | 特殊機能 |
-|-------|----------|---------|
-| Car (車載) | 速度, RPM, GPS, 信号強度, バッテリー | OBD-II BLE統合 (rpm, speed, coolantTemp, fuelLevel, engineLoad) |
-| Robot (ロボット) | 速度, 方位, GPS, 信号強度, バッテリー | ウェイポイント自律巡回 |
-| Drone (ドローン) | 速度, 高度, GPS, 信号強度, バッテリー | 高度補正音響測定, 高度モニター可視化 |
-
-**ミッション管理:**
-- ウェイポイントベース経路計画
-- リアルタイム進捗トラッキング
-- 各ウェイポイントでの自動計測記録
-- ミッション完了判定
-
-**自律スケジューリング:**
-- cron式定期測定 (例: `*/30 * * * *` — 30分毎)
-- 車両単位のスケジュール管理
-- 自動ミッション起動
-
-**フック: `useVehicleFleet(mediation, espFleet)`**
-
-```javascript
-vehicleFleet.addVehicle(type, name, config)       // 車両追加
-vehicleFleet.startMission(vehicleId, waypoints)    // ミッション開始
-vehicleFleet.addSchedule(vehicleId, name, cron)    // スケジュール登録
-vehicleFleet.seedDemoFleet()                       // デモフリート生成
-```
+| # | Tab | Layer | Description |
+|---|-----|-------|-------------|
+| 1 | `measure` | Core | Primary ping measurement with acoustic ranging |
+| 2 | `precision` | Core | Statistical analysis, SNR, cross-validation |
+| 3 | `spectrum` | Core | RF spectrum, BLE scan, NFC, thermal mapping |
+| 4 | `peers` | Core | WebRTC/BroadcastChannel mesh network |
+| 5 | `heatmap` | Viz | Spatial heatmap of mediation values |
+| 6 | `timeline` | Viz | Time-series multi-dimension chart |
+| 7 | `dashboard` | Viz | Aggregate statistics dashboard |
+| 8 | `profiles` | Viz | Saved environment fingerprints |
+| 9 | `network` | L2 | Hybrid network topology analyzer |
+| 10 | `midbrain` | L1 | 4-layer cognitive processing pipeline |
+| 11 | `intelligence` | L2 | Safety zones, KY alerting, worker tracking |
+| 12 | `routing` | L2 | Phase-Law-aware adaptive routing |
+| 13 | `memory` | L2 | IndexedDB persistent mediation history |
+| 14 | `hardware` | HW | ESP32 fleet management and OTA |
+| 15 | `warehouse` | IND | Zone tracking, forklift BLE monitoring |
+| 16 | `factory` | IND | Acoustic FFT machine health monitoring |
+| 17 | `plugins` | IND | Plugin registry and lifecycle management |
+| 18 | `cityscape` | CITY | Digital Twin entity management |
+| 19 | `testbed` | CITY | Verification test suite runner |
+| 20 | `vehicle` | CITY | Vehicle fleet tracking and telemetry |
+| 21 | `site` | CITY | Multi-site deployment management |
+| 22 | `patent` | Core | Patent dataset collection and metrics |
+| 23 | `sdk` | PLAT | Multi-language SDK code generation |
+| 24 | `spatialdb` | PLAT | Spatial Mediation query engine |
+| 25 | `autodiscovery` | PLAT | Statistical Phase-Law discovery |
 
 ---
 
-## 音響測距エンジン
+## 11-Dimensional Mediation System
 
-### チャープ信号
+The core innovation is the **Mediation Coefficient μ(x,t)**, a composite scalar that fuses 11 independent physical measurements into a single environmental state descriptor.
 
-| 信号 | 帯域 | 持続時間 |
-|------|------|---------|
-| CHIRP PRO | 1–5 kHz | 30ms |
-| CHIRP MID | 1.5–2.5 kHz | 20ms |
-| CHIRP LOW | 500–1.5 kHz | 30ms |
-| CHIRP HIGH | 3–6 kHz | 15ms |
-| CHIRP WIDE | 800–4 kHz | 25ms |
-| PULSE 2kHz | 2 kHz | 15ms |
-| CLICK | 符号化 | 10ms |
+### Dimension Definitions
 
-### マルチチャープ測距
+| Dim | Key | Source | Range | Description |
+|-----|-----|--------|-------|-------------|
+| D0 | `acoustic` | Web Audio API | 0–1 | Sound propagation delay and ambient noise floor |
+| D1 | `network` | RTT measurement | 0–1 | Network latency normalized to baseline |
+| D2 | `spatial` | Geolocation API | 0–1 | GPS accuracy and position stability |
+| D3 | `temporal` | High-res timer | 0–1 | Clock drift and timing jitter |
+| D4 | `emField` | Magnetometer | 0–1 | Electromagnetic field strength and variance |
+| D5 | `kinetic` | Accelerometer | 0–1 | Device motion energy |
+| D6 | `photonic` | Ambient Light | 0–1 | Light level and spectral estimation |
+| D7 | `barometric` | Pressure sensor | 0–1 | Atmospheric pressure relative to baseline |
+| D8 | `thermal` | Estimated | 0–1 | Temperature proxy from sensor characteristics |
+| D9 | `quantum` | Entropy pool | 0–1 | Random number generator entropy quality |
+| D10 | `rf` | WiFi/BLE RSSI | 0–1 | Radio frequency signal density |
 
-3帯域同時測定による精度向上:
-- LOW: 500–2000 Hz / 35ms
-- MID: 2000–6000 Hz / 25ms
-- HIGH: 6000–12000 Hz / 15ms
-
-帯域間一致性 (Band Agreement) と重み付き平均距離を算出。
-
-### 信号処理パイプライン
+### Composite Calculation
 
 ```
-マイク入力 → 相互相関 (xcorr) → 放物線補間 (parabolic peak)
-   → ノイズフロア推定 → SNR算出 → 適応閾値
-   → カルマンフィルタ → ロバスト統計 (MAD) → 距離推定
+μ(x,t) = Σ(wᵢ × dᵢ) / Σ(wᵢ)    where i ∈ [0,10]
+
+wᵢ = user-adjustable weight per dimension (default: 1.0)
+dᵢ = normalized dimension value at position x, time t
 ```
 
-```
-距離 d = (Δt × v_sound) / 2
-v_sound = 331.3 + 0.606 × T[°C]
-```
+Each dimension carries a **source tag** indicating data provenance:
+
+- `REAL` — Direct sensor reading
+- `SIM` — Simulated/estimated value
+- `EST` — Derived from correlated dimensions
+- `N/A` — Sensor unavailable
+
+The **Reality Index** is the ratio of REAL sources to total active dimensions, providing a confidence measure for the composite value.
 
 ---
 
-## ネットワーキング
+## Phase-Law Framework
 
-### ハイブリッドネットワーク
+Phase-Laws are empirically derived rules that describe stable relationships between dimensions. They govern system behavior, trigger alerts, and provide predictive capability.
 
-| プロトコル | 用途 | 範囲 |
-|-----------|------|------|
-| BroadcastChannel | 同一ブラウザ間メッシュ | 同一オリジン |
-| WebRTC (P2P) | クロスデバイス接続 | インターネット |
-| ESP-NOW | ESP32間近距離通信 | ~200m |
-| WiFi (MQTT) | ESP32→クラウドブリッジ | LAN/WAN |
-| LoRa | 長距離低帯域 | ~10km |
-| BLE Mesh | 近距離デバイスメッシュ | ~50m |
+### Built-in Phase-Laws (12)
 
-### pTCPパケット構造
+| ID | Name | Type | Formula |
+|----|------|------|---------|
+| PL-001 | Acoustic-Spatial Coupling | COUPLED | `\|acoustic - spatial\| < 0.3` |
+| PL-002 | EM-RF Resonance | RESONANCE | `emField × rf > 0.15` |
+| PL-003 | Temporal Stability Bound | STABILITY | `temporal > 0.4` |
+| PL-004 | Kinetic-Barometric Inverse | INVERSE | `kinetic + barometric ∈ [0.6, 1.4]` |
+| PL-005 | Photonic Floor | THRESHOLD | `photonic > 0.1` |
+| PL-006 | Network Degradation Cascade | CASCADE | network → acoustic → spatial |
+| PL-007 | Quantum Entropy Floor | THRESHOLD | `quantum > 0.3` |
+| PL-008 | Thermal-Kinetic Correlation | COUPLED | `\|thermal - kinetic\| < 0.4` |
+| PL-009 | RF Saturation Limit | LIMIT | `rf < 0.95` |
+| PL-010 | Multi-Source Agreement | CONSENSUS | `≥ 6 sources agree within σ` |
+| PL-011 | Composite Stability | STABILITY | `Δμ/Δt < 0.1 per second` |
+| PL-012 | Reality Minimum | THRESHOLD | `realityIndex > 0.3` |
+
+Each law evaluates to a state: `COUPLED`, `DECOUPLED`, `VIOLATED`, or `UNKNOWN`, with a continuous score in [0, 1].
+
+### Phase-Law v3 Auto-Discovery
+
+The v3.0 auto-discovery system detects **new Phase-Laws** from accumulated measurement data using statistical methods:
+
+1. **Pearson Correlation Matrix** — Computes pairwise r-values across all 11 dimensions
+2. **Unknown Pattern Detection** — Identifies r > 0.6 correlations not covered by existing laws
+3. **Temporal/Lagged Analysis** — Detects time-delayed correlations at lag steps 1, 2, 3, 5
+4. **Bimodal Distribution Detection** — Finds dimensions exhibiting two-cluster behavior (gap > 1.5σ)
+5. **Candidate Generation** — Produces candidate laws with confidence scores and p-values
+
+Requires minimum 20 samples. Significance threshold: p < 0.05.
+
+---
+
+## v3.0 PLATFORM Systems
+
+### SDK Infrastructure
+
+Generates complete, runnable client SDKs in three languages from a unified API surface definition.
+
+**API Surface:** 21 endpoints across 7 resource groups:
+
+| Group | Endpoints | Methods |
+|-------|-----------|---------|
+| Mediation | getMediation, getMediationHistory, triggerMeasurement | GET, POST |
+| Phase-Laws | getPhaseLaws, getPhaseLaw, discoverLaws | GET, POST |
+| Spatial DB | querySpatial, insertSpatial, updateSpatial, deleteSpatial | GET, POST, PUT, DELETE |
+| Fleet | getESP32Fleet, getVehicleFleet | GET |
+| Sensors | getSensors, triggerCalibration | GET, POST |
+| Streams | streamMediation, streamPhaseLaws, streamAnomalies | WebSocket (SUB) |
+| Cityscape | getCityscapeEntities, createEntity | GET, POST |
+
+**Generated SDKs:**
+
+- **JavaScript (ES6+)** — Async/await class with fetch API and WebSocket subscriptions. Published as `@physical-ping/sdk` on npm.
+- **Python (3.8+)** — asyncio/aiohttp client with dataclasses and type hints. Dependencies: aiohttp>=3.9, pydantic>=2.0.
+- **Rust** — reqwest/tokio client with serde serialization and thiserror. Full type safety with `MediationState`, `PhaseLaw`, `SpatialRecord` structs.
+
+**Core Type System:** 8 shared types — `MediationState`, `PhaseLaw`, `SpatialRecord`, `MeasureResult`, `SensorState`, `DataSource`, `PhaseLawState`, `GeoPoint`.
+
+### Spatial Mediation Database
+
+An in-memory spatial database that stores μ(x,t) fingerprints with full 11-dimensional indexing.
+
+**Storage:** Max 500 records, each containing:
+- 11D fingerprint vector
+- Composite μ value
+- Source provenance array
+- Reality index
+- Space type classification
+- Phase-Law state snapshot
+- Geographic coordinates
+- Tags and metadata
+
+**Query Language:**
+
+```
+composite>0.5 space:office tag:meeting since:1h law:PL-001/COUPLED dim:acoustic/gt/0.5 near:<id>
+```
+
+| Operator | Syntax | Description |
+|----------|--------|-------------|
+| `composite` | `>`, `<`, `=` + value | Filter by composite μ value |
+| `space` | `space:<type>` | Substring match on space classification |
+| `tag` | `tag:<name>` | Match records containing tag |
+| `reality` | `reality><value>` | Filter by reality index |
+| `law` | `law:<id>/<state>` | Match Phase-Law ID and state |
+| `dim` | `dim:<key>/<op>/<value>` | Filter by individual dimension |
+| `near` | `near:<record_id>` | Fingerprint similarity > 0.7 |
+| `since` | `since:<duration>` | Time window (s/m/h/d units) |
+
+**Spatial Indexes:**
+- `SPACE_TYPE` hash index — Aggregates by classification with average composite
+- `COMPOSITE` B-tree — 10 buckets (0.0–1.0 in 0.1 increments)
+- `DIM_STATS` — Per-dimension statistics (mean, std, min, max)
+
+**Auto-Capture Mode:** Samples current μ(x,t) every 15 seconds.
+
+### Auto-Discovery Engine
+
+See [Phase-Law v3 Auto-Discovery](#phase-law-v3-auto-discovery) above.
+
+**Discovered Law Types:**
+- **Correlation** — Positive/negative correlation between dimension pairs (e.g., "Photonic-Network positive correlation", r=0.72)
+- **Temporal** — Lagged prediction patterns (e.g., "Kinetic→Acoustic time-delay (2-step)", r=-0.58)
+- **Bimodal** — Threshold-based regime detection (e.g., "RF Density bimodal distribution", μ_low=0.23, μ_high=0.78)
+
+**Workflow:** Candidate → User confirms/rejects → Confirmed laws integrated into Phase-Law engine with live `evaluate(mediation)` functions.
+
+---
+
+## Cognitive Architecture
+
+The system implements a **4-layer biologically-inspired processing pipeline**:
+
+```
+┌────────────────────────────────────────┐
+│  L3: Cerebrum (Claude API)             │  Strategic reasoning, natural language
+│  ↕ Salience queue                      │  analysis, predictive recommendations
+├────────────────────────────────────────┤
+│  L2: Spatial Intelligence              │  Routing, digital twin sync, safety
+│  ↕ Attention gating                    │  zone management, fleet coordination
+├────────────────────────────────────────┤
+│  L1: Midbrain                          │  Anomaly detection, reflex arcs,
+│  ↕ Reflex gating                       │  mode escalation (NOMINAL→EMERGENCY)
+├────────────────────────────────────────┤
+│  L0: Phase-Laws                        │  12+ governing laws, continuous
+│  ↑ Raw sensor fusion                   │  evaluation, state transitions
+└────────────────────────────────────────┘
+```
+
+**Operating Modes:** NOMINAL → ALERT → CRITICAL → EMERGENCY
+
+Each layer processes information independently and communicates through structured queues. L0 operates at sensor-rate (2-second intervals), while L3 is invoked on-demand for complex reasoning tasks.
+
+---
+
+## Hardware Integration
+
+### ESP32 Fleet Management
+
+- Fleet-wide OTA firmware updates
+- Per-device health monitoring (uptime, free heap, WiFi RSSI)
+- BLE beacon broadcasting for spatial anchoring
+- Configurable measurement intervals
+- Device status: ONLINE / OFFLINE / ERROR / UPDATING
+
+### Vehicle Fleet
+
+- Real-time GPS tracking with heading and speed
+- Battery/fuel level monitoring
+- Geofence alerting
+- Route history with waypoint logging
+
+### Mobile Sensors
+
+The application leverages mobile device sensors through standard Web APIs:
+
+- **DeviceOrientation** — Magnetometer (EM field dimension), requires iOS permission prompt
+- **DeviceMotion** — Accelerometer/gyroscope (kinetic dimension)
+- **AmbientLightSensor** — Photonic dimension (Chrome only)
+- **Geolocation** — Spatial dimension with accuracy tracking
+- **Web Audio** — Acoustic dimension via microphone FFT analysis
+
+---
+
+## Industry Deployment Modes
+
+### Warehouse Mode
+
+- **Zone Tracking** — Named zones with capacity monitoring and fill-rate visualization
+- **Inventory Management** — Item tracking with low-stock and out-of-stock alerts
+- **Forklift BLE Monitoring** — Real-time position and activity status via BLE beacons
+
+### Factory Mode
+
+- **Passive Acoustic Monitoring** — Real-time microphone FFT analysis for machine health
+- **Frequency Band Analysis** — Configurable band monitoring with threshold alerts
+- **Machine State Classification** — Normal / Warning / Critical based on spectral signatures
+
+### Plugin Architecture
+
+Extensible plugin system with lifecycle management:
 
 ```javascript
 {
-  src: DEVICE_ID,     // 送信元ID
-  dst: '*',           // 宛先 ('*' = ブロードキャスト)
-  type: PKT_TYPE,     // SYN, SYN_ACK, DATA, HEARTBEAT, ACK
-  seq: sequence_num,  // シーケンス番号
-  payload: {...},     // ペイロード
-  checksum: CRC32,    // 完全性検証
-  ttl: 5              // マルチホップTTL
+  id: "plugin-id",
+  name: "Plugin Name",
+  version: "1.0.0",
+  type: "builtin" | "external",
+  status: "running" | "stopped" | "error",
+  hooks: ["onMeasure", "onPhaseLawChange", "onAnomaly"],
+  init: function() { ... },
+  destroy: function() { ... }
 }
 ```
 
 ---
 
-## ESP32 ハードウェアレイヤー
+## Technical Stack
 
-### ノードタイプ
+| Component | Technology |
+|-----------|-----------|
+| Runtime | Browser (Chrome 90+, Safari 15+, Firefox 90+) |
+| Framework | React 18 (CDN, no build step) |
+| Rendering | `React.createElement` — no JSX transpilation |
+| State Management | 41 custom React hooks |
+| Persistence | IndexedDB (via raw API) |
+| P2P Networking | WebRTC (RTCPeerConnection) + BroadcastChannel |
+| Audio Processing | Web Audio API (AnalyserNode, FFT) |
+| Visualization | Canvas 2D (charts, heatmaps, radar, 3D wireframe) |
+| Typography | IBM Plex Mono (Google Fonts CDN) |
+| Installability | PWA (Service Worker + Web App Manifest) |
 
-| タイプ | 役割 | センサー |
-|-------|------|---------|
-| Sensor | 環境計測 | 温度/湿度/気圧/音響/EM/照度 |
-| Gateway | ブリッジ | WiFi/MQTT/LoRa |
-| Relay | メッシュ中継 | ESP-NOW/BLE |
-| Anchor | 三辺測量基点 | 固定位置座標 |
+### Dependencies (CDN)
 
-### ファームウェア
-
-```c
-// ESP32ファームウェア概要
-void setup() {
-    initSensors();       // BME280, INMP441, HMC5883L, BH1750
-    initESPNOW();        // ESP-NOW mesh
-    initBLE();           // BLE advertising
-    initMQTT();          // MQTT publish
-}
-
-void loop() {
-    readSensors();       // 500ms interval
-    publishMQTT();       // ptcp/v2.5/{node_id}/sensors
-    meshRelay();         // ESP-NOW relay
-}
+```html
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 ```
 
----
-
-## 産業モード
-
-### 倉庫モード (v2.2)
-
-- ゾーン管理 (受入/保管/出荷/冷蔵)
-- ゾーン内在庫密度トラッキング
-- フォークリフトBLEビーコン監視
-- ピッキングキュー管理
-- 温度・湿度アラート
-
-### 工場モード (v2.2)
-
-- パッシブ音響モニタリング (マイクFFTリアルタイム分析)
-- 機械健全性推定 (周波数パターンから異常検知)
-- 予知保全スケジューリング
-- 生産ラインモニタリング
+No other external dependencies. The entire application is a single `.html` file.
 
 ---
 
-## タブ一覧 (22タブ)
+## Getting Started
 
-| # | タブ | バージョン | 機能 |
-|---|------|----------|------|
-| 1 | MEASURE | v1.0 | 音響チャープ測距 |
-| 2 | PRECISION | v1.3 | マルチチャープ/品質スコア |
-| 3 | SPECTRUM | v1.0 | RF帯域スペクトル |
-| 4 | PEERS | v1.0 | P2Pピア管理 |
-| 5 | HEATMAP | v1.2 | 空間ヒートマップ |
-| 6 | TIMELINE | v1.2 | 時系列チャート |
-| 7 | DASHBOARD | v1.2 | 統合ダッシュボード |
-| 8 | PROFILES | v1.2 | 環境プロファイル保存/比較 |
-| 9 | NETWORK | v1.0 | メッシュネットワーク |
-| 10 | MIDBRAIN | v1.5 | 中脳 Salience Filter |
-| 11 | INTELLIGENCE | v2.0 | 空間知能 (予測/異常検知) |
-| 12 | ROUTING | v2.0 | マルチホップルーティング |
-| 13 | MEMORY | v2.0 | 空間記憶データベース |
-| 14 | HARDWARE | v2.1 | ESP32フリート管理 |
-| 15 | WAREHOUSE | v2.2 | 倉庫モード |
-| 16 | FACTORY | v2.2 | 工場モード |
-| 17 | PLUGINS | v2.2 | プラグインアーキテクチャ |
-| 18 | **CITYSCAPE** | **v2.5** | **デジタルツイン統合** |
-| 19 | **TESTBED** | **v2.5** | **テストベッド実証** |
-| 20 | **VEHICLE** | **v2.5** | **車載/ロボット/ドローン** |
-| 21 | SITE | v1.5 | SiteSense 空間安全監視 |
-| 22 | PATENT | v1.5 | 特許データ収集 |
-
----
-
-## 使用方法
-
-### 基本起動
-
-ブラウザでHTMLファイルを直接開く (サーバー不要)。PWAとしてホーム画面に追加可能。
+### Running Locally
 
 ```bash
-# ローカルサーバーで起動する場合
-python -m http.server 8080
-# → http://localhost:8080/physical-ping-v2_5.html
+# Simply open the HTML file in a browser
+open physical-ping-v3_0.html
+
+# Or serve via HTTP for full sensor access (HTTPS required for some APIs)
+python3 -m http.server 8080
+# Then navigate to https://localhost:8080/physical-ping-v3_0.html
 ```
 
-### 推奨ブラウザ
+### Sensor Permissions
 
-| ブラウザ | 対応状況 |
-|---------|---------|
-| Chrome (Android) | 全機能対応 (Web Bluetooth, Web NFC) |
-| Chrome (Desktop) | BLE/NFC以外対応 |
-| Safari (iOS) | DeviceMotion要許可、BLE/NFC非対応 |
-| Firefox | BLE/NFC非対応、他は対応 |
+On iOS devices, sensor access requires an explicit user gesture. The application displays a permission banner when DeviceOrientation/DeviceMotion APIs need authorization. Tap "GRANT SENSOR ACCESS" to enable EM field and kinetic dimensions.
 
-### クイックスタート
+### Recommended Environment
 
-1. ファイルを開く
-2. DEMOボタンでウォークスルーを実行
-3. MEASUREタブで「PING」をタップ → 音響測距開始
-4. CITYSCAPEタブで「DEMO SEED」→ 都市データ生成
-5. VEHICLEタブで「DEMO FLEET」→ 移動体フリート生成
-6. TESTBEDタブで「RUN ALL」→ 全シナリオ実行
-
-### センサー権限
-
-iOS/Safariでは以下の権限を明示的にリクエストする必要がある:
-- DeviceOrientation (EM Field用)
-- DeviceMotion (Kinetic用)
-- Microphone (Acoustic用)
-- Geolocation (Spatial用)
+- HTTPS context (required for Geolocation, DeviceOrientation, and WebRTC)
+- Physical device preferred over emulator (real sensor data)
+- Multiple devices on the same network for mesh features
+- ESP32 hardware for full fleet integration
 
 ---
 
-## v2.5 成功指標
+## API Reference
 
-| 指標 | 目標値 |
-|------|-------|
-| 音響精度 1m以内 | ±3cm |
-| Reality Index | 70%+ |
-| 同時接続ピア | 5台+ |
-| ESP32 Fleet | 3台+ |
-| Vehicle Fleet | 3台+ |
-| Digital Twin | LIVE |
-| Testbed Score | 80%+ |
-| DT Entities | 5+ |
+### Core Hooks
 
----
+| Hook | Purpose | Key State |
+|------|---------|-----------|
+| `usePing()` | Primary measurement engine | result, history, stats |
+| `useMediation()` | 11D fusion + composite μ | composite, dimensions, reality |
+| `usePhaseLaws(mediation)` | Phase-Law evaluation | laws[], violationCount |
+| `useNetwork()` | WebRTC mesh management | peers[], topology |
+| `useMultiPeer()` | BroadcastChannel mesh | connectedCount, messages |
+| `useESP32Fleet()` | ESP32 device management | devices[], fleetStats |
+| `useVehicleFleet()` | Vehicle tracking | vehicles[], fleetStats |
+| `useCityscape()` | Digital twin entities | entities[], syncStatus |
+| `useTestbed()` | Verification suite | scenarios[], suiteResult |
+| `useSensorPermission()` | iOS sensor permissions | needsRequest, requestAll() |
+| `useSDKInfra()` | SDK code generation | generate(), exportLog |
+| `useSpatialMediationDB()` | Spatial query engine | query(), insert(), records |
+| `usePhaseAutoDiscovery()` | Statistical discovery | scan(), discoveredLaws[] |
 
-## バージョン履歴
-
-| バージョン | コードネーム | 主要追加 |
-|-----------|------------|---------|
-| v1.0 | — | 11次元仲介、Phase-Law、音響測距 |
-| v1.2 | VISUALIZATION | 時系列、ヒートマップ、プロファイル |
-| v1.3 | PRECISION | マルチチャープ、EM指紋、BLEパスロス |
-| v1.5 | APPLICATION | 4層知能、SiteSense、特許データ |
-| v2.0 | INTELLIGENCE | 予測、空間記憶、異常検知、マルチホップ |
-| v2.1 | HARDWARE | ESP32 Fleet、ハイブリッドネットワーク |
-| v2.2 | INDUSTRY | 倉庫/工場モード、プラグイン |
-| **v2.5** | **CITYSCAPE** | **デジタルツイン、テストベッド、車載/ロボット/ドローン** |
-
----
-
-## 依存関係
-
-| ライブラリ | バージョン | 用途 |
-|-----------|----------|------|
-| React | 18.2.0 | UI フレームワーク |
-| ReactDOM | 18.2.0 | DOM レンダリング |
-| LZ-String | 1.5.0 | データ圧縮 |
-| QR Code | (内蔵) | WebRTC接続用QR生成 |
-
-外部サーバー・ビルドツール不要。単一HTMLファイルで完結。
-
----
-
-## ファイル構成
+### Measurement Cycle
 
 ```
-physical-ping-v2_5.html    # 全ソース (5,752行)
-├── <style>                # CSS (430行, v1.0〜v2.5全スタイル)
-├── <script> QR Code       # QRコード生成ライブラリ
-└── <script> Main          # React アプリケーション
-    ├── 設定 (CFG, SIGNALS, CHIRP_BANDS)
-    ├── 信号処理 (genSignal, xcorr, findLoopbackMs)
-    ├── フィルタ (KalmanFilter, RollingStats)
-    ├── カスタムフック (38個)
-    │   ├── useMag, useLight, useMotion, useGeo     # センサー
-    │   ├── useRF, useBLE, useThermal               # 環境
-    │   ├── usePTCPNetwork, useMultiPeer             # ネットワーク
-    │   ├── useMultiChirp, useEMFingerprint          # 精密測定
-    │   ├── useMidbrain, useCerebrumAPI              # 知能層
-    │   ├── useESP32Fleet, useHybridNetwork          # ハードウェア
-    │   ├── useWarehouse, useFactory                 # 産業
-    │   ├── useCityscape                             # デジタルツイン (v2.5)
-    │   ├── useTestbed                               # テストベッド (v2.5)
-    │   └── useVehicleFleet                          # 移動体 (v2.5)
-    ├── キャンバス描画 (TopologyCanvas, CityCanvas等)
-    └── App コンポーネント (22タブ)
+┌─────────┐    ┌──────────┐    ┌────────────┐    ┌──────────┐
+│ Trigger │───▶│ Acoustic │───▶│ 11D Fusion │───▶│ Phase-Law│
+│  Ping   │    │ Ranging  │    │  μ(x,t)    │    │  Eval    │
+└─────────┘    └──────────┘    └────────────┘    └──────────┘
+                                      │                │
+                                      ▼                ▼
+                                ┌────────────┐  ┌──────────┐
+                                │ Spatial DB │  │ Midbrain │
+                                │ Accumulate │  │ L1 Gate  │
+                                └────────────┘  └──────────┘
 ```
+
+The continuous measurement loop runs at **2-second intervals** when active, updating all 11 dimensions and re-evaluating all Phase-Laws.
 
 ---
 
-## 研究応用
+## Data Export Formats
 
-### 適用領域
+### Patent Dataset Export
 
-- **スマートシティ:** 都市環境の多次元センシングとデジタルツイン構築
-- **インフラ監視:** 音響パッシブモニタリングによる構造物健全性評価
-- **屋内測位:** BLE + 音響ハイブリッド測位の精度検証
-- **IoTテストベッド:** ESP32メッシュネットワークの性能評価
-- **自律移動体:** ドローン/ロボットによる広域環境計測自動化
-- **車載テレマティクス:** OBD-II統合による走行中リアルタイム環境測定
-- **予知保全:** FFT音響分析による機械異常の早期検出
-
-### 引用
-
-本ソフトウェアを研究に使用する場合は、以下の情報を記載してください:
-
+```json
+{
+  "timestamp": "2026-02-23T12:00:00.000Z",
+  "version": "3.0",
+  "sessions": [
+    {
+      "id": "abc123",
+      "started": "2026-02-23T11:00:00.000Z",
+      "stats": {
+        "n": 50,
+        "mean": 0.623,
+        "std": 0.0412,
+        "ci95": 0.0114,
+        "reproducibility": "EXCELLENT"
+      },
+      "measurements": [ ... ]
+    }
+  ]
+}
 ```
-Physical Ping — pTCP/IP v2.5 CITYSCAPE
-物理空間ネットワーク測定プラットフォーム
-Phase-Law Architecture v2.5
-https://github.com/[repository]
+
+### Snapshot Export
+
+```json
+{
+  "timestamp": "2026-02-23T12:00:00.000Z",
+  "mediation": 0.623,
+  "phaseLaws": [
+    { "id": "PL-001", "state": "COUPLED", "score": 0.85 }
+  ],
+  "history": [ ... ]
+}
+```
+
+### Spatial DB Export
+
+```json
+{
+  "records": [
+    {
+      "id": "rec-001",
+      "name": "Office A",
+      "fingerprint": {
+        "acoustic": 0.42,
+        "network": 0.78,
+        "spatial": 0.65,
+        ...
+      },
+      "composite": 0.623,
+      "sources": ["REAL","REAL","REAL","SIM",...],
+      "reality": 0.72,
+      "spaceType": "office",
+      "tags": ["meeting", "floor-3"],
+      "timestamp": "2026-02-23T12:00:00.000Z"
+    }
+  ]
+}
 ```
 
 ---
 
-## ライセンス
+## Version History
 
-研究・教育目的での使用を想定。
+| Version | Codename | Lines | Tabs | Key Additions |
+|---------|----------|-------|------|---------------|
+| v1.0 | CORE | ~1,200 | 4 | Basic ping, acoustic ranging, mediation |
+| v1.1 | SPECTRUM | ~1,800 | 7 | RF spectrum, BLE, NFC, EM fingerprinting |
+| v1.2 | VISUAL | ~2,300 | 10 | Heatmap, timeline, dashboard, profiles |
+| v1.3 | PRECISION | ~2,700 | 11 | SNR, cross-validation, quality metrics |
+| v1.4 | NETWORK | ~3,200 | 13 | WebRTC mesh, hybrid topology, memory |
+| v1.5 | APPLICATION | ~3,600 | 15 | Midbrain, intelligence, routing, patent |
+| v2.0 | INTELLIGENCE | ~4,200 | 17 | 4-layer brain, safety zones, Claude L3 |
+| v2.1 | HARDWARE | ~4,500 | 18 | ESP32 fleet, OTA, hardware management |
+| v2.2 | INDUSTRY | ~4,900 | 20 | Warehouse, factory, plugin architecture |
+| v2.5 | CITYSCAPE | ~5,750 | 22 | Digital twin, vehicle fleet, testbed, site |
+| v3.0 | PLATFORM | ~6,900 | 25 | SDK infra, spatial DB, auto-discovery |
 
 ---
 
-*pTCP/IP v2.5 CITYSCAPE — Phase-Law Architecture — 2026*
+## Research Applications
+
+Physical Ping is designed to support research in the following domains:
+
+- **Indoor Positioning Systems (IPS)** — Acoustic ranging + EM fingerprinting fusion for sub-meter positioning without dedicated infrastructure.
+- **Environmental Sensing** — Continuous multi-modal environmental characterization using commodity mobile devices.
+- **Network Quality of Experience (QoE)** — Correlating physical-layer conditions with application-layer network performance.
+- **Edge Computing** — Distributed measurement across ESP32 mesh networks with local mediation computation.
+- **Digital Twin Validation** — Real-time physical measurement integrated with digital twin entity models.
+- **Predictive Maintenance** — Factory acoustic FFT analysis for early detection of mechanical degradation.
+- **Occupational Safety** — Zone-based worker tracking with KY (Kiken Yochi / hazard prediction) alerting.
+
+---
+
+## Reproducibility
+
+### Patent Metrics (v3.0 Targets)
+
+| Metric | Target | Method |
+|--------|--------|--------|
+| Acoustic Precision (< 1m) | ± 3 cm | Cross-correlation peak detection |
+| Reality Index | > 70% | Sensor availability ratio |
+| Concurrent Peers | 5+ devices | WebRTC + BroadcastChannel mesh |
+| ESP32 Fleet | 3+ online | BLE/WiFi fleet management |
+| Vehicle Fleet | 3+ tracked | GPS telemetry integration |
+| Digital Twin | LIVE sync | Entity state synchronization |
+| Testbed Score | 80%+ | Automated verification suite |
+| SDK Endpoints | 20+ | API surface definition |
+| Spatial DB Records | 50+ | Auto-capture accumulation |
+| Auto-Discovered Laws | 3+ | Statistical pattern detection |
+
+### Statistical Reporting
+
+All measurement sessions report:
+- Sample count (n)
+- Mean (μ) and standard deviation (σ)
+- 95% confidence interval (CI95 = ± 1.96 × σ / √n)
+- Reproducibility grade: EXCELLENT (σ < 0.02), GOOD (σ < 0.05), FAIR (σ < 0.1), POOR (σ ≥ 0.1)
+
+---
+
+## License
+
+Proprietary research software. All rights reserved.
+
+For academic collaboration inquiries, please contact the development team.
+
+---
+
+*Physical Ping — pTCP/IP v3.0 PLATFORM*
+*L0 Phase-Law v3 · L1 Midbrain · L2 Spatial Intelligence · L3 Cerebrum Claude API · HW ESP32 Fleet · IND Plugin Arch · CITY Digital Twin + Vehicle Fleet · PLAT SDK JS/Py/Rust · Spatial MediationDB · Phase-Law Auto-Discovery*
+*pTCP Protocol 2026*
