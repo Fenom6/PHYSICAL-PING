@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Physical Ping — pTCP v2.5 CITYSCAPE</title>
+<title>Physical Ping — pTCP v3.0 PLATFORM</title>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGh5c2ljYWwgUGluZyIsInNob3J0X25hbWUiOiJwVENQIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBmMTQiLCJ0aGVtZV9jb2xvciI6IiMwMGZmYWEiLCJpY29ucyI6W119">
 <meta name="theme-color" content="#00ffaa">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -369,6 +369,53 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .tb-compliance.fail{background:rgba(255,68,68,.04);border:1px solid #ff444433}
 .tb-compliance.warn{background:rgba(255,204,0,.04);border:1px solid #ffcc0033}
 .tb-log{max-height:200px;overflow:auto;font-size:9px;border:1px solid #1a2530;border-radius:2px}
+/* ═══ v3.0 PLATFORM STYLES ═══ */
+.sdk-lang-tab{padding:8px 16px;font-size:10px;letter-spacing:1.5px;cursor:pointer;border:1px solid #1a2530;background:transparent;color:#556677;font-family:inherit;transition:all .2s;border-radius:2px 2px 0 0}
+.sdk-lang-tab.active{border-bottom-color:transparent;color:#ccd8e8;background:rgba(200,215,230,.04)}
+.sdk-lang-tab.js{border-top:2px solid #f7df1e00}.sdk-lang-tab.js.active{border-top-color:#f7df1e;color:#f7df1e}
+.sdk-lang-tab.py{border-top:2px solid #3776ab00}.sdk-lang-tab.py.active{border-top-color:#3776ab;color:#5ba0d0}
+.sdk-lang-tab.rust{border-top:2px solid #ce412b00}.sdk-lang-tab.rust.active{border-top-color:#ce412b;color:#e06050}
+.sdk-code-block{background:#050810;border:1px solid #1a2530;border-radius:0 0 2px 2px;padding:12px;font-size:10px;line-height:1.7;color:#aabbcc;overflow-x:auto;white-space:pre;font-family:'IBM Plex Mono',monospace;max-height:400px;overflow-y:auto;border-top:none}
+.sdk-code-block .kw{color:#cc66ff}.sdk-code-block .fn{color:#00ddff}.sdk-code-block .str{color:#98c379}.sdk-code-block .cm{color:#445566}.sdk-code-block .ty{color:#e5c07b}.sdk-code-block .num{color:#d19a66}.sdk-code-block .op{color:#ff8800}
+.sdk-api-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #0a0f14;font-size:10px;transition:background .15s}
+.sdk-api-row:hover{background:rgba(255,255,255,.015)}
+.sdk-method-badge{display:inline-block;padding:2px 6px;font-size:7px;letter-spacing:1.5px;font-weight:700;border-radius:2px;min-width:36px;text-align:center}
+.sdk-method-badge.GET{background:rgba(0,255,170,.1);border:1px solid #00ffaa44;color:#00ffaa}
+.sdk-method-badge.POST{background:rgba(0,221,255,.1);border:1px solid #00ddff44;color:#00ddff}
+.sdk-method-badge.PUT{background:rgba(255,204,0,.1);border:1px solid #ffcc0044;color:#ffcc00}
+.sdk-method-badge.DELETE{background:rgba(255,68,68,.1);border:1px solid #ff444444;color:#ff4444}
+.sdk-method-badge.SUB{background:rgba(204,102,255,.1);border:1px solid #cc66ff44;color:#cc66ff}
+.sdk-manifest{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:6px}
+.sdk-stat{padding:10px;border:1px solid #1a2530;border-radius:2px;text-align:center;background:rgba(0,0,0,.15)}
+.sdk-stat-v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.sdk-stat-l{font-size:8px;letter-spacing:2px;color:#556677;margin-top:2px}
+.sdb-record{padding:10px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);margin-bottom:4px;transition:border-color .2s;cursor:pointer}
+.sdb-record:hover{border-color:#00ffaa33}
+.sdb-record.selected{border-color:#00ffaa55;background:rgba(0,255,170,.03)}
+.sdb-query-input{width:100%;background:#050810;border:1px solid #1a2530;color:#aabbcc;padding:8px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;border-radius:2px;resize:vertical;min-height:60px}
+.sdb-query-input:focus{outline:none;border-color:#00ffaa44}
+.sdb-idx-card{padding:8px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.15);font-size:9px}
+.sdb-idx-bar{height:4px;background:#0a0f14;border-radius:2px;overflow:hidden;margin:4px 0}
+.sdb-idx-fill{height:100%;border-radius:2px;transition:width .4s}
+.sdb-result-row{display:grid;grid-template-columns:80px 60px 80px 1fr;padding:5px 8px;font-size:9px;border-bottom:1px solid #0a0f14;align-items:center}
+.sdb-result-row:nth-child(even){background:rgba(255,255,255,.005)}
+.ad-law-card{padding:14px;border:1px solid;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:8px;position:relative;overflow:hidden;transition:all .3s}
+.ad-law-card.confirmed{border-color:#00ffaa44;background:rgba(0,255,170,.03)}
+.ad-law-card.candidate{border-color:#ffcc0044;background:rgba(255,204,0,.02)}
+.ad-law-card.rejected{border-color:#ff444433;background:rgba(255,68,68,.02);opacity:.6}
+.ad-law-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.ad-law-card.confirmed::before{background:#00ffaa}
+.ad-law-card.candidate::before{background:#ffcc00}
+.ad-law-card.rejected::before{background:#ff4444}
+.ad-confidence-ring{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.ad-correlation-matrix{display:grid;gap:1px;background:#1a2530;border:1px solid #1a2530;border-radius:2px;overflow:hidden}
+.ad-corr-cell{text-align:center;padding:4px 2px;font-size:8px;background:#0d1520;transition:background .3s}
+.ad-timeline-dot{width:6px;height:6px;border-radius:50%;display:inline-block;transition:all .3s}
+.ad-pattern-bar{height:24px;border-radius:1px;position:relative;overflow:hidden;background:#0a0f14;margin:3px 0}
+.ad-pattern-seg{position:absolute;top:0;bottom:0;border-radius:1px;transition:all .5s}
+.ad-scan-anim{position:relative;overflow:hidden}
+.ad-scan-anim::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,255,170,.04),transparent);animation:adScan 3s linear infinite}
+@keyframes adScan{0%{left:-50%}100%{left:150%}}
 .tb-log-entry{padding:4px 8px;border-bottom:1px solid #0a0f14;display:flex;gap:6px;animation:fadeIn .15s ease}
 .tb-log-entry.pass{border-left:2px solid #00ffaa}
 .tb-log-entry.fail{border-left:2px solid #ff4444}
@@ -3558,9 +3605,834 @@ function useVehicleFleet(mediation,espFleet){
 }
 
 
+/* ═══════════════════════════════════════════════════════════ */
+/*  v3.0 SDK INFRASTRUCTURE (JS / Python / Rust)              */
+/*  Multi-language SDK code generation engine                  */
+/*  API Surface definition + Package manifests                 */
+/* ═══════════════════════════════════════════════════════════ */
+var SDK_API_SURFACE=[
+  {method:'GET',path:'/api/v3/mediation',name:'getMediation',desc:'現在のμ(x,t)値と11D次元データを取得',returns:'MediationState'},
+  {method:'GET',path:'/api/v3/mediation/history',name:'getMediationHistory',desc:'μ(x,t)時系列データを取得',returns:'MediationSnapshot[]'},
+  {method:'POST',path:'/api/v3/mediation/measure',name:'triggerMeasurement',desc:'音響測定をトリガー',returns:'MeasureResult'},
+  {method:'GET',path:'/api/v3/phase-laws',name:'getPhaseLaws',desc:'Phase-Law評価結果を取得',returns:'PhaseLaw[]'},
+  {method:'GET',path:'/api/v3/phase-laws/:id',name:'getPhaseLaw',desc:'特定Phase-Law詳細',returns:'PhaseLaw'},
+  {method:'POST',path:'/api/v3/phase-laws/discover',name:'discoverLaws',desc:'自動発見エンジン実行',returns:'DiscoveredLaw[]'},
+  {method:'GET',path:'/api/v3/spatial-db/query',name:'querySpatial',desc:'空間DBクエリ実行',returns:'SpatialRecord[]'},
+  {method:'POST',path:'/api/v3/spatial-db/insert',name:'insertSpatial',desc:'空間レコード挿入',returns:'SpatialRecord'},
+  {method:'PUT',path:'/api/v3/spatial-db/update/:id',name:'updateSpatial',desc:'空間レコード更新',returns:'SpatialRecord'},
+  {method:'DELETE',path:'/api/v3/spatial-db/delete/:id',name:'deleteSpatial',desc:'空間レコード削除',returns:'void'},
+  {method:'GET',path:'/api/v3/fleet/esp32',name:'getESP32Fleet',desc:'ESP32フリート状態',returns:'ESP32Node[]'},
+  {method:'GET',path:'/api/v3/fleet/vehicles',name:'getVehicleFleet',desc:'車両フリート状態',returns:'Vehicle[]'},
+  {method:'GET',path:'/api/v3/sensors',name:'getSensors',desc:'全センサー現在値',returns:'SensorState'},
+  {method:'POST',path:'/api/v3/calibrate',name:'triggerCalibration',desc:'キャリブレーション実行',returns:'CalibResult'},
+  {method:'SUB',path:'/ws/v3/mediation/stream',name:'streamMediation',desc:'μ(x,t)リアルタイムストリーム',returns:'Stream<MediationState>'},
+  {method:'SUB',path:'/ws/v3/phase-laws/stream',name:'streamPhaseLaws',desc:'Phase-Lawリアルタイムストリーム',returns:'Stream<PhaseLaw[]>'},
+  {method:'SUB',path:'/ws/v3/anomalies/stream',name:'streamAnomalies',desc:'異常検出イベントストリーム',returns:'Stream<Anomaly>'},
+  {method:'GET',path:'/api/v3/cityscape/entities',name:'getCityscapeEntities',desc:'デジタルツインエンティティ一覧',returns:'DTEntity[]'},
+  {method:'POST',path:'/api/v3/cityscape/entities',name:'createEntity',desc:'エンティティ作成',returns:'DTEntity'},
+  {method:'GET',path:'/api/v3/testbed/scenarios',name:'getTestScenarios',desc:'テストシナリオ一覧',returns:'Scenario[]'},
+  {method:'POST',path:'/api/v3/testbed/run',name:'runTestSuite',desc:'テストスイート実行',returns:'TestResult'}
+];
+
+var SDK_TYPES={
+  MediationState:'{composite:number,dims:Record<string,number>,sources:Record<string,DataSource>,reality:RealityIndex,weights:Record<string,number>}',
+  PhaseLaw:'{id:string,name:string,result:{score:number,state:PhaseLawState}}',
+  SpatialRecord:'{id:string,fingerprint:Record<string,number>,composite:number,location?:GeoPoint,spaceType:string,timestamp:number,tags:string[]}',
+  MeasureResult:'{distM:number|null,conf:number,lagMs:number,signal:string}',
+  SensorState:'{acoustic:AcousticData,mag:MagData,light:LightData,motion:MotionData,thermal:ThermalData,ble:BLEState}',
+  DataSource:"'real'|'sim'|'est'|'na'",
+  PhaseLawState:"'COUPLED'|'PARTIAL'|'DECOUPLED'|'CONTINUOUS'|'DISCONTINUOUS'|...",
+  GeoPoint:'{lat:number,lng:number,alt?:number,acc?:number}'
+};
+
+function generateSDKCode(lang,apiSurface){
+  if(lang==='js')return generateJS(apiSurface);
+  if(lang==='python')return generatePython(apiSurface);
+  if(lang==='rust')return generateRust(apiSurface);
+  return'// Unknown language';
+}
+
+function generateJS(api){
+  var lines=[];
+  lines.push('// ═══ Physical Ping SDK v3.0 — JavaScript ═══');
+  lines.push('// npm install @physical-ping/sdk');
+  lines.push('// Generated: '+new Date().toISOString());
+  lines.push('');
+  lines.push('class PhysicalPingClient {');
+  lines.push('  #baseUrl; #wsUrl; #apiKey; #ws;');
+  lines.push('');
+  lines.push('  constructor(config = {}) {');
+  lines.push('    this.#baseUrl = config.baseUrl || "http://localhost:8080";');
+  lines.push('    this.#wsUrl = config.wsUrl || "ws://localhost:8080";');
+  lines.push('    this.#apiKey = config.apiKey || "";');
+  lines.push('    this.#ws = null;');
+  lines.push('  }');
+  lines.push('');
+  lines.push('  async #fetch(method, path, body) {');
+  lines.push('    const res = await fetch(`${this.#baseUrl}${path}`, {');
+  lines.push('      method, headers: { "Content-Type": "application/json",');
+  lines.push('        "Authorization": `Bearer ${this.#apiKey}` },');
+  lines.push('      body: body ? JSON.stringify(body) : undefined });');
+  lines.push('    if (!res.ok) throw new PingSDKError(res.status, await res.text());');
+  lines.push('    return res.json();');
+  lines.push('  }');
+  lines.push('');
+  api.forEach(function(ep){
+    if(ep.method==='SUB'){
+      lines.push('  /** '+ep.desc+' @returns '+ep.returns+' */');
+      lines.push('  '+ep.name+'(callback) {');
+      lines.push('    const ws = new WebSocket(`${this.#wsUrl}'+ep.path+'`);');
+      lines.push('    ws.onmessage = (ev) => callback(JSON.parse(ev.data));');
+      lines.push('    return { unsubscribe: () => ws.close() };');
+      lines.push('  }');
+    } else {
+      var hasBody=ep.method==='POST'||ep.method==='PUT';
+      var hasParam=ep.path.indexOf(':')>=0;
+      var paramName=hasParam?ep.path.split(':')[1]:'';
+      var args=[];
+      if(hasParam)args.push(paramName);
+      if(hasBody)args.push('data');
+      lines.push('  /** '+ep.desc+' @returns Promise<'+ep.returns+'> */');
+      lines.push('  async '+ep.name+'('+args.join(', ')+') {');
+      var pathExpr=hasParam?ep.path.replace(':'+paramName,'${'+paramName+'}'):ep.path;
+      lines.push('    return this.#fetch("'+ep.method+'", `'+pathExpr+'`'+(hasBody?', data':'')+');');
+      lines.push('  }');
+    }
+    lines.push('');
+  });
+  lines.push('  destroy() { if (this.#ws) this.#ws.close(); }');
+  lines.push('}');
+  lines.push('');
+  lines.push('class PingSDKError extends Error {');
+  lines.push('  constructor(status, message) {');
+  lines.push('    super(`[PingSDK ${status}] ${message}`);');
+  lines.push('    this.status = status;');
+  lines.push('  }');
+  lines.push('}');
+  lines.push('');
+  lines.push('export { PhysicalPingClient, PingSDKError };');
+  return lines.join('\n');
+}
+
+function generatePython(api){
+  var lines=[];
+  lines.push('# ═══ Physical Ping SDK v3.0 — Python ═══');
+  lines.push('# pip install physical-ping-sdk');
+  lines.push('# Generated: '+new Date().toISOString());
+  lines.push('');
+  lines.push('import aiohttp');
+  lines.push('import asyncio');
+  lines.push('import json');
+  lines.push('from dataclasses import dataclass, field');
+  lines.push('from typing import Optional, List, Dict, Callable, Any');
+  lines.push('from enum import Enum');
+  lines.push('');
+  lines.push('class DataSource(Enum):');
+  lines.push('    REAL = "real"');
+  lines.push('    SIM = "sim"');
+  lines.push('    EST = "est"');
+  lines.push('    NA = "na"');
+  lines.push('');
+  lines.push('@dataclass');
+  lines.push('class MediationState:');
+  lines.push('    composite: float');
+  lines.push('    dims: Dict[str, float]');
+  lines.push('    sources: Dict[str, DataSource]');
+  lines.push('    reality_index: float');
+  lines.push('    weights: Dict[str, float]');
+  lines.push('');
+  lines.push('@dataclass');
+  lines.push('class PhaseLaw:');
+  lines.push('    id: str');
+  lines.push('    name: str');
+  lines.push('    score: float');
+  lines.push('    state: str');
+  lines.push('');
+  lines.push('@dataclass');
+  lines.push('class SpatialRecord:');
+  lines.push('    id: str');
+  lines.push('    fingerprint: Dict[str, float]');
+  lines.push('    composite: float');
+  lines.push('    space_type: str');
+  lines.push('    timestamp: int');
+  lines.push('    tags: List[str] = field(default_factory=list)');
+  lines.push('');
+  lines.push('');
+  lines.push('class PhysicalPingClient:');
+  lines.push('    """Physical Ping SDK v3.0 Python Client"""');
+  lines.push('');
+  lines.push('    def __init__(self, base_url="http://localhost:8080",');
+  lines.push('                 api_key="", ws_url="ws://localhost:8080"):');
+  lines.push('        self._base = base_url');
+  lines.push('        self._ws = ws_url');
+  lines.push('        self._key = api_key');
+  lines.push('        self._session: Optional[aiohttp.ClientSession] = None');
+  lines.push('');
+  lines.push('    async def _ensure_session(self):');
+  lines.push('        if not self._session:');
+  lines.push('            self._session = aiohttp.ClientSession(');
+  lines.push('                headers={"Authorization": f"Bearer {self._key}"})');
+  lines.push('');
+  lines.push('    async def _request(self, method: str, path: str,');
+  lines.push('                       data: Any = None) -> Any:');
+  lines.push('        await self._ensure_session()');
+  lines.push('        async with self._session.request(');
+  lines.push('            method, f"{self._base}{path}",');
+  lines.push('            json=data) as resp:');
+  lines.push('            resp.raise_for_status()');
+  lines.push('            return await resp.json()');
+  lines.push('');
+  api.forEach(function(ep){
+    if(ep.method==='SUB'){
+      lines.push('    async def '+toSnake(ep.name)+'(self,');
+      lines.push('            callback: Callable) -> None:');
+      lines.push('        """'+ep.desc+'"""');
+      lines.push('        await self._ensure_session()');
+      lines.push('        async with self._session.ws_connect(');
+      lines.push('                f"{self._ws}'+ep.path+'") as ws:');
+      lines.push('            async for msg in ws:');
+      lines.push('                callback(json.loads(msg.data))');
+    } else {
+      var hasBody=ep.method==='POST'||ep.method==='PUT';
+      var hasParam=ep.path.indexOf(':')>=0;
+      var paramName=hasParam?toSnake(ep.path.split(':')[1]):'';
+      var args=['self'];
+      if(hasParam)args.push(paramName+': str');
+      if(hasBody)args.push('data: dict = None');
+      lines.push('    async def '+toSnake(ep.name)+'('+args.join(', ')+'):');
+      lines.push('        """'+ep.desc+'"""');
+      var pathExpr=hasParam?ep.path.replace(':'+ep.path.split(':')[1],'{'+paramName+'}'):ep.path;
+      lines.push('        return await self._request("'+ep.method+'",');
+      lines.push('            f"'+pathExpr+'"'+(hasBody?', data':'')+')');
+    }
+    lines.push('');
+  });
+  lines.push('    async def close(self):');
+  lines.push('        if self._session:');
+  lines.push('            await self._session.close()');
+  return lines.join('\n');
+}
+
+function generateRust(api){
+  var lines=[];
+  lines.push('// ═══ Physical Ping SDK v3.0 — Rust ═══');
+  lines.push('// cargo add physical-ping-sdk');
+  lines.push('// Generated: '+new Date().toISOString());
+  lines.push('');
+  lines.push('use serde::{Deserialize, Serialize};');
+  lines.push('use reqwest::Client;');
+  lines.push('use tokio_tungstenite::connect_async;');
+  lines.push('use std::collections::HashMap;');
+  lines.push('use thiserror::Error;');
+  lines.push('');
+  lines.push('#[derive(Error, Debug)]');
+  lines.push('pub enum PingSdkError {');
+  lines.push('    #[error("HTTP error: {0}")]');
+  lines.push('    Http(#[from] reqwest::Error),');
+  lines.push('    #[error("WebSocket error: {0}")]');
+  lines.push('    Ws(String),');
+  lines.push('    #[error("Parse error: {0}")]');
+  lines.push('    Parse(#[from] serde_json::Error),');
+  lines.push('}');
+  lines.push('');
+  lines.push('#[derive(Debug, Clone, Serialize, Deserialize)]');
+  lines.push('pub struct MediationState {');
+  lines.push('    pub composite: f64,');
+  lines.push('    pub dims: HashMap<String, f64>,');
+  lines.push('    pub sources: HashMap<String, String>,');
+  lines.push('    pub reality_index: f64,');
+  lines.push('}');
+  lines.push('');
+  lines.push('#[derive(Debug, Clone, Serialize, Deserialize)]');
+  lines.push('pub struct PhaseLaw {');
+  lines.push('    pub id: String,');
+  lines.push('    pub name: String,');
+  lines.push('    pub score: f64,');
+  lines.push('    pub state: String,');
+  lines.push('}');
+  lines.push('');
+  lines.push('#[derive(Debug, Clone, Serialize, Deserialize)]');
+  lines.push('pub struct SpatialRecord {');
+  lines.push('    pub id: String,');
+  lines.push('    pub fingerprint: HashMap<String, f64>,');
+  lines.push('    pub composite: f64,');
+  lines.push('    pub space_type: String,');
+  lines.push('    pub timestamp: u64,');
+  lines.push('    pub tags: Vec<String>,');
+  lines.push('}');
+  lines.push('');
+  lines.push('pub struct PhysicalPingClient {');
+  lines.push('    base_url: String,');
+  lines.push('    ws_url: String,');
+  lines.push('    client: Client,');
+  lines.push('}');
+  lines.push('');
+  lines.push('impl PhysicalPingClient {');
+  lines.push('    pub fn new(base_url: &str, api_key: &str) -> Self {');
+  lines.push('        let client = Client::builder()');
+  lines.push('            .default_headers({');
+  lines.push('                let mut h = reqwest::header::HeaderMap::new();');
+  lines.push('                h.insert("Authorization",');
+  lines.push('                    format!("Bearer {}", api_key).parse().unwrap());');
+  lines.push('                h');
+  lines.push('            })');
+  lines.push('            .build().unwrap();');
+  lines.push('        Self {');
+  lines.push('            base_url: base_url.to_string(),');
+  lines.push('            ws_url: base_url.replace("http", "ws"),');
+  lines.push('            client,');
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  api.filter(function(ep){return ep.method!=='SUB';}).forEach(function(ep){
+    var hasBody=ep.method==='POST'||ep.method==='PUT';
+    var hasParam=ep.path.indexOf(':')>=0;
+    var paramName=hasParam?toSnake(ep.path.split(':')[1]):'';
+    var args=[];
+    if(hasParam)args.push(paramName+': &str');
+    if(hasBody)args.push('data: &serde_json::Value');
+    var retType=ep.returns==='void'?'()':ep.returns.replace('[]','Vec').replace('|','Or');
+    lines.push('    /// '+ep.desc);
+    lines.push('    pub async fn '+toSnake(ep.name)+'(&self'+(args.length?', '+args.join(', '):'')+')');
+    lines.push('        -> Result<serde_json::Value, PingSdkError> {');
+    var pathExpr=hasParam?ep.path.replace(':'+ep.path.split(':')[1],'{'+paramName+'}'):ep.path;
+    if(hasBody){
+      lines.push('        let resp = self.client.'+ep.method.toLowerCase()+'(');
+      lines.push('            format!("{}'+pathExpr+'", self.base_url))');
+      lines.push('            .json(data).send().await?;');
+    } else {
+      lines.push('        let resp = self.client.'+ep.method.toLowerCase()+'(');
+      lines.push('            format!("{}'+pathExpr+'", self.base_url))');
+      lines.push('            .send().await?;');
+    }
+    lines.push('        Ok(resp.json().await?)');
+    lines.push('    }');
+    lines.push('');
+  });
+  lines.push('}');
+  return lines.join('\n');
+}
+
+function toSnake(s){return s.replace(/[A-Z]/g,function(c,i){return(i?'_':'')+c.toLowerCase();});}
+
+function useSDKInfra(){
+  var _lang=useState('js'),lang=_lang[0],setLang=_lang[1];
+  var _code=useState(''),code=_code[0],setCode=_code[1];
+  var _stats=useState({endpoints:SDK_API_SURFACE.length,types:Object.keys(SDK_TYPES).length,streams:SDK_API_SURFACE.filter(function(a){return a.method==='SUB';}).length}),stats=_stats[0];
+  var _genCount=useState(0),genCount=_genCount[0],setGenCount=_genCount[1];
+  var _exportLog=useState([]),exportLog=_exportLog[0],setExportLog=_exportLog[1];
+
+  var generate=useCallback(function(language){
+    var l=language||lang;
+    setLang(l);
+    var generated=generateSDKCode(l,SDK_API_SURFACE);
+    setCode(generated);
+    setGenCount(function(c){return c+1;});
+    setExportLog(function(p){return[{ts:Date.now(),lang:l,lines:generated.split('\n').length,size:(new Blob([generated]).size/1024).toFixed(1)+'KB'}].concat(p).slice(0,20);});
+    return generated;
+  },[lang]);
+
+  var exportSDK=useCallback(function(language){
+    var l=language||lang;
+    var c=generateSDKCode(l,SDK_API_SURFACE);
+    var ext=l==='js'?'.mjs':l==='python'?'.py':'.rs';
+    var blob=new Blob([c],{type:'text/plain'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download='physical_ping_sdk'+ext;a.click();
+    URL.revokeObjectURL(url);
+  },[lang]);
+
+  var getManifest=useCallback(function(language){
+    var l=language||lang;
+    if(l==='js')return{name:'@physical-ping/sdk',version:'3.0.0',main:'dist/index.mjs',types:'dist/index.d.ts',dependencies:{},peerDependencies:{},keywords:['physical-ping','mediation','phase-law','spatial','iot']};
+    if(l==='python')return{name:'physical-ping-sdk',version:'3.0.0',requires:['aiohttp>=3.9','pydantic>=2.0'],python_requires:'>=3.10',classifiers:['Framework :: AsyncIO','Topic :: Scientific/Engineering']};
+    if(l==='rust')return{name:'physical-ping-sdk',version:'3.0.0',edition:'2021',dependencies:{reqwest:{version:'0.11',features:['json']},tokio:{version:'1',features:['full']},serde:{version:'1',features:['derive']},serde_json:'1','tokio-tungstenite':'0.20',thiserror:'1'}};
+    return{};
+  },[lang]);
+
+  /* Auto-generate on mount */
+  useEffect(function(){generate('js');},[]);
+
+  return{lang:lang,setLang:setLang,code:code,stats:stats,genCount:genCount,exportLog:exportLog,generate:generate,exportSDK:exportSDK,getManifest:getManifest,apiSurface:SDK_API_SURFACE,types:SDK_TYPES};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v3.0 SPATIAL MEDIATION DB                                  */
+/*  In-memory spatial database with query engine, indexing,    */
+/*  CRUD operations, and μ(x,t) fingerprint storage            */
+/* ═══════════════════════════════════════════════════════════ */
+var SDB_STORES={RECORDS:'sdb_records',INDEXES:'sdb_indexes',QUERIES:'sdb_queries'};
+
+function useSpatialMediationDB(mediation,phaseLaws){
+  var _records=useState([]),records=_records[0],setRecords=_records[1];
+  var _indexes=useState([]),indexes=_indexes[0],setIndexes=_indexes[1];
+  var _queryResults=useState(null),queryResults=_queryResults[0],setQueryResults=_queryResults[1];
+  var _queryText=useState(''),queryText=_queryText[0],setQueryText=_queryText[1];
+  var _queryHistory=useState([]),queryHistory=_queryHistory[0],setQueryHistory=_queryHistory[1];
+  var _selectedRecord=useState(null),selectedRecord=_selectedRecord[0],setSelectedRecord=_selectedRecord[1];
+  var _dbStats=useState({records:0,indexes:0,avgComposite:0,spaceTypes:{},queryCount:0,lastInsert:null,storageKB:0}),dbStats=_dbStats[0],setDbStats=_dbStats[1];
+  var _autoCapture=useState(false),autoCapture=_autoCapture[0],setAutoCapture=_autoCapture[1];
+  var autoCaptureRef=useRef(null);
+  var MAX_RECORDS=500;
+
+  /* Insert record */
+  var insert=useCallback(function(name,tags,location){
+    if(!mediation||!mediation.dims)return null;
+    var fp={};
+    DIM_KEYS.forEach(function(k){fp[k]=Math.round((mediation.dims[k]||0)*10000)/10000;});
+    var rec={
+      id:'sdb_'+genId()+'_'+Date.now(),
+      name:name||'Capture_'+new Date().toISOString().slice(0,19).replace(/[T:]/g,'-'),
+      fingerprint:fp,
+      composite:mediation.composite,
+      sources:Object.assign({},mediation.sources),
+      reality:mediation.reality?{index:mediation.reality.index,realCount:mediation.reality.realCount}:null,
+      spaceType:mediation.spaceType||'unknown',
+      phaseLawSnapshot:phaseLaws?phaseLaws.map(function(l){return{id:l.id,score:l.result.score,state:l.result.state};}):null,
+      location:location||null,
+      tags:tags||[],
+      timestamp:Date.now(),
+      version:'3.0'
+    };
+    setRecords(function(prev){return[rec].concat(prev).slice(0,MAX_RECORDS);});
+    updateIndexes([rec].concat(records));
+    return rec;
+  },[mediation,phaseLaws,records]);
+
+  /* Update record */
+  var update=useCallback(function(id,updates){
+    setRecords(function(prev){return prev.map(function(r){return r.id===id?Object.assign({},r,updates,{modifiedAt:Date.now()}):r;});});
+  },[]);
+
+  /* Delete record */
+  var remove=useCallback(function(id){
+    setRecords(function(prev){return prev.filter(function(r){return r.id!==id;});});
+  },[]);
+
+  /* Query engine */
+  var query=useCallback(function(queryStr){
+    var qs=queryStr||queryText;
+    if(!qs.trim())return null;
+    var startTime=performance.now();
+    var results=[];
+    var parts=qs.toLowerCase().trim().split(/\s+/);
+    var filters=[];
+    parts.forEach(function(p){
+      var kv=p.split(/[=><:]/);
+      if(p.indexOf('composite>')>=0)filters.push({type:'composite_gt',val:parseFloat(kv[1])});
+      else if(p.indexOf('composite<')>=0)filters.push({type:'composite_lt',val:parseFloat(kv[1])});
+      else if(p.indexOf('composite=')>=0)filters.push({type:'composite_eq',val:parseFloat(kv[1]),tol:0.05});
+      else if(p.indexOf('space:')>=0)filters.push({type:'space',val:kv[1]});
+      else if(p.indexOf('tag:')>=0)filters.push({type:'tag',val:kv[1]});
+      else if(p.indexOf('reality>')>=0)filters.push({type:'reality_gt',val:parseFloat(kv[1])});
+      else if(p.indexOf('law:')>=0){var lp=kv[1].split('/');filters.push({type:'law',id:lp[0],state:lp[1]||null});}
+      else if(p.indexOf('dim:')>=0){var dp=kv[1].split('/');filters.push({type:'dim',key:dp[0],op:dp[1]||'gt',val:parseFloat(dp[2])||0.5});}
+      else if(p.indexOf('near:')>=0)filters.push({type:'near',ref:kv[1]});
+      else if(p.indexOf('since:')>=0)filters.push({type:'since',val:parseDuration(kv[1])});
+      else filters.push({type:'text',val:p});
+    });
+
+    results=records.filter(function(rec){
+      return filters.every(function(f){
+        switch(f.type){
+          case 'composite_gt':return rec.composite>f.val;
+          case 'composite_lt':return rec.composite<f.val;
+          case 'composite_eq':return Math.abs(rec.composite-f.val)<(f.tol||0.05);
+          case 'space':return(rec.spaceType||'').toLowerCase().indexOf(f.val)>=0;
+          case 'tag':return rec.tags&&rec.tags.some(function(t){return t.toLowerCase().indexOf(f.val)>=0;});
+          case 'reality_gt':return rec.reality&&rec.reality.index>f.val;
+          case 'law':
+            if(!rec.phaseLawSnapshot)return false;
+            var law=rec.phaseLawSnapshot.find(function(l){return l.id.toLowerCase()===f.id.toLowerCase()||l.id.toLowerCase().indexOf(f.id)>=0;});
+            if(!law)return false;
+            return f.state?law.state.toLowerCase()===f.state.toLowerCase():true;
+          case 'dim':
+            var dv=rec.fingerprint[f.key]||0;
+            if(f.op==='gt')return dv>f.val;if(f.op==='lt')return dv<f.val;return Math.abs(dv-f.val)<0.1;
+          case 'near':
+            var ref=records.find(function(r){return r.id===f.ref||r.name.toLowerCase().indexOf(f.ref)>=0;});
+            if(!ref)return false;
+            return fingerprintSimilarity(rec.fingerprint,ref.fingerprint)>0.7;
+          case 'since':return rec.timestamp>(Date.now()-f.val);
+          case 'text':return(rec.name||'').toLowerCase().indexOf(f.val)>=0||(rec.spaceType||'').toLowerCase().indexOf(f.val)>=0||rec.tags.some(function(t){return t.toLowerCase().indexOf(f.val)>=0;});
+          default:return true;
+        }
+      });
+    });
+
+    var elapsed=performance.now()-startTime;
+    var qr={query:qs,results:results,count:results.length,elapsed:elapsed.toFixed(2),timestamp:Date.now()};
+    setQueryResults(qr);
+    setQueryHistory(function(p){return[qr].concat(p).slice(0,30);});
+    return qr;
+  },[queryText,records]);
+
+  /* Fingerprint similarity */
+  function fingerprintSimilarity(fp1,fp2){
+    if(!fp1||!fp2)return 0;
+    var sumSq=0,count=0;
+    DIM_KEYS.forEach(function(k){sumSq+=(((fp1[k]||0)-(fp2[k]||0))*((fp1[k]||0)-(fp2[k]||0)));count++;});
+    return count>0?Math.max(0,1-Math.sqrt(sumSq/count)*3):0;
+  }
+
+  function parseDuration(s){
+    if(!s)return 0;
+    var m=s.match(/(\d+)(s|m|h|d)/);if(!m)return parseInt(s)*1000||0;
+    var v=parseInt(m[1]),u=m[2];
+    return v*(u==='s'?1000:u==='m'?60000:u==='h'?3600000:86400000);
+  }
+
+  /* Update spatial indexes */
+  function updateIndexes(allRecords){
+    var spaceIdx={},compositeIdx={buckets:[]},dimIdx={};
+    allRecords.forEach(function(r){
+      var st=r.spaceType||'unknown';
+      if(!spaceIdx[st])spaceIdx[st]={count:0,avgComposite:0,sum:0};
+      spaceIdx[st].count++;spaceIdx[st].sum+=r.composite;
+      spaceIdx[st].avgComposite=spaceIdx[st].sum/spaceIdx[st].count;
+    });
+    /* Composite histogram buckets */
+    for(var b=0;b<10;b++){
+      var lo=b/10,hi=(b+1)/10;
+      compositeIdx.buckets.push({lo:lo,hi:hi,count:allRecords.filter(function(r){return r.composite>=lo&&r.composite<hi;}).length});
+    }
+    /* Per-dim stats */
+    DIM_KEYS.forEach(function(k){
+      var vals=allRecords.map(function(r){return r.fingerprint[k]||0;});
+      var mean=vals.length>0?vals.reduce(function(s,v){return s+v;},0)/vals.length:0;
+      var std=vals.length>1?Math.sqrt(vals.reduce(function(s,v){return s+(v-mean)*(v-mean);},0)/(vals.length-1)):0;
+      dimIdx[k]={mean:mean,std:std,min:Math.min.apply(null,vals.concat([0])),max:Math.max.apply(null,vals.concat([0]))};
+    });
+    setIndexes([
+      {name:'SPACE_TYPE',type:'hash',entries:Object.keys(spaceIdx).length,data:spaceIdx},
+      {name:'COMPOSITE',type:'btree',entries:compositeIdx.buckets.length,data:compositeIdx},
+      {name:'DIM_STATS',type:'stats',entries:DIM_KEYS.length,data:dimIdx}
+    ]);
+  }
+
+  /* Update DB stats */
+  useEffect(function(){
+    var stCounts={};
+    records.forEach(function(r){var st=r.spaceType||'unknown';stCounts[st]=(stCounts[st]||0)+1;});
+    var avgC=records.length>0?records.reduce(function(s,r){return s+r.composite;},0)/records.length:0;
+    setDbStats({records:records.length,indexes:indexes.length,avgComposite:avgC,spaceTypes:stCounts,queryCount:queryHistory.length,lastInsert:records.length>0?records[0].timestamp:null,storageKB:(JSON.stringify(records).length/1024).toFixed(1)});
+  },[records,indexes,queryHistory]);
+
+  /* Auto-capture timer */
+  useEffect(function(){
+    if(autoCapture){
+      autoCaptureRef.current=setInterval(function(){
+        insert('Auto_'+new Date().toISOString().slice(11,19).replace(/:/g,''),[' auto']);
+      },15000);
+    } else {
+      if(autoCaptureRef.current)clearInterval(autoCaptureRef.current);
+    }
+    return function(){if(autoCaptureRef.current)clearInterval(autoCaptureRef.current);};
+  },[autoCapture]);
+
+  /* Export */
+  var exportDB=useCallback(function(){
+    var data={version:'3.0',exported:new Date().toISOString(),records:records,indexes:indexes.map(function(idx){return{name:idx.name,type:idx.type,entries:idx.entries};}),stats:dbStats};
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='spatial_mediation_db_'+Date.now()+'.json';a.click();URL.revokeObjectURL(url);
+  },[records,indexes,dbStats]);
+
+  return{records:records,indexes:indexes,queryResults:queryResults,queryText:queryText,setQueryText:setQueryText,queryHistory:queryHistory,selectedRecord:selectedRecord,setSelectedRecord:setSelectedRecord,dbStats:dbStats,autoCapture:autoCapture,setAutoCapture:setAutoCapture,insert:insert,update:update,remove:remove,query:query,exportDB:exportDB};
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  v3.0 PHASE-LAW v3 AUTO-DISCOVERY ENGINE                   */
+/*  Statistical pattern detection to discover new Phase-Laws  */
+/*  from accumulated μ(x,t) data                              */
+/* ═══════════════════════════════════════════════════════════ */
+var AD_MIN_SAMPLES=20;
+var AD_CORRELATION_THRESHOLD=0.6;
+var AD_SIGNIFICANCE_LEVEL=0.05;
+
+function usePhaseAutoDiscovery(mediation,phaseLaws,timeSeries){
+  var _discovered=useState([]),discovered=_discovered[0],setDiscovered=_discovered[1];
+  var _scanning=useState(false),scanning=_scanning[0],setScanning=_scanning[1];
+  var _scanProgress=useState(0),scanProgress=_scanProgress[0],setScanProgress=_scanProgress[1];
+  var _corrMatrix=useState(null),corrMatrix=_corrMatrix[0],setCorrMatrix=_corrMatrix[1];
+  var _anomalyPatterns=useState([]),anomalyPatterns=_anomalyPatterns[0],setAnomalyPatterns=_anomalyPatterns[1];
+  var _scanLog=useState([]),scanLog=_scanLog[0],setScanLog=_scanLog[1];
+  var _stats=useState({totalScans:0,discovered:0,confirmed:0,rejected:0}),stats=_stats[0],setStats=_stats[1];
+  var dataBufferRef=useRef([]);
+  var MAX_BUFFER=500;
+  var MAX_DISCOVERED=50;
+
+  /* Accumulate data */
+  var accumulate=useCallback(function(med){
+    if(!med||!med.dims)return;
+    var entry={ts:Date.now(),composite:med.composite,dims:Object.assign({},med.dims),sources:Object.assign({},med.sources)};
+    dataBufferRef.current.push(entry);
+    if(dataBufferRef.current.length>MAX_BUFFER)dataBufferRef.current.shift();
+  },[]);
+
+  /* Compute correlation matrix between all dimension pairs */
+  var computeCorrelationMatrix=useCallback(function(){
+    var buf=dataBufferRef.current;
+    if(buf.length<AD_MIN_SAMPLES)return null;
+    var n=DIM_KEYS.length;
+    var matrix=[];
+    for(var i=0;i<n;i++){
+      matrix[i]=[];
+      for(var j=0;j<n;j++){
+        if(i===j){matrix[i][j]=1;continue;}
+        var xs=buf.map(function(b){return b.dims[DIM_KEYS[i]]||0;});
+        var ys=buf.map(function(b){return b.dims[DIM_KEYS[j]]||0;});
+        matrix[i][j]=pearsonCorrelation(xs,ys);
+      }
+    }
+    setCorrMatrix({keys:DIM_KEYS.slice(),matrix:matrix,samples:buf.length,timestamp:Date.now()});
+    return matrix;
+  },[]);
+
+  /* Pearson correlation */
+  function pearsonCorrelation(x,y){
+    var n=Math.min(x.length,y.length);if(n<3)return 0;
+    var mx=0,my=0;for(var i=0;i<n;i++){mx+=x[i];my+=y[i];}mx/=n;my/=n;
+    var num=0,dx=0,dy=0;
+    for(var i=0;i<n;i++){var a=x[i]-mx,b=y[i]-my;num+=a*b;dx+=a*a;dy+=b*b;}
+    var denom=Math.sqrt(dx*dy);
+    return denom>1e-12?num/denom:0;
+  }
+
+  /* T-test for significance */
+  function tTestSignificance(r,n){
+    if(n<4||Math.abs(r)>0.9999)return 0;
+    var t=r*Math.sqrt((n-2)/(1-r*r));
+    /* Approximate p-value using t distribution */
+    var df=n-2;
+    var x=df/(df+t*t);
+    /* Simple approximation for p-value */
+    return Math.max(0.0001,Math.min(1,Math.exp(-Math.abs(t)*0.5)));
+  }
+
+  /* Detect temporal patterns (lagged correlations) */
+  function detectTemporalPattern(dimA,dimB,lag){
+    var buf=dataBufferRef.current;
+    if(buf.length<AD_MIN_SAMPLES+lag)return null;
+    var xs=[];var ys=[];
+    for(var i=lag;i<buf.length;i++){
+      xs.push(buf[i-lag].dims[dimA]||0);
+      ys.push(buf[i].dims[dimB]||0);
+    }
+    var r=pearsonCorrelation(xs,ys);
+    return{dimA:dimA,dimB:dimB,lag:lag,correlation:r,samples:xs.length};
+  }
+
+  /* Detect threshold crossing patterns */
+  function detectThresholdPattern(dim){
+    var buf=dataBufferRef.current;
+    if(buf.length<AD_MIN_SAMPLES)return null;
+    var vals=buf.map(function(b){return b.dims[dim]||0;});
+    var mean=vals.reduce(function(s,v){return s+v;},0)/vals.length;
+    var std=Math.sqrt(vals.reduce(function(s,v){return s+(v-mean)*(v-mean);},0)/(vals.length-1));
+    /* Check for bimodal distribution (two clusters) */
+    var above=vals.filter(function(v){return v>mean;});
+    var below=vals.filter(function(v){return v<=mean;});
+    if(above.length<3||below.length<3)return null;
+    var meanAbove=above.reduce(function(s,v){return s+v;},0)/above.length;
+    var meanBelow=below.reduce(function(s,v){return s+v;},0)/below.length;
+    var gap=meanAbove-meanBelow;
+    if(gap>std*1.5){
+      return{dim:dim,threshold:mean,meanAbove:meanAbove,meanBelow:meanBelow,gap:gap,bimodal:true,std:std};
+    }
+    return null;
+  }
+
+  /* Main scan function — discover new Phase-Laws */
+  var runDiscovery=useCallback(function(){
+    if(scanning)return;
+    setScanning(true);setScanProgress(0);
+    setScanLog(function(p){return[{ts:Date.now(),msg:'=== Auto-Discovery Scan 開始 ===',level:'info'}].concat(p).slice(0,100);});
+
+    var buf=dataBufferRef.current;
+    if(buf.length<AD_MIN_SAMPLES){
+      setScanLog(function(p){return[{ts:Date.now(),msg:'データ不足: '+buf.length+'/'+AD_MIN_SAMPLES+' samples',level:'warn'}].concat(p);});
+      setScanning(false);return;
+    }
+
+    var newLaws=[];
+    var step=0;var totalSteps=5;
+
+    /* Step 1: Correlation matrix */
+    setTimeout(function(){
+      step++;setScanProgress(Math.round(step/totalSteps*100));
+      setScanLog(function(p){return[{ts:Date.now(),msg:'[1/5] 相関行列計算中… ('+buf.length+' samples)',level:'info'}].concat(p);});
+      var matrix=computeCorrelationMatrix();
+
+      /* Step 2: Find strong correlations not covered by existing laws */
+      setTimeout(function(){
+        step++;setScanProgress(Math.round(step/totalSteps*100));
+        setScanLog(function(p){return[{ts:Date.now(),msg:'[2/5] 未知の相関パターン探索中…',level:'info'}].concat(p);});
+        if(matrix){
+          var existingPairs=[['acoustic','spatial'],['emField'],['rfDensity'],['kinetic'],['network'],['thermal','photonic']];
+          for(var i=0;i<DIM_KEYS.length;i++){
+            for(var j=i+1;j<DIM_KEYS.length;j++){
+              var r=matrix[i][j];
+              if(Math.abs(r)>AD_CORRELATION_THRESHOLD){
+                var pVal=tTestSignificance(r,buf.length);
+                if(pVal<AD_SIGNIFICANCE_LEVEL){
+                  var isKnown=existingPairs.some(function(pair){
+                    return pair.indexOf(DIM_KEYS[i])>=0&&pair.indexOf(DIM_KEYS[j])>=0;
+                  });
+                  if(!isKnown){
+                    var lawId='AD-'+String(discovered.length+newLaws.length+1).padStart(3,'0');
+                    var dimI=DIM_KEYS[i],dimJ=DIM_KEYS[j];
+                    var labelI=DIM_LABELS[i],labelJ=DIM_LABELS[j];
+                    newLaws.push({
+                      id:lawId,
+                      name:labelI+'-'+labelJ+(r>0?' 正相関':' 逆相関'),
+                      type:'correlation',
+                      status:'candidate',
+                      dims:[dimI,dimJ],
+                      correlation:r,
+                      pValue:pVal,
+                      samples:buf.length,
+                      confidence:Math.min(1,(1-pVal)*Math.min(1,buf.length/100)),
+                      discoveredAt:Date.now(),
+                      formula:'ρ('+dimI+','+dimJ+') = '+r.toFixed(4),
+                      evaluate:function(dims,d1,d2,corr){return function(med){
+                        var v1=med.dims[d1]||0,v2=med.dims[d2]||0;
+                        var expected=corr>0?v1:1-v1;
+                        var deviation=Math.abs(v2-expected);
+                        var score=Math.max(0,1-deviation*2);
+                        return{score:score,state:score>.65?'ALIGNED':score>.35?'DRIFTING':'DIVERGENT'};
+                      };}(null,dimI,dimJ,r)
+                    });
+                    setScanLog(function(p){return[{ts:Date.now(),msg:'発見: '+labelI+' ↔ '+labelJ+' (r='+r.toFixed(3)+', p='+pVal.toFixed(4)+')',level:'pass'}].concat(p);});
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        /* Step 3: Temporal/lagged patterns */
+        setTimeout(function(){
+          step++;setScanProgress(Math.round(step/totalSteps*100));
+          setScanLog(function(p){return[{ts:Date.now(),msg:'[3/5] 時間遅延パターン分析中…',level:'info'}].concat(p);});
+          var temporalPatterns=[];
+          [1,2,3,5].forEach(function(lag){
+            for(var i=0;i<DIM_KEYS.length;i++){
+              for(var j=0;j<DIM_KEYS.length;j++){
+                if(i===j)continue;
+                var tp=detectTemporalPattern(DIM_KEYS[i],DIM_KEYS[j],lag);
+                if(tp&&Math.abs(tp.correlation)>0.5){
+                  temporalPatterns.push(tp);
+                }
+              }
+            }
+          });
+          /* Keep top patterns */
+          temporalPatterns.sort(function(a,b){return Math.abs(b.correlation)-Math.abs(a.correlation);});
+          temporalPatterns.slice(0,3).forEach(function(tp){
+            var lawId='AD-T'+String(discovered.length+newLaws.length+1).padStart(3,'0');
+            var iA=DIM_KEYS.indexOf(tp.dimA),iB=DIM_KEYS.indexOf(tp.dimB);
+            newLaws.push({
+              id:lawId,
+              name:DIM_LABELS[iA]+'→'+DIM_LABELS[iB]+' 時間遅延('+tp.lag+'step)',
+              type:'temporal',
+              status:'candidate',
+              dims:[tp.dimA,tp.dimB],
+              correlation:tp.correlation,
+              lag:tp.lag,
+              samples:tp.samples,
+              confidence:Math.min(1,Math.abs(tp.correlation)*Math.min(1,tp.samples/50)),
+              discoveredAt:Date.now(),
+              formula:DIM_LABELS[iA]+'(t-'+tp.lag+') → '+DIM_LABELS[iB]+'(t), r='+tp.correlation.toFixed(3),
+              evaluate:function(dA,dB,corr){return function(med){
+                var v=(med.dims[dA]||0)*(corr>0?1:-1);
+                var score=Math.max(0,Math.min(1,v));
+                return{score:score,state:score>.6?'PREDICTIVE':score>.3?'WEAK':'NOISE'};
+              };}(tp.dimA,tp.dimB,tp.correlation)
+            });
+            setScanLog(function(p){return[{ts:Date.now(),msg:'時間遅延発見: '+tp.dimA+'→'+tp.dimB+' lag='+tp.lag+' (r='+tp.correlation.toFixed(3)+')',level:'pass'}].concat(p);});
+          });
+
+          /* Step 4: Threshold/bimodal patterns */
+          setTimeout(function(){
+            step++;setScanProgress(Math.round(step/totalSteps*100));
+            setScanLog(function(p){return[{ts:Date.now(),msg:'[4/5] 閾値パターン分析中…',level:'info'}].concat(p);});
+            DIM_KEYS.forEach(function(dim,idx){
+              var tp=detectThresholdPattern(dim);
+              if(tp&&tp.bimodal){
+                var lawId='AD-B'+String(discovered.length+newLaws.length+1).padStart(3,'0');
+                newLaws.push({
+                  id:lawId,
+                  name:DIM_LABELS[idx]+' 二峰性分布',
+                  type:'bimodal',
+                  status:'candidate',
+                  dims:[dim],
+                  threshold:tp.threshold,
+                  meanAbove:tp.meanAbove,
+                  meanBelow:tp.meanBelow,
+                  gap:tp.gap,
+                  samples:buf.length,
+                  confidence:Math.min(1,tp.gap/(tp.std*3)),
+                  discoveredAt:Date.now(),
+                  formula:DIM_LABELS[idx]+' bimodal: μ_low='+tp.meanBelow.toFixed(3)+' μ_high='+tp.meanAbove.toFixed(3),
+                  evaluate:function(d,th){return function(med){
+                    var v=med.dims[d]||0;
+                    var inCluster=v>th?'HIGH':'LOW';
+                    return{score:Math.abs(v-th)/0.5,state:inCluster+'_REGIME'};
+                  };}(dim,tp.threshold)
+                });
+                setScanLog(function(p){return[{ts:Date.now(),msg:'二峰性発見: '+DIM_LABELS[idx]+' threshold='+tp.threshold.toFixed(3),level:'pass'}].concat(p);});
+              }
+            });
+            setAnomalyPatterns(temporalPatterns.slice(0,5));
+
+            /* Step 5: Finalize */
+            setTimeout(function(){
+              step++;setScanProgress(100);
+              setScanLog(function(p){return[{ts:Date.now(),msg:'[5/5] 完了 — '+newLaws.length+' 新Phase-Law候補発見',level:'info'}].concat(p);});
+              if(newLaws.length>0){
+                setDiscovered(function(prev){return newLaws.concat(prev).slice(0,MAX_DISCOVERED);});
+              }
+              setStats(function(prev){return{totalScans:prev.totalScans+1,discovered:prev.discovered+newLaws.length,confirmed:prev.confirmed,rejected:prev.rejected};});
+              setScanning(false);
+            },300);
+          },400);
+        },400);
+      },400);
+    },300);
+  },[scanning,discovered,computeCorrelationMatrix]);
+
+  /* Confirm / Reject discovered law */
+  var confirm=useCallback(function(id){
+    setDiscovered(function(prev){return prev.map(function(l){return l.id===id?Object.assign({},l,{status:'confirmed',confirmedAt:Date.now()}):l;});});
+    setStats(function(s){return Object.assign({},s,{confirmed:s.confirmed+1});});
+  },[]);
+
+  var reject=useCallback(function(id){
+    setDiscovered(function(prev){return prev.map(function(l){return l.id===id?Object.assign({},l,{status:'rejected',rejectedAt:Date.now()}):l;});});
+    setStats(function(s){return Object.assign({},s,{rejected:s.rejected+1});});
+  },[]);
+
+  /* Evaluate discovered laws against current mediation */
+  var evaluateDiscovered=useCallback(function(med){
+    return discovered.filter(function(l){return l.status==='confirmed';}).map(function(l){
+      var result=l.evaluate?l.evaluate(med):{score:0,state:'N/A'};
+      return{id:l.id,name:l.name,result:result};
+    });
+  },[discovered]);
+
+  /* Export */
+  var exportDiscoveries=useCallback(function(){
+    var data={version:'3.0',exported:new Date().toISOString(),discovered:discovered,corrMatrix:corrMatrix,stats:stats};
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='phase_law_discoveries_'+Date.now()+'.json';a.click();URL.revokeObjectURL(url);
+  },[discovered,corrMatrix,stats]);
+
+  return{discovered:discovered,scanning:scanning,scanProgress:scanProgress,corrMatrix:corrMatrix,anomalyPatterns:anomalyPatterns,scanLog:scanLog,stats:stats,bufferCount:dataBufferRef.current.length,accumulate:accumulate,runDiscovery:runDiscovery,confirm:confirm,reject:reject,evaluateDiscovered:evaluateDiscovered,computeCorrelationMatrix:computeCorrelationMatrix,exportDiscoveries:exportDiscoveries};
+}
+
 function App(){
   /* Layers / Tabs */
-  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','hardware','warehouse','factory','plugins','cityscape','testbed','vehicle','site','patent'];
+  var LAYERS=['measure','precision','spectrum','peers','heatmap','timeline','dashboard','profiles','network','midbrain','intelligence','routing','memory','hardware','warehouse','factory','plugins','cityscape','testbed','vehicle','site','patent','sdk','spatialdb','autodiscovery'];
   var _lay=useState('measure'),layer=_lay[0],setLayer=_lay[1];
 
   /* Audio state */
@@ -3653,6 +4525,11 @@ function App(){
   var cityscape=useCityscape(mediation,espFleet,vehicleFleet);
   var testbed=useTestbed(mediation,phaseLaws,espFleet,history);
 
+  /* v3.0 PLATFORM hooks */
+  var sdk=useSDKInfra();
+  var spatialDB=useSpatialMediationDB(mediation,phaseLaws);
+  var autoDiscovery=usePhaseAutoDiscovery(mediation,phaseLaws,timeSeries);
+
   /* Load spatial memories and adaptive thresholds on mount */
   useEffect(function(){
     spatialMem.load();
@@ -3679,6 +4556,8 @@ function App(){
       spatialMem.recognize(m);
       envTimeline.sample(m,st);
       if(dynWeights.enabled)dynWeights.optimize(m);
+      /* v3.0: accumulate data for auto-discovery */
+      autoDiscovery.accumulate(m);
       /* Broadcast to peers */
       if(net.connected)net.broadcastMediation({composite:m.composite,dims:m.dims,reality:m.reality});
     },2000);
@@ -3806,7 +4685,7 @@ function App(){
     /* Header */
     h('div',{className:'hdr'},
       h('div',{className:'hdr-title'},'PHYSICAL PING'),
-      h('div',{className:'hdr-ver'},'pTCP/IP v2.5 CITYSCAPE  |  デジタルツイン統合 + テストベッド実証 + 車載/ロボット/ドローン'),
+      h('div',{className:'hdr-ver'},'pTCP/IP v3.0 PLATFORM  |  SDK Infrastructure + Spatial Mediation DB + Phase-Law v3 Auto-Discovery'),
       h('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
         h('div',{className:'hdr-sub'},net.deviceName),
         h('div',{style:{fontSize:'9px',color:midbrain.mode==='NOMINAL'?'#00ffaa':midbrain.mode==='ALERT'?'#ffcc00':'#ff4444',letterSpacing:'1px',fontWeight:'bold'}},midbrain.mode),
@@ -3831,7 +4710,9 @@ function App(){
       h('span',null,'PEERS: ',h('span',{style:{color:net.peers.length+mp.connectedCount>0?'#00ffaa':'#556677'}},net.peers.length+mp.connectedCount)),
       h('span',null,'ESP32: ',h('span',{style:{color:espFleet.fleetStats.online>0?'#00ddff':'#556677'}},espFleet.fleetStats.online+'/'+espFleet.fleetStats.total)),
       h('span',null,'VEH: ',h('span',{style:{color:vehicleFleet.fleetStats.active>0?'#ff8800':'#556677'}},vehicleFleet.fleetStats.active+'/'+vehicleFleet.fleetStats.total)),
-      h('span',null,'DT: ',h('span',{style:{color:cityscape.syncStatus==='live'?'#00ffaa':'#556677'}},cityscape.syncStatus.toUpperCase()))
+      h('span',null,'DT: ',h('span',{style:{color:cityscape.syncStatus==='live'?'#00ffaa':'#556677'}},cityscape.syncStatus.toUpperCase())),
+      h('span',null,'SDB: ',h('span',{style:{color:spatialDB.dbStats.records>0?'#cc66ff':'#556677'}},spatialDB.dbStats.records)),
+      h('span',null,'AD: ',h('span',{style:{color:autoDiscovery.stats.discovered>0?'#ffcc00':'#556677'}},autoDiscovery.stats.confirmed+'/'+autoDiscovery.stats.discovered))
     ),
 
     /* ═══ MEASURE TAB ═══ */
@@ -5683,23 +6564,303 @@ function App(){
 
       /* v1.5 patent targets */
       h('div',{className:'card',style:{padding:'10px'}},
-        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v2.5 PATENT成功指標'),
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'v3.0 PATENT成功指標'),
         h('div',{className:'patent-grid'},
           [
             {label:'音響精度 1m以内',target:'±3cm',cur:result&&result.distM!=null&&result.distM<1.0?'測定中':'未計測',ok:!!result&&result.distM!=null&&result.distM<1.0},
             {label:'Reality Index',target:'70%+',cur:mediation.reality?(mediation.reality.index*100).toFixed(0)+'%':'--',ok:mediation.reality&&mediation.reality.index>0.7},
-            {label:'同時接続ピア',target:'5台+',cur:(net.peers.length+mp.connectedCount)+'台',ok:net.peers.length+mp.connectedCount>=5},
-            {label:'ESP32 Fleet',target:'3台+',cur:espFleet.fleetStats.online+'台',ok:espFleet.fleetStats.online>=3},
-            {label:'Vehicle Fleet',target:'3台+',cur:vehicleFleet.fleetStats.total+'台',ok:vehicleFleet.fleetStats.total>=3},
+            {label:'SDK Endpoints',target:'20+',cur:sdk.stats.endpoints,ok:sdk.stats.endpoints>=20},
+            {label:'Spatial DB',target:'50 rec+',cur:spatialDB.dbStats.records+' rec',ok:spatialDB.dbStats.records>=50},
+            {label:'Auto-Discovery',target:'3+ laws',cur:autoDiscovery.stats.discovered+' laws',ok:autoDiscovery.stats.discovered>=3},
             {label:'Digital Twin',target:'LIVE',cur:cityscape.syncStatus.toUpperCase(),ok:cityscape.syncStatus==='live'},
             {label:'Testbed Score',target:'80%+',cur:testbed.suiteResult?testbed.suiteResult.score+'%':'--',ok:testbed.suiteResult&&parseInt(testbed.suiteResult.score)>=80},
-            {label:'DT Entities',target:'5+',cur:cityscape.entities.length,ok:cityscape.entities.length>=5},
+            {label:'Phase-Laws Total',target:'15+',cur:(12+autoDiscovery.discovered.filter(function(d){return d.status==='confirmed';}).length),ok:12+autoDiscovery.discovered.filter(function(d){return d.status==='confirmed';}).length>=15},
           ].map(function(t,i){
             return h('div',{key:i,className:'patent-metric '+(t.ok?'pass':'warn')},
               h('div',{className:'patent-metric-val'},t.cur),
               h('div',{className:'patent-metric-lbl'},t.label),
               h('div',{className:'patent-metric-target'},'目標: '+t.target)
             );
+          })
+        )
+      )
+    ),
+
+    /* ═══ SDK TAB (v3.0) ═══ */
+    layer==='sdk'&&h('div',null,
+      /* SDK Stats */
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'6px',marginBottom:'8px'}},
+        [{l:'ENDPOINTS',v:sdk.stats.endpoints,c:'#00ffaa'},{l:'TYPES',v:sdk.stats.types,c:'#00ddff'},{l:'STREAMS',v:sdk.stats.streams,c:'#cc66ff'},{l:'GENERATED',v:sdk.genCount,c:'#ff8800'}].map(function(s,i){
+          return h('div',{key:i,className:'sdk-stat'},
+            h('div',{className:'sdk-stat-v',style:{color:s.c}},s.v),
+            h('div',{className:'sdk-stat-l'},s.l));
+        })
+      ),
+
+      /* Language tabs */
+      h('div',{style:{display:'flex',gap:'2px'}},
+        [['js','JavaScript','#f7df1e'],['python','Python','#5ba0d0'],['rust','Rust','#e06050']].map(function(t){
+          return h('button',{key:t[0],className:'sdk-lang-tab '+t[0]+(sdk.lang===t[0]?' active':''),
+            onClick:function(){sdk.generate(t[0]);}},t[1]);
+        })
+      ),
+
+      /* Generated Code */
+      h('div',{className:'sdk-code-block'},sdk.code||'// Select a language to generate SDK'),
+
+      /* Export button */
+      h('div',{style:{display:'flex',gap:'8px',margin:'8px 0'}},
+        h('button',{className:'btn',onClick:function(){sdk.exportSDK();},
+          style:{flex:1,background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'10px',fontSize:'11px'}},
+          'EXPORT '+sdk.lang.toUpperCase()+' SDK'),
+        h('button',{className:'btn',onClick:function(){sdk.generate(sdk.lang);},
+          style:{background:'rgba(0,221,255,.03)',border:'1px solid #1a3545',color:'#5a8a9a',padding:'10px',fontSize:'11px'}},'REGENERATE')
+      ),
+
+      /* Package Manifest */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'PACKAGE MANIFEST ('+sdk.lang.toUpperCase()+')'),
+        h('pre',{style:{fontSize:'9px',color:'#aabbcc',lineHeight:'1.6',margin:0,whiteSpace:'pre-wrap'}},
+          JSON.stringify(sdk.getManifest(),null,2))
+      ),
+
+      /* API Surface */
+      h('div',{className:'card',style:{padding:'0'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',padding:'10px 10px 6px'}},'API SURFACE ('+sdk.apiSurface.length+' endpoints)'),
+        sdk.apiSurface.map(function(ep,i){
+          return h('div',{key:i,className:'sdk-api-row'},
+            h('div',{style:{display:'flex',alignItems:'center',gap:'8px',flex:1}},
+              h('span',{className:'sdk-method-badge '+ep.method},ep.method),
+              h('span',{style:{color:'#aabbcc',fontSize:'10px',fontFamily:'IBM Plex Mono'}},ep.path)),
+            h('div',{style:{fontSize:'8px',color:'#556677',textAlign:'right'}},ep.desc)
+          );
+        })
+      ),
+
+      /* Type Definitions */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'TYPE DEFINITIONS'),
+        Object.keys(sdk.types).map(function(t){
+          return h('div',{key:t,style:{padding:'4px 0',borderBottom:'1px solid #0a0f14',fontSize:'9px'}},
+            h('span',{style:{color:'#e5c07b',fontWeight:'bold'}},t),
+            h('span',{style:{color:'#556677'}},' = '),
+            h('span',{style:{color:'#8899aa'}},sdk.types[t])
+          );
+        })
+      ),
+
+      /* Export Log */
+      sdk.exportLog.length>0&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'GENERATION LOG'),
+        sdk.exportLog.map(function(e,i){
+          return h('div',{key:i,style:{fontSize:'9px',padding:'3px 0',borderBottom:'1px solid #0a0f14',display:'flex',justifyContent:'space-between'}},
+            h('span',{style:{color:'#556677'}},new Date(e.ts).toLocaleTimeString()),
+            h('span',{style:{color:e.lang==='js'?'#f7df1e':e.lang==='python'?'#5ba0d0':'#e06050'}},e.lang.toUpperCase()),
+            h('span',{style:{color:'#8899aa'}},e.lines+' lines'),
+            h('span',{style:{color:'#00ddff'}},e.size));
+        })
+      )
+    ),
+
+    /* ═══ SPATIAL DB TAB (v3.0) ═══ */
+    layer==='spatialdb'&&h('div',null,
+      /* DB Stats */
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'6px',marginBottom:'8px'}},
+        [{l:'RECORDS',v:spatialDB.dbStats.records,c:'#00ffaa'},{l:'INDEXES',v:spatialDB.dbStats.indexes,c:'#00ddff'},{l:'AVG μ',v:spatialDB.dbStats.avgComposite.toFixed(3),c:'#cc66ff'},{l:'STORAGE',v:spatialDB.dbStats.storageKB+'KB',c:'#ff8800'}].map(function(s,i){
+          return h('div',{key:i,className:'sdk-stat'},
+            h('div',{className:'sdk-stat-v',style:{color:s.c}},s.v),
+            h('div',{className:'sdk-stat-l'},s.l));
+        })
+      ),
+
+      /* Insert / Auto-capture controls */
+      h('div',{style:{display:'flex',gap:'8px',marginBottom:'8px'}},
+        h('button',{className:'btn',onClick:function(){spatialDB.insert();},
+          style:{flex:1,background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'10px',fontSize:'11px'}},'INSERT CURRENT μ(x,t)'),
+        h('button',{className:'btn'+(spatialDB.autoCapture?' btn-stop':''),onClick:function(){spatialDB.setAutoCapture(!spatialDB.autoCapture);},
+          style:{background:spatialDB.autoCapture?'rgba(255,60,60,.04)':'rgba(255,204,0,.03)',border:'1px solid '+(spatialDB.autoCapture?'#3d2424':'#3d3524'),color:spatialDB.autoCapture?'#a06060':'#9a8855',padding:'10px',fontSize:'11px'}},
+          spatialDB.autoCapture?'STOP AUTO':'AUTO CAPTURE'),
+        h('button',{className:'btn',onClick:spatialDB.exportDB,
+          style:{background:'rgba(0,221,255,.03)',border:'1px solid #1a3545',color:'#5a8a9a',padding:'10px',fontSize:'11px'}},'EXPORT')
+      ),
+
+      /* Query Engine */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'QUERY ENGINE'),
+        h('textarea',{className:'sdb-query-input',value:spatialDB.queryText,
+          onChange:function(e){spatialDB.setQueryText(e.target.value);},
+          placeholder:'例: composite>0.5 space:office tag:meeting since:1h\n構文: composite>|<|= space: tag: reality> law:PL-001/COUPLED dim:acoustic/gt/0.5 near:id since:1h'}),
+        h('button',{className:'btn',onClick:function(){spatialDB.query();},
+          style:{width:'100%',marginTop:'6px',background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',padding:'8px',fontSize:'11px'}},'EXECUTE QUERY'),
+        spatialDB.queryResults&&h('div',{style:{marginTop:'8px',padding:'8px',background:'rgba(0,0,0,.2)',borderRadius:'2px'}},
+          h('div',{style:{fontSize:'9px',color:'#556677',marginBottom:'6px'}},'結果: ',
+            h('span',{style:{color:'#00ffaa'}},spatialDB.queryResults.count+' records'),
+            ' in ',h('span',{style:{color:'#00ddff'}},spatialDB.queryResults.elapsed+'ms')),
+          spatialDB.queryResults.results.slice(0,10).map(function(r){
+            return h('div',{key:r.id,className:'sdb-result-row'},
+              h('span',{style:{color:'#00ffaa',fontWeight:'bold'}},(r.composite*100).toFixed(1)+'%'),
+              h('span',{style:{color:'#556677'}},r.spaceType),
+              h('span',{style:{color:'#8899aa'}},new Date(r.timestamp).toLocaleTimeString()),
+              h('span',{style:{color:'#445566',fontSize:'8px'}},r.name));
+          })
+        )
+      ),
+
+      /* Indexes */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'SPATIAL INDEXES'),
+        spatialDB.indexes.map(function(idx,i){
+          return h('div',{key:i,className:'sdb-idx-card',style:{marginBottom:'4px'}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'4px'}},
+              h('span',{style:{color:'#ccd8e8',fontWeight:'bold'}},idx.name),
+              h('span',{style:{color:'#556677'}},idx.type+' | '+idx.entries+' entries')),
+            idx.name==='COMPOSITE'&&idx.data&&idx.data.buckets&&h('div',{style:{display:'flex',alignItems:'flex-end',gap:'2px',height:'30px'}},
+              idx.data.buckets.map(function(b,bi){
+                var maxC=Math.max.apply(null,idx.data.buckets.map(function(x){return x.count;}))||1;
+                return h('div',{key:bi,style:{flex:1,height:Math.max(2,b.count/maxC*100)+'%',background:b.count>0?'#00ffaa44':'#1a2530',borderRadius:'1px 1px 0 0',transition:'height .3s'}});
+              })
+            ),
+            idx.name==='SPACE_TYPE'&&idx.data&&h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px'}},
+              Object.keys(idx.data).map(function(st){
+                return h('span',{key:st,style:{padding:'2px 6px',fontSize:'8px',background:'rgba(0,221,255,.08)',border:'1px solid #00ddff22',borderRadius:'1px',color:'#00ddff'}},
+                  st+': '+idx.data[st].count);
+              })
+            )
+          );
+        })
+      ),
+
+      /* Records List */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'RECORDS ('+spatialDB.dbStats.records+')'),
+        spatialDB.records.slice(0,12).map(function(r){
+          return h('div',{key:r.id,className:'sdb-record'+(spatialDB.selectedRecord&&spatialDB.selectedRecord.id===r.id?' selected':''),
+            onClick:function(){spatialDB.setSelectedRecord(spatialDB.selectedRecord&&spatialDB.selectedRecord.id===r.id?null:r);}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'3px'}},
+              h('span',{style:{color:'#ccd8e8',fontSize:'10px',fontWeight:'bold'}},r.name),
+              h('span',{style:{color:'#00ffaa',fontSize:'12px',fontWeight:'bold'}},(r.composite*100).toFixed(1)+'%')),
+            h('div',{style:{display:'flex',gap:'8px',fontSize:'8px',color:'#556677'}},
+              h('span',null,r.spaceType),
+              h('span',null,new Date(r.timestamp).toLocaleString()),
+              r.reality&&h('span',null,'ρ='+(r.reality.index*100).toFixed(0)+'%'),
+              r.tags.length>0&&h('span',{style:{color:'#ffcc00'}},r.tags.join(', '))),
+            spatialDB.selectedRecord&&spatialDB.selectedRecord.id===r.id&&h('div',{style:{marginTop:'6px',padding:'6px',background:'rgba(0,0,0,.2)',borderRadius:'2px',fontSize:'8px'}},
+              h('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px'}},
+                DIM_KEYS.map(function(k){
+                  return h('span',{key:k,style:{padding:'2px 4px',background:'rgba(0,255,170,.06)',border:'1px solid #1a2530',borderRadius:'1px'}},
+                    k.substring(0,4)+': '+(r.fingerprint[k]||0).toFixed(3));
+                })
+              ),
+              h('div',{style:{marginTop:'4px',display:'flex',gap:'6px'}},
+                h('button',{className:'btn btn-sm',onClick:function(e){e.stopPropagation();spatialDB.remove(r.id);},
+                  style:{fontSize:'8px',padding:'2px 8px',border:'1px solid #3d2424',color:'#a06060'}},'DELETE'))
+            )
+          );
+        }),
+        spatialDB.dbStats.records>12&&h('div',{style:{fontSize:'8px',color:'#445566',textAlign:'center',padding:'6px'}},'... +'+(spatialDB.dbStats.records-12)+' more records')
+      )
+    ),
+
+    /* ═══ AUTO-DISCOVERY TAB (v3.0) ═══ */
+    layer==='autodiscovery'&&h('div',null,
+      /* Discovery Stats */
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'6px',marginBottom:'8px'}},
+        [{l:'SCANS',v:autoDiscovery.stats.totalScans,c:'#00ddff'},{l:'DISCOVERED',v:autoDiscovery.stats.discovered,c:'#ffcc00'},{l:'CONFIRMED',v:autoDiscovery.stats.confirmed,c:'#00ffaa'},{l:'REJECTED',v:autoDiscovery.stats.rejected,c:'#ff4444'}].map(function(s,i){
+          return h('div',{key:i,className:'sdk-stat'},
+            h('div',{className:'sdk-stat-v',style:{color:s.c}},s.v),
+            h('div',{className:'sdk-stat-l'},s.l));
+        })
+      ),
+
+      /* Discovery Controls */
+      h('div',{style:{display:'flex',gap:'8px',marginBottom:'8px'}},
+        h('button',{className:'btn'+(autoDiscovery.scanning?' btn-stop':''),onClick:autoDiscovery.runDiscovery,
+          disabled:autoDiscovery.scanning,
+          style:{flex:1,background:autoDiscovery.scanning?'rgba(0,221,255,.04)':'rgba(0,255,170,.03)',border:'1px solid '+(autoDiscovery.scanning?'#1a3545':'#243d33'),color:autoDiscovery.scanning?'#5a8a9a':'#5a9a82',padding:'12px',fontSize:'12px',fontWeight:'bold'}},
+          autoDiscovery.scanning?'SCANNING '+autoDiscovery.scanProgress+'%...':'RUN AUTO-DISCOVERY'),
+        h('button',{className:'btn',onClick:autoDiscovery.exportDiscoveries,disabled:autoDiscovery.discovered.length===0,
+          style:{background:'rgba(255,204,0,.03)',border:'1px solid #3d3524',color:'#9a8855',padding:'12px',fontSize:'11px'}},'EXPORT')
+      ),
+
+      /* Data buffer status */
+      h('div',{className:'card',style:{padding:'8px',marginBottom:'8px'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:'9px',marginBottom:'4px'}},
+          h('span',{style:{color:'#556677'}},'DATA BUFFER'),
+          h('span',{style:{color:autoDiscovery.bufferCount>=AD_MIN_SAMPLES?'#00ffaa':'#ffcc00'}},
+            autoDiscovery.bufferCount+' / '+AD_MIN_SAMPLES+' min samples')),
+        h('div',{className:'sdb-idx-bar'},
+          h('div',{className:'sdb-idx-fill',style:{width:Math.min(100,autoDiscovery.bufferCount/AD_MIN_SAMPLES*100)+'%',background:autoDiscovery.bufferCount>=AD_MIN_SAMPLES?'#00ffaa':'#ffcc00'}}))
+      ),
+
+      /* Correlation Matrix */
+      autoDiscovery.corrMatrix&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'DIMENSION CORRELATION MATRIX (n='+autoDiscovery.corrMatrix.samples+')'),
+        h('div',{className:'ad-correlation-matrix',style:{gridTemplateColumns:'repeat('+(DIM_KEYS.length+1)+',1fr)'}},
+          /* Header row */
+          h('div',{className:'ad-corr-cell',style:{color:'#556677'}},''),
+          DIM_KEYS.map(function(k,i){return h('div',{key:'h'+i,className:'ad-corr-cell',style:{color:DIM_COLORS[i]||'#8899aa',fontWeight:'bold'}},k.substring(0,3));}),
+          /* Data rows */
+          autoDiscovery.corrMatrix.matrix.map(function(row,i){
+            return [h('div',{key:'r'+i,className:'ad-corr-cell',style:{color:DIM_COLORS[i]||'#8899aa',fontWeight:'bold'}},DIM_KEYS[i].substring(0,3))].concat(
+              row.map(function(v,j){
+                var abs=Math.abs(v);
+                var bg=i===j?'rgba(255,255,255,.03)':abs>0.6?(v>0?'rgba(0,255,170,'+abs*0.3+')':'rgba(255,68,68,'+abs*0.3+')'):abs>0.3?'rgba(255,204,0,'+abs*0.15+')':'transparent';
+                return h('div',{key:'c'+i+'-'+j,className:'ad-corr-cell',style:{background:bg,color:abs>0.4?'#ccd8e8':'#445566'}},i===j?'—':v.toFixed(2));
+              })
+            );
+          }).reduce(function(a,b){return a.concat(b);},[])
+        )
+      ),
+
+      /* Discovered Laws */
+      h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},
+          'DISCOVERED PHASE-LAWS ('+autoDiscovery.discovered.length+')'),
+        autoDiscovery.discovered.length===0?
+          h('div',{className:'ad-scan-anim',style:{textAlign:'center',padding:'30px',color:'#334455'}},
+            h('div',{style:{fontSize:'24px',marginBottom:'8px',opacity:.3}},'◎'),
+            h('div',{style:{fontSize:'10px',letterSpacing:'2px'}},'RUN AUTO-DISCOVERY TO ANALYZE'),
+            h('div',{style:{fontSize:'9px',color:'#223344',marginTop:'6px'}},'μ(x,t)データを蓄積後、スキャンで新Phase-Lawを自動発見')):
+          autoDiscovery.discovered.map(function(law){
+            var confPct=(law.confidence*100).toFixed(0);
+            var ringColor=law.status==='confirmed'?'#00ffaa':law.status==='rejected'?'#ff4444':'#ffcc00';
+            return h('div',{key:law.id,className:'ad-law-card '+law.status},
+              h('div',{style:{display:'flex',gap:'12px',alignItems:'flex-start'}},
+                h('div',{className:'ad-confidence-ring',style:{border:'3px solid '+ringColor,color:ringColor}},confPct+'%'),
+                h('div',{style:{flex:1}},
+                  h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}},
+                    h('span',{style:{color:'#ccd8e8',fontSize:'11px',fontWeight:'bold'}},law.id),
+                    h('span',{style:{fontSize:'7px',padding:'2px 6px',borderRadius:'2px',letterSpacing:'1.5px',fontWeight:'700',
+                      background:law.type==='correlation'?'rgba(0,221,255,.1)':law.type==='temporal'?'rgba(204,102,255,.1)':'rgba(255,136,0,.1)',
+                      border:'1px solid '+(law.type==='correlation'?'#00ddff33':law.type==='temporal'?'#cc66ff33':'#ff880033'),
+                      color:law.type==='correlation'?'#00ddff':law.type==='temporal'?'#cc66ff':'#ff8800'}},
+                      law.type.toUpperCase())),
+                  h('div',{style:{color:'#aabbcc',fontSize:'10px',marginBottom:'4px'}},law.name),
+                  h('div',{style:{fontSize:'8px',color:'#556677',lineHeight:'1.6'}},
+                    '式: ',h('span',{style:{color:'#98c379'}},law.formula),
+                    h('br'),
+                    'サンプル: '+law.samples+' | r='+((law.correlation||0)).toFixed(3)+
+                    (law.pValue!=null?' | p='+law.pValue.toFixed(4):'')+
+                    (law.lag!=null?' | lag='+law.lag:'')),
+                  law.status==='candidate'&&h('div',{style:{display:'flex',gap:'6px',marginTop:'6px'}},
+                    h('button',{className:'btn btn-sm',onClick:function(){autoDiscovery.confirm(law.id);},
+                      style:{fontSize:'8px',padding:'3px 10px',border:'1px solid #243d33',color:'#5a9a82',background:'rgba(0,255,170,.03)'}},'✓ CONFIRM'),
+                    h('button',{className:'btn btn-sm',onClick:function(){autoDiscovery.reject(law.id);},
+                      style:{fontSize:'8px',padding:'3px 10px',border:'1px solid #3d2424',color:'#a06060',background:'rgba(255,60,60,.03)'}},'✗ REJECT'))
+                )
+              )
+            );
+          })
+      ),
+
+      /* Scan Log */
+      autoDiscovery.scanLog.length>0&&h('div',{className:'card',style:{padding:'10px'}},
+        h('div',{style:{fontSize:'9px',color:'#556677',letterSpacing:'2px',marginBottom:'6px'}},'SCAN LOG'),
+        h('div',{style:{maxHeight:'200px',overflow:'auto'}},
+          autoDiscovery.scanLog.slice(0,30).map(function(e,i){
+            return h('div',{key:i,style:{fontSize:'9px',padding:'3px 0',borderBottom:'1px solid #0a0f14',display:'flex',gap:'8px'}},
+              h('span',{style:{color:'#556677',minWidth:'55px'}},new Date(e.ts).toLocaleTimeString()),
+              h('span',{style:{color:e.level==='pass'?'#00ffaa':e.level==='warn'?'#ffcc00':'#8899aa'}},e.msg));
           })
         )
       )
@@ -5715,7 +6876,7 @@ function App(){
     /* ═══ DEMO OVERLAY ═══ */
     demo.open&&h('div',{className:'demo-overlay',onClick:function(e){if(e.target===e.currentTarget)demo.close();}},
       h('div',{className:'demo-card'},
-        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v2.5 DEMO'),
+        h('div',{className:'demo-step'},'STEP '+(demo.step+1)+' / '+demo.total+' — PHYSICAL PING v3.0 DEMO'),
         h('div',{className:'demo-progress'},
           DEMO_STEPS.map(function(_,i){return h('div',{key:i,className:'demo-pip '+(i<demo.step?'done':i===demo.step?'active':'')});})
         ),
@@ -5733,15 +6894,15 @@ function App(){
 
     /* PWA Install Banner */
     pwa.installable&&h('div',{className:'pwa-banner'},
-      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping v2.5 をホーム画面に追加'),
+      h('span',{style:{fontSize:'10px',color:'#ccd8e8'}},'Physical Ping v3.0 をホーム画面に追加'),
       h('button',{className:'btn btn-sm',onClick:pwa.install,
         style:{background:'rgba(0,255,170,.03)',border:'1px solid #243d33',color:'#5a9a82',fontSize:'9px',padding:'5px 12px'}},'インストール')),
 
     /* Footer */
     h('div',{style:{textAlign:'center',padding:'12px',fontSize:'8px',color:'#334455',borderTop:'1px solid #0a0f14',marginTop:'12px'}},
-      'PHYSICAL PING — pTCP/IP v2.5 CITYSCAPE',
+      'PHYSICAL PING — pTCP/IP v3.0 PLATFORM',
       h('br'),
-      'L0小脳 Phase-Law v2  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  ·  HW ESP32 Fleet  ·  IND Plugin Arch  ·  CITY Digital Twin + Vehicle Fleet  |  pTCPプロトコル 2026')
+      'L0小脳 Phase-Law v3  ·  L1中脳 Midbrain  ·  L2空間知能 Spatial Intelligence  ·  L3大脳 Claude API  ·  HW ESP32 Fleet  ·  IND Plugin Arch  ·  CITY Digital Twin  ·  SDK JS/Py/Rust  ·  Spatial MediationDB  ·  Phase-Law Auto-Discovery  |  pTCPプロトコル 2026')
   );
 }
 
