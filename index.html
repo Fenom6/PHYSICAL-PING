@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Physical Ping — pTCP v3.1 FEDERATION</title>
+<meta name="description" content="Physical Ping — 音響チャープとマルチセンサー融合で物理空間を測距・観測するpTCP/IPスタック。フェデレーションメッシュ + CRDT共有状態 + Phase-Law自動発見。">
+<meta property="og:title" content="Physical Ping — pTCP v3.1 FEDERATION">
+<meta property="og:description" content="音響チャープとマルチセンサー融合による物理空間測距。Multi-Instance Mesh + CRDT Shared State + Phase-Law Auto-Discovery。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0f14'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%2300ffaa'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2300ffaa' stroke-width='1.5' opacity='.55'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%2300ffaa' stroke-width='1' opacity='.25'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGh5c2ljYWwgUGluZyIsInNob3J0X25hbWUiOiJwVENQIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBmMTQiLCJ0aGVtZV9jb2xvciI6IiMwMGZmYWEiLCJpY29ucyI6W119">
 <meta name="theme-color" content="#00ffaa">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,6 +37,9 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 .hdr .ver{font-size:10px;color:#334455;letter-spacing:1px}
 .hdr .sub{font-size:10px;color:#00ffaa44;letter-spacing:1.5px;margin-top:2px}
 .hdr p{font-size:11px;color:#445566;line-height:1.6;margin-top:6px}
+.hdr-title{font-size:18px;font-weight:600;color:#00ffaa;letter-spacing:3px;text-shadow:0 0 20px rgba(0,255,170,.3)}
+.hdr-ver{font-size:10px;color:#445566;letter-spacing:1px;margin-top:3px}
+.hdr-sub{font-size:10px;color:#00ffaa66;letter-spacing:1.5px}
 .sec{margin-bottom:14px;padding:12px;border:1px solid #1a2530;border-radius:2px;background:rgba(0,0,0,.2)}
 .sec-label{font-size:10px;color:#445566;letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .sec-label .dot{width:5px;height:5px;border-radius:50%;display:inline-block}
@@ -616,7 +628,8 @@ body{background:linear-gradient(170deg,#0a0f14 0%,#0d1520 40%,#0a1218 100%);colo
 </head>
 <body>
 <div class="scan"></div>
-<div class="ctn" id="root"></div>
+<div class="ctn" id="root"><div style="text-align:center;padding:90px 20px;color:#00ffaa77;font-size:11px;letter-spacing:3px;animation:pulse 1.2s infinite">BOOTING pTCP STACK…</div></div>
+<noscript><div style="text-align:center;padding:90px 20px;color:#ff6666;font-size:12px;letter-spacing:2px">JavaScriptが無効です。Physical Pingの実行にはJavaScriptが必要です。</div></noscript>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
@@ -5266,7 +5279,7 @@ function App(){
     ),
 
     /* Status bar */
-    h('div',{className:'card',style:{padding:'8px 12px',display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'10px'}},
+    h('div',{className:'card',style:{padding:'8px 12px',display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'center',gap:'4px 10px',fontSize:'10px'}},
       h('span',null,'μ(x,t) = ',h('span',{style:{color:'#00ffaa',fontWeight:'bold',fontSize:'14px'}},mediation.composite.toFixed(3))),
       h('span',null,'ρ = ',h('span',{style:{color:ri&&ri.index>.5?'#00ffaa':'#ffcc00'}},realityPct)),
       h('span',null,'TS: ',h('span',{style:{color:'#00ddff'}},timeSeries.count)),
@@ -7680,8 +7693,26 @@ function App(){
   );
 }
 
-/* Mount */
-ReactDOM.render(h(App),document.getElementById('root'));
+/* Error boundary — 1レイヤーのクラッシュで全体を白画面にしない */
+class ErrorBoundary extends React.Component{
+  constructor(p){super(p);this.state={err:null};}
+  static getDerivedStateFromError(e){return{err:e};}
+  componentDidCatch(e,info){console.error('pTCP UI error:',e,info);}
+  render(){
+    if(this.state.err){
+      return h('div',{className:'err',style:{margin:'60px auto',maxWidth:'640px'}},
+        h('div',{style:{fontSize:'13px',marginBottom:'6px',letterSpacing:'2px'}},'UI ERROR — RENDER HALTED'),
+        h('div',{style:{fontSize:'10px',color:'#ff9999',wordBreak:'break-all'}},String((this.state.err&&this.state.err.message)||this.state.err)),
+        h('button',{className:'btn btn-sm',style:{marginTop:'10px'},onClick:function(){location.reload();}},'RELOAD'));
+    }
+    return this.props.children;
+  }
+}
+
+/* Mount (React 18 createRoot; 旧UMD環境ではlegacy renderへフォールバック) */
+var _rootEl=document.getElementById('root');
+if(ReactDOM.createRoot){ReactDOM.createRoot(_rootEl).render(h(ErrorBoundary,null,h(App)));}
+else{ReactDOM.render(h(ErrorBoundary,null,h(App)),_rootEl);}
 </script>
 </body>
 </html>
