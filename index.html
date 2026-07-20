@@ -693,6 +693,48 @@ function adaptiveThreshold(noiseFloor,baseConf){
 }
 
 /* ═══════════════════════════════════════════════════════════ */
+/*  MIC CAPTURE — AudioWorklet優先 / ScriptProcessorフォールバック */
+/* ═══════════════════════════════════════════════════════════ */
+/* ScriptProcessorNodeは非推奨のため、対応環境ではAudioWorkletで
+   マイク入力をキャプチャする。処理はオーディオスレッド側で行われ、
+   メインスレッドのジャンクによる取りこぼしが起きない。 */
+var CAPTURE_WORKLET_SRC="class PTCPCaptureProcessor extends AudioWorkletProcessor{process(inputs){var ch=inputs[0]&&inputs[0][0];if(ch&&ch.length)this.port.postMessage(new Float32Array(ch));return true;}}registerProcessor('ptcp-capture',PTCPCaptureProcessor);";
+var _captureWorkletURL=null;
+function ensureCaptureWorklet(ac){
+  if(!ac.audioWorklet||typeof AudioWorkletNode==='undefined')return Promise.reject(new Error('AudioWorklet unavailable'));
+  if(!ac.__ptcpWorkletReady){
+    if(!_captureWorkletURL)_captureWorkletURL=URL.createObjectURL(new Blob([CAPTURE_WORKLET_SRC],{type:'application/javascript'}));
+    ac.__ptcpWorkletReady=ac.audioWorklet.addModule(_captureWorkletURL);
+  }
+  return ac.__ptcpWorkletReady;
+}
+/* startMicCapture(ac,stream) → Promise<{chunks,engine,stop}>
+   chunks: Float32Array配列。stop()後に flat(cap.chunks) で結合する。 */
+function startMicCapture(ac,stream){
+  var src=ac.createMediaStreamSource(stream);
+  var chunks=[];
+  var stopped=false;
+  function makeStop(disconnectFn){
+    return function(){
+      if(stopped)return;stopped=true;
+      try{disconnectFn();src.disconnect();}catch(e){}
+      stream.getTracks().forEach(function(t){try{t.stop();}catch(e){}});
+    };
+  }
+  return ensureCaptureWorklet(ac).then(function(){
+    var node=new AudioWorkletNode(ac,'ptcp-capture',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]});
+    node.port.onmessage=function(ev){if(!stopped)chunks.push(ev.data);};
+    src.connect(node);node.connect(ac.destination);/* 出力は無音（processは出力を書かない） */
+    return{chunks:chunks,engine:'worklet',stop:makeStop(function(){node.port.onmessage=null;node.disconnect();})};
+  }).catch(function(){
+    var proc=ac.createScriptProcessor(4096,1,1);
+    proc.onaudioprocess=function(ev){if(!stopped)chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));};
+    src.connect(proc);proc.connect(ac.destination);
+    return{chunks:chunks,engine:'scriptprocessor',stop:makeStop(function(){proc.onaudioprocess=null;proc.disconnect();})};
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════ */
 /*  v1.3: MULTI-CHIRP HOOK                                    */
 /* ═══════════════════════════════════════════════════════════ */
 function useMultiChirp(){
@@ -708,18 +750,14 @@ function useMultiChirp(){
       var sr=audioCtx.sampleRate;
       var refBuf=genSignal(sig,sr);
       navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(stream){
-        var src=audioCtx.createMediaStreamSource(stream);
-        var proc=audioCtx.createScriptProcessor(4096,1,1);
-        var chunks=[];
-        proc.onaudioprocess=function(ev){chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));};
-        src.connect(proc);proc.connect(audioCtx.destination);
+        return startMicCapture(audioCtx,stream).then(function(cap){
         /* Play chirp */
         var abuf=audioCtx.createBuffer(1,refBuf.length,sr);abuf.getChannelData(0).set(refBuf);
         var sn=audioCtx.createBufferSource();sn.buffer=abuf;sn.connect(audioCtx.destination);sn.start();
         /* Record for listenMs */
         setTimeout(function(){
-          try{proc.disconnect();src.disconnect();stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
-          var rec=flat(chunks);
+          cap.stop();
+          var rec=flat(cap.chunks);
           var nf=estimateNoiseFloor(rec);
           var blankMs=sanitizeLoopback(loopbackMs)+CFG.loopbackMarginMs;
           var xc=xcorr(rec,refBuf,sr,blankMs);
@@ -731,6 +769,7 @@ function useMultiChirp(){
           }
           resolve({band:band,distM:distM,conf:xc.peakVal,snr:snr,noiseFloor:nf,valid:xc.peakVal>=th,corr:xc.corr,peakVal:xc.peakVal});
         },CFG.listenMs);
+        });
       }).catch(function(e){resolve({band:band,distM:null,conf:0,snr:0,noiseFloor:{rms:0,noiseFloor:0,dB:-80},valid:false,error:e.message});});
     });
   },[]);
@@ -744,12 +783,10 @@ function useMultiChirp(){
     /* Measure noise floor first */
     return new Promise(function(resolve){
       navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(stream){
-        var src=ac.createMediaStreamSource(stream);var proc=ac.createScriptProcessor(4096,1,1);var chunks=[];
-        proc.onaudioprocess=function(ev){chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));};
-        src.connect(proc);proc.connect(ac.destination);
+        return startMicCapture(ac,stream).then(function(cap){
         setTimeout(function(){
-          try{proc.disconnect();src.disconnect();stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
-          var rec=flat(chunks);
+          cap.stop();
+          var rec=flat(cap.chunks);
           var nf=estimateNoiseFloor(rec);
           setNoiseData(nf);
           /* Now measure each band sequentially with gap */
@@ -779,6 +816,7 @@ function useMultiChirp(){
           };
           doNext(0);
         },100);/* 100ms noise floor sample */
+        });
       }).catch(function(e){setMeasuring(false);resolve(null);});
     });
   },[measuring,measureBand]);
@@ -5179,17 +5217,15 @@ function App(){
     var refBuf=genSignal(sig,sr);
     /* Record */
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,sampleRate:sr}}).then(function(stream){
-      var src=ac.createMediaStreamSource(stream);var proc=ac.createScriptProcessor(4096,1,1);
-      var chunks=[];
-      proc.onaudioprocess=function(ev){chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));};
-      src.connect(proc);proc.connect(ac.destination);recRef.current={src:src,proc:proc,stream:stream};
+      return startMicCapture(ac,stream).then(function(cap){
+      recRef.current=cap;
       /* Play signal */
       var abuf=ac.createBuffer(1,refBuf.length,sr);abuf.getChannelData(0).set(refBuf);
       var sn=ac.createBufferSource();sn.buffer=abuf;sn.connect(ac.destination);sn.start();
       /* Stop after listen duration */
       setTimeout(function(){
-        proc.disconnect();src.disconnect();stream.getTracks().forEach(function(t){t.stop();});recRef.current=null;
-        var rec=flat(chunks);
+        cap.stop();recRef.current=null;
+        var rec=flat(cap.chunks);
         var blankMs=sanitizeLoopback(loopback.ms)+CFG.loopbackMarginMs;
         var xc=xcorr(rec,refBuf,sr,blankMs);
         setCorrData({corr:xc.corr,mf:xc.mf,peak:xc.peakLag,blanking:xc.bS});
@@ -5211,6 +5247,7 @@ function App(){
         }else{setResult({distM:null,conf:xc.peakVal,lagMs:0,signal:sig,ts:Date.now(),error:'Below threshold'});}
         setMeasuring(false);
       },CFG.listenMs);
+      });
     }).catch(function(e){setMeasuring(false);setResult({error:e.message,ts:Date.now()});});
   },[audioCtx,curSig,measuring,loopback,mediation.composite,weights]);
 
@@ -5221,20 +5258,19 @@ function App(){
     if(!audioCtx)setAudioCtx(ac);if(ac.state==='suspended')ac.resume();
     var sig=SIGNALS.chirp_pro,sr=ac.sampleRate||CFG.sr;var refBuf=genSignal(sig,sr);
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,sampleRate:sr}}).then(function(stream){
-      var src=ac.createMediaStreamSource(stream);var proc=ac.createScriptProcessor(4096,1,1);var chunks=[];
-      proc.onaudioprocess=function(ev){chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));};
-      src.connect(proc);proc.connect(ac.destination);
+      return startMicCapture(ac,stream).then(function(cap){
       var abuf=ac.createBuffer(1,refBuf.length,sr);abuf.getChannelData(0).set(refBuf);
       var sn=ac.createBufferSource();sn.buffer=abuf;sn.connect(ac.destination);sn.start();
       setTimeout(function(){
-        proc.disconnect();src.disconnect();stream.getTracks().forEach(function(t){t.stop();});
-        var rec=flat(chunks);var rms=rmsV(rec);
+        cap.stop();
+        var rec=flat(cap.chunks);var rms=rmsV(rec);
         var lb=findLoopbackMs(rec,refBuf,sr);
         var ms=sanitizeLoopback(lb.ms);
         setLoopback({ms:ms,conf:lb.conf,method:lb.method});
         anchors.saveCalibration({loopbackMs:ms,loopbackConf:lb.conf,loopbackMethod:lb.method,rms:rms,timestamp:Date.now()});
         setCalibrating(false);
       },CFG.listenMs);
+      });
     }).catch(function(){setCalibrating(false);});
   },[audioCtx,calibrating]);
 
