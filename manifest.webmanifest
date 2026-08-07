@@ -1,0 +1,14 @@
+{
+  "name": "Physical Ping — pTCP v3.1 FEDERATION",
+  "short_name": "pTCP",
+  "description": "音響チャープとマルチセンサー融合で物理空間を測距・観測する pTCP/IP スタック",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0f14",
+  "theme_color": "#00ffaa",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

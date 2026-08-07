@@ -1,34 +1,36 @@
-# Physical Ping — pTCP/IP v3.0 PLATFORM
+# Physical Ping — pTCP/IP v3.1 FEDERATION
 
-> A browser-based hybrid network measurement and environmental sensing platform that fuses acoustic ranging, electromagnetic field fingerprinting, and multi-device mesh networking into a unified 11-dimensional mediation framework.
+> A browser-based spatial sensing platform that fuses acoustic chirp ranging, device sensor fingerprinting, and multi-instance mesh networking into a unified 11-dimensional mediation framework.
+
+**▶ Live (recommended, works on phones): https://fenom6.github.io/PHYSICAL-PING/**
+
+The GitHub Pages deployment is the only zero-setup path with full sensor access: HTTPS gives the microphone, motion, orientation, and geolocation APIs everything they need.
 
 ---
 
 ## Abstract
 
-Physical Ping introduces the **Physical Transport Control Protocol (pTCP)**, a novel approach to network diagnostics that bridges the gap between traditional ICMP-based measurement and real-world physical-layer sensing. The system computes a continuous **Mediation Coefficient μ(x,t)** across 11 orthogonal dimensions — ranging from acoustic propagation delay and RF signal strength to kinetic sensor data and photonic ambient readings — and governs system behavior through a set of empirically derived **Phase-Laws**. Version 3.0 extends the platform with SDK infrastructure, a spatial mediation database, and automated Phase-Law discovery through statistical analysis.
+Physical Ping introduces the **Physical Transport Control Protocol (pTCP)**, an experimental approach that bridges network-style diagnostics and real-world physical-layer sensing. The system computes a continuous **Mediation Coefficient μ(x,t)** across 11 dimensions — from acoustic propagation delay to RF density — and governs behavior through empirically framed **Phase-Laws**. Version 3.0 added SDK generation, a spatial mediation database, and statistical Phase-Law auto-discovery. **Version 3.1 adds multi-instance federation: a CRDT engine (vector clocks, G/PN-Counter, LWW, OR-Set, MV-Register) with gossip-based mesh sync and anti-entropy repair.**
 
-## Table of Contents
+## What is real and what is simulated
 
-- [Architecture Overview](#architecture-overview)
-- [11-Dimensional Mediation System](#11-dimensional-mediation-system)
-- [Phase-Law Framework](#phase-law-framework)
-- [v3.0 PLATFORM Systems](#v30-platform-systems)
-- [Cognitive Architecture](#cognitive-architecture)
-- [Hardware Integration](#hardware-integration)
-- [Industry Deployment Modes](#industry-deployment-modes)
-- [Technical Stack](#technical-stack)
-- [Getting Started](#getting-started)
-- [API Reference](#api-reference)
-- [Data Export Formats](#data-export-formats)
-- [Version History](#version-history)
-- [License](#license)
+Physical Ping is a 見本市 (showcase): some dimensions are backed by real device sensors, others are simulations that demonstrate the architecture. The UI tags every dimension with a source badge, and the **Reality Index ρ** is the ratio of REAL sources among active dimensions.
 
----
+| Signal | Source | Status |
+|--------|--------|--------|
+| Acoustic ranging | Microphone + speaker chirp (Web Audio / AudioWorklet) | **REAL** |
+| Kinetic | DeviceMotion accelerometer | **REAL** (iOS requires permission grant) |
+| EM field | Magnetometer where available; otherwise device tilt via DeviceOrientation | **REAL / EST** (tilt fallback is labeled `tilt °` — it is not µT) |
+| Spatial | Geolocation API | **REAL** |
+| Photonic | AmbientLightSensor (rare); otherwise time-of-day estimate | **EST** |
+| Thermal | CPU-load proxy | **EST** |
+| BLE mesh / RF spectrum / NFC | Simulated | **SIM** |
+| Mesh peers (pTCP / Federation) | Real across browser tabs via BroadcastChannel; remote "instances" are simulated | **REAL (same device) / SIM (remote)** |
+| ESP32 fleet, vehicles, warehouse, factory machines, cityscape | Simulated demo data | **SIM** |
 
 ## Architecture Overview
 
-Physical Ping is a **single-file React SPA** (~6,900 lines) that runs entirely in the browser with zero server-side dependencies. The application is organized into **25 tabs** across six functional layers:
+Physical Ping is a **single-file React SPA** (~7,900 lines) plus three PWA sidecar files (`sw.js`, `manifest.webmanifest`, icons). It runs entirely in the browser with zero server-side dependencies, organized into **26 tabs**:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -40,287 +42,134 @@ Physical Ping is a **single-file React SPA** (~6,900 lines) that runs entirely i
 ├─────────────────────────────────────────────────────────────┤
 │  L0  Phase-Laws       12 governing laws + auto-discovery    │
 ├─────────────────────────────────────────────────────────────┤
-│  HW  Hardware         ESP32 fleet / BLE / Sensors           │
+│  HW  Hardware         ESP32 fleet / BLE / Sensors (SIM)     │
 ├─────────────────────────────────────────────────────────────┤
 │  IND Industry         Warehouse / Factory / Plugin Arch     │
 ├─────────────────────────────────────────────────────────────┤
 │  CITY Cityscape       Digital Twin / Vehicle Fleet / Site   │
 ├─────────────────────────────────────────────────────────────┤
 │  PLAT Platform        SDK / Spatial DB / Auto-Discovery     │
+├─────────────────────────────────────────────────────────────┤
+│  FED Federation       Multi-instance mesh / CRDT state      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Tab Map (25 views)
+### Tab Map (26 views)
+
+The UI shows 5 primary tabs (MEASURE, PRECISION, SPECTRUM, PEERS, DASHBOARD); the remaining 21 are behind the **MORE** expander.
 
 | # | Tab | Layer | Description |
 |---|-----|-------|-------------|
 | 1 | `measure` | Core | Primary ping measurement with acoustic ranging |
-| 2 | `precision` | Core | Statistical analysis, SNR, cross-validation |
-| 3 | `spectrum` | Core | RF spectrum, BLE scan, NFC, thermal mapping |
-| 4 | `peers` | Core | WebRTC/BroadcastChannel mesh network |
-| 5 | `heatmap` | Viz | Spatial heatmap of mediation values |
+| 2 | `precision` | Core | Multi-chirp, SNR, cross-validation |
+| 3 | `spectrum` | Core | RF spectrum (SIM), BLE (SIM), thermal mapping |
+| 4 | `peers` | Core | BroadcastChannel / WebRTC mesh |
+| 5 | `heatmap` | Viz | Spatial heatmap of μ (positions are SIM random-walk) |
 | 6 | `timeline` | Viz | Time-series multi-dimension chart |
 | 7 | `dashboard` | Viz | Aggregate statistics dashboard |
 | 8 | `profiles` | Viz | Saved environment fingerprints |
 | 9 | `network` | L2 | Hybrid network topology analyzer |
 | 10 | `midbrain` | L1 | 4-layer cognitive processing pipeline |
-| 11 | `intelligence` | L2 | Safety zones, KY alerting, worker tracking |
+| 11 | `intelligence` | L2 | Safety zones, KY alerting, worker tracking (SIM) |
 | 12 | `routing` | L2 | Phase-Law-aware adaptive routing |
 | 13 | `memory` | L2 | IndexedDB persistent mediation history |
-| 14 | `hardware` | HW | ESP32 fleet management and OTA |
-| 15 | `warehouse` | IND | Zone tracking, forklift BLE monitoring |
-| 16 | `factory` | IND | Acoustic FFT machine health monitoring |
+| 14 | `hardware` | HW | ESP32 fleet management (SIM) |
+| 15 | `warehouse` | IND | Zone tracking, forklift monitoring (SIM) |
+| 16 | `factory` | IND | Acoustic FFT machine health (mic REAL, machines SIM) |
 | 17 | `plugins` | IND | Plugin registry and lifecycle management |
-| 18 | `cityscape` | CITY | Digital Twin entity management |
+| 18 | `cityscape` | CITY | Digital Twin entity management (SIM) |
 | 19 | `testbed` | CITY | Verification test suite runner |
-| 20 | `vehicle` | CITY | Vehicle fleet tracking and telemetry |
+| 20 | `vehicle` | CITY | Vehicle fleet tracking (SIM) |
 | 21 | `site` | CITY | Multi-site deployment management |
-| 22 | `patent` | Core | Patent dataset collection and metrics |
+| 22 | `patent` | Core | Measurement dataset collection and metrics |
 | 23 | `sdk` | PLAT | Multi-language SDK code generation |
 | 24 | `spatialdb` | PLAT | Spatial Mediation query engine |
 | 25 | `autodiscovery` | PLAT | Statistical Phase-Law discovery |
+| 26 | `federation` | FED | Multi-instance mesh: CRDT shared state, gossip sync, anti-entropy, node roles |
 
 ---
 
 ## 11-Dimensional Mediation System
 
-The core innovation is the **Mediation Coefficient μ(x,t)**, a composite scalar that fuses 11 independent physical measurements into a single environmental state descriptor.
+The **Mediation Coefficient μ(x,t)** is a weighted composite of 11 dimension values, each normalized to [0,1].
 
-### Dimension Definitions
+### Dimensions (actual keys and default weights)
 
-| Dim | Key | Source | Range | Description |
-|-----|-----|--------|-------|-------------|
-| D0 | `acoustic` | Web Audio API | 0–1 | Sound propagation delay and ambient noise floor |
-| D1 | `network` | RTT measurement | 0–1 | Network latency normalized to baseline |
-| D2 | `spatial` | Geolocation API | 0–1 | GPS accuracy and position stability |
-| D3 | `temporal` | High-res timer | 0–1 | Clock drift and timing jitter |
-| D4 | `emField` | Magnetometer | 0–1 | Electromagnetic field strength and variance |
-| D5 | `kinetic` | Accelerometer | 0–1 | Device motion energy |
-| D6 | `photonic` | Ambient Light | 0–1 | Light level and spectral estimation |
-| D7 | `barometric` | Pressure sensor | 0–1 | Atmospheric pressure relative to baseline |
-| D8 | `thermal` | Estimated | 0–1 | Temperature proxy from sensor characteristics |
-| D9 | `quantum` | Entropy pool | 0–1 | Random number generator entropy quality |
-| D10 | `rf` | WiFi/BLE RSSI | 0–1 | Radio frequency signal density |
-
-### Composite Calculation
+| Key | Weight | Source | Status |
+|-----|--------|--------|--------|
+| `acoustic` | 0.20 | Chirp ranging confidence | REAL |
+| `emField` | 0.10 | Magnetometer / orientation tilt | REAL / EST |
+| `photonic` | 0.08 | AmbientLightSensor / time-of-day | EST |
+| `kinetic` | 0.08 | Accelerometer energy | REAL |
+| `rfDensity` | 0.10 | Simulated RF spectrum | SIM |
+| `nfcField` | 0.05 | Simulated (no Web NFC implementation) | SIM |
+| `thermal` | 0.07 | CPU-load thermal proxy | EST |
+| `spatial` | 0.10 | Geolocation accuracy | REAL |
+| `bleMesh` | 0.10 | Simulated BLE scan | SIM |
+| `network` | 0.08 | Real (non-simulated) mesh peers | REAL |
+| `collaborative` | 0.04 | Peer collaboration state | REAL |
 
 ```
-μ(x,t) = Σ(wᵢ × dᵢ) / Σ(wᵢ)    where i ∈ [0,10]
-
-wᵢ = user-adjustable weight per dimension (default: 1.0)
-dᵢ = normalized dimension value at position x, time t
+μ(x,t) = Σ(wᵢ × dᵢ) / Σ(wᵢ)
 ```
 
-Each dimension carries a **source tag** indicating data provenance:
+Source tags: `REAL` (direct sensor), `EST` (derived estimate), `SIM` (simulation), `N/A`. The **Reality Index** is the REAL ratio among active dimensions.
 
-- `REAL` — Direct sensor reading
-- `SIM` — Simulated/estimated value
-- `EST` — Derived from correlated dimensions
-- `N/A` — Sensor unavailable
+---
 
-The **Reality Index** is the ratio of REAL sources to total active dimensions, providing a confidence measure for the composite value.
+## Acoustic Ranging (how the measurement works)
+
+1. The speaker fires a chirp (default 1→5 kHz, 30 ms).
+2. The microphone records ~800 ms via AudioWorklet (ScriptProcessor fallback).
+3. Normalized cross-correlation against the reference chirp finds the **direct speaker→mic peak**, then the **first echo peak** after it.
+4. Distance = Δt(direct→echo) / 2 × c (343 m/s). Using the direct-path peak as the time reference cancels device audio latency.
+5. When no echo peak is resolvable, the calibrated loopback time is subtracted instead (`CALIBRATE` measures it; up to 250 ms is accepted — real phones commonly sit at 30–150 ms).
+6. A Kalman filter (seeded with the first valid measurement, reset on signal/calibration change) smooths the history.
+
+The result card shows which method produced the number: `ECHO(直接波基準)` or `LB(較正減算)`.
 
 ---
 
 ## Phase-Law Framework
 
-Phase-Laws are empirically derived rules that describe stable relationships between dimensions. They govern system behavior, trigger alerts, and provide predictive capability.
-
 ### Built-in Phase-Laws (12)
 
-| ID | Name | Type | Formula |
-|----|------|------|---------|
-| PL-001 | Acoustic-Spatial Coupling | COUPLED | `\|acoustic - spatial\| < 0.3` |
-| PL-002 | EM-RF Resonance | RESONANCE | `emField × rf > 0.15` |
-| PL-003 | Temporal Stability Bound | STABILITY | `temporal > 0.4` |
-| PL-004 | Kinetic-Barometric Inverse | INVERSE | `kinetic + barometric ∈ [0.6, 1.4]` |
-| PL-005 | Photonic Floor | THRESHOLD | `photonic > 0.1` |
-| PL-006 | Network Degradation Cascade | CASCADE | network → acoustic → spatial |
-| PL-007 | Quantum Entropy Floor | THRESHOLD | `quantum > 0.3` |
-| PL-008 | Thermal-Kinetic Correlation | COUPLED | `\|thermal - kinetic\| < 0.4` |
-| PL-009 | RF Saturation Limit | LIMIT | `rf < 0.95` |
-| PL-010 | Multi-Source Agreement | CONSENSUS | `≥ 6 sources agree within σ` |
-| PL-011 | Composite Stability | STABILITY | `Δμ/Δt < 0.1 per second` |
-| PL-012 | Reality Minimum | THRESHOLD | `realityIndex > 0.3` |
+| ID | Name |
+|----|------|
+| PL-001 | Acoustic-Spatial Coupling |
+| PL-002 | EM Continuity |
+| PL-003 | Spectral Openness |
+| PL-004 | Kinetic Stability |
+| PL-005 | RF Density |
+| PL-006 | Sensor Completeness |
+| PL-007 | Network Connectivity |
+| PL-008 | Thermal-Photonic Coupling |
+| PL-009 | Cross-Modal Coherence |
+| PL-010 | Spatial Consistency |
+| PL-011 | Temporal Stability |
+| PL-012 | Environmental Context |
 
-Each law evaluates to a state: `COUPLED`, `DECOUPLED`, `VIOLATED`, or `UNKNOWN`, with a continuous score in [0, 1].
+Each law evaluates to a per-law state (e.g. `COUPLED`/`PARTIAL`/`DECOUPLED`, `CONTINUOUS`/`DISCONTINUOUS`, …) with a continuous score in [0,1]. Law states drive the Midbrain mode FSM (NOMINAL → ALERT → CRITICAL → EMERGENCY).
 
 ### Phase-Law v3 Auto-Discovery
 
-The v3.0 auto-discovery system detects **new Phase-Laws** from accumulated measurement data using statistical methods:
-
-1. **Pearson Correlation Matrix** — Computes pairwise r-values across all 11 dimensions
-2. **Unknown Pattern Detection** — Identifies r > 0.6 correlations not covered by existing laws
-3. **Temporal/Lagged Analysis** — Detects time-delayed correlations at lag steps 1, 2, 3, 5
-4. **Bimodal Distribution Detection** — Finds dimensions exhibiting two-cluster behavior (gap > 1.5σ)
-5. **Candidate Generation** — Produces candidate laws with confidence scores and p-values
-
-Requires minimum 20 samples. Significance threshold: p < 0.05.
+Statistical discovery of candidate laws from accumulated data: Pearson correlation matrix, lagged correlation (steps 1/2/3/5), bimodal distribution detection. Requires ≥20 samples; p < 0.05. Candidates are confirmed or rejected by the user, then integrated with live `evaluate()` functions.
 
 ---
 
-## v3.0 PLATFORM Systems
+## v3.1 FEDERATION
 
-### SDK Infrastructure
+- **CRDT engine** — VectorClock plus five CRDT types: G-Counter, PN-Counter, LWW-Register, OR-Set, MV-Register
+- **Federation mesh** — BroadcastChannel-based multi-instance discovery (`ptcp_v31_federation`): open the page in multiple tabs/windows to federate them for real; additional remote instances are simulated
+- **Gossip + anti-entropy** — periodic state fragments plus a repair sweep; partition detection and healing
+- **Node roles** — origin / replica / relay / observer
 
-Generates complete, runnable client SDKs in three languages from a unified API surface definition.
+## L3 Cerebrum (Claude API)
 
-**API Surface:** 21 endpoints across 7 resource groups:
+The Midbrain filters salient signals and can escalate to Claude for a natural-language situation report.
 
-| Group | Endpoints | Methods |
-|-------|-----------|---------|
-| Mediation | getMediation, getMediationHistory, triggerMeasurement | GET, POST |
-| Phase-Laws | getPhaseLaws, getPhaseLaw, discoverLaws | GET, POST |
-| Spatial DB | querySpatial, insertSpatial, updateSpatial, deleteSpatial | GET, POST, PUT, DELETE |
-| Fleet | getESP32Fleet, getVehicleFleet | GET |
-| Sensors | getSensors, triggerCalibration | GET, POST |
-| Streams | streamMediation, streamPhaseLaws, streamAnomalies | WebSocket (SUB) |
-| Cityscape | getCityscapeEntities, createEntity | GET, POST |
-
-**Generated SDKs:**
-
-- **JavaScript (ES6+)** — Async/await class with fetch API and WebSocket subscriptions. Published as `@physical-ping/sdk` on npm.
-- **Python (3.8+)** — asyncio/aiohttp client with dataclasses and type hints. Dependencies: aiohttp>=3.9, pydantic>=2.0.
-- **Rust** — reqwest/tokio client with serde serialization and thiserror. Full type safety with `MediationState`, `PhaseLaw`, `SpatialRecord` structs.
-
-**Core Type System:** 8 shared types — `MediationState`, `PhaseLaw`, `SpatialRecord`, `MeasureResult`, `SensorState`, `DataSource`, `PhaseLawState`, `GeoPoint`.
-
-### Spatial Mediation Database
-
-An in-memory spatial database that stores μ(x,t) fingerprints with full 11-dimensional indexing.
-
-**Storage:** Max 500 records, each containing:
-- 11D fingerprint vector
-- Composite μ value
-- Source provenance array
-- Reality index
-- Space type classification
-- Phase-Law state snapshot
-- Geographic coordinates
-- Tags and metadata
-
-**Query Language:**
-
-```
-composite>0.5 space:office tag:meeting since:1h law:PL-001/COUPLED dim:acoustic/gt/0.5 near:<id>
-```
-
-| Operator | Syntax | Description |
-|----------|--------|-------------|
-| `composite` | `>`, `<`, `=` + value | Filter by composite μ value |
-| `space` | `space:<type>` | Substring match on space classification |
-| `tag` | `tag:<name>` | Match records containing tag |
-| `reality` | `reality><value>` | Filter by reality index |
-| `law` | `law:<id>/<state>` | Match Phase-Law ID and state |
-| `dim` | `dim:<key>/<op>/<value>` | Filter by individual dimension |
-| `near` | `near:<record_id>` | Fingerprint similarity > 0.7 |
-| `since` | `since:<duration>` | Time window (s/m/h/d units) |
-
-**Spatial Indexes:**
-- `SPACE_TYPE` hash index — Aggregates by classification with average composite
-- `COMPOSITE` B-tree — 10 buckets (0.0–1.0 in 0.1 increments)
-- `DIM_STATS` — Per-dimension statistics (mean, std, min, max)
-
-**Auto-Capture Mode:** Samples current μ(x,t) every 15 seconds.
-
-### Auto-Discovery Engine
-
-See [Phase-Law v3 Auto-Discovery](#phase-law-v3-auto-discovery) above.
-
-**Discovered Law Types:**
-- **Correlation** — Positive/negative correlation between dimension pairs (e.g., "Photonic-Network positive correlation", r=0.72)
-- **Temporal** — Lagged prediction patterns (e.g., "Kinetic→Acoustic time-delay (2-step)", r=-0.58)
-- **Bimodal** — Threshold-based regime detection (e.g., "RF Density bimodal distribution", μ_low=0.23, μ_high=0.78)
-
-**Workflow:** Candidate → User confirms/rejects → Confirmed laws integrated into Phase-Law engine with live `evaluate(mediation)` functions.
-
----
-
-## Cognitive Architecture
-
-The system implements a **4-layer biologically-inspired processing pipeline**:
-
-```
-┌────────────────────────────────────────┐
-│  L3: Cerebrum (Claude API)             │  Strategic reasoning, natural language
-│  ↕ Salience queue                      │  analysis, predictive recommendations
-├────────────────────────────────────────┤
-│  L2: Spatial Intelligence              │  Routing, digital twin sync, safety
-│  ↕ Attention gating                    │  zone management, fleet coordination
-├────────────────────────────────────────┤
-│  L1: Midbrain                          │  Anomaly detection, reflex arcs,
-│  ↕ Reflex gating                       │  mode escalation (NOMINAL→EMERGENCY)
-├────────────────────────────────────────┤
-│  L0: Phase-Laws                        │  12+ governing laws, continuous
-│  ↑ Raw sensor fusion                   │  evaluation, state transitions
-└────────────────────────────────────────┘
-```
-
-**Operating Modes:** NOMINAL → ALERT → CRITICAL → EMERGENCY
-
-Each layer processes information independently and communicates through structured queues. L0 operates at sensor-rate (2-second intervals), while L3 is invoked on-demand for complex reasoning tasks.
-
----
-
-## Hardware Integration
-
-### ESP32 Fleet Management
-
-- Fleet-wide OTA firmware updates
-- Per-device health monitoring (uptime, free heap, WiFi RSSI)
-- BLE beacon broadcasting for spatial anchoring
-- Configurable measurement intervals
-- Device status: ONLINE / OFFLINE / ERROR / UPDATING
-
-### Vehicle Fleet
-
-- Real-time GPS tracking with heading and speed
-- Battery/fuel level monitoring
-- Geofence alerting
-- Route history with waypoint logging
-
-### Mobile Sensors
-
-The application leverages mobile device sensors through standard Web APIs:
-
-- **DeviceOrientation** — Magnetometer (EM field dimension), requires iOS permission prompt
-- **DeviceMotion** — Accelerometer/gyroscope (kinetic dimension)
-- **AmbientLightSensor** — Photonic dimension (Chrome only)
-- **Geolocation** — Spatial dimension with accuracy tracking
-- **Web Audio** — Acoustic dimension via microphone FFT analysis
-
----
-
-## Industry Deployment Modes
-
-### Warehouse Mode
-
-- **Zone Tracking** — Named zones with capacity monitoring and fill-rate visualization
-- **Inventory Management** — Item tracking with low-stock and out-of-stock alerts
-- **Forklift BLE Monitoring** — Real-time position and activity status via BLE beacons
-
-### Factory Mode
-
-- **Passive Acoustic Monitoring** — Real-time microphone FFT analysis for machine health
-- **Frequency Band Analysis** — Configurable band monitoring with threshold alerts
-- **Machine State Classification** — Normal / Warning / Critical based on spectral signatures
-
-### Plugin Architecture
-
-Extensible plugin system with lifecycle management:
-
-```javascript
-{
-  id: "plugin-id",
-  name: "Plugin Name",
-  version: "1.0.0",
-  type: "builtin" | "external",
-  status: "running" | "stopped" | "error",
-  hooks: ["onMeasure", "onPhaseLawChange", "onAnomaly"],
-  init: function() { ... },
-  destroy: function() { ... }
-}
-```
+- **No key set (default):** the query button falls back to a rule-based LOCAL summary — it always produces something.
+- **With an API key:** open the CEREBRUM card (MIDBRAIN tab), set your Anthropic API key. It is stored **only in this browser's localStorage** and sent **directly to api.anthropic.com** (`anthropic-dangerous-direct-browser-access`). Use a low-limit dedicated key; never commit a key to the repo — the page is public.
 
 ---
 
@@ -329,154 +178,76 @@ Extensible plugin system with lifecycle management:
 | Component | Technology |
 |-----------|-----------|
 | Runtime | Browser (Chrome 90+, Safari 15+, Firefox 90+) |
-| Framework | React 18 (CDN, no build step) |
-| Rendering | `React.createElement` — no JSX transpilation |
-| State Management | 41 custom React hooks |
-| Persistence | IndexedDB (via raw API) |
-| P2P Networking | WebRTC (RTCPeerConnection) + BroadcastChannel |
-| Audio Processing | Web Audio API (AnalyserNode, FFT) |
-| Visualization | Canvas 2D (charts, heatmaps, radar, 3D wireframe) |
-| Typography | IBM Plex Mono (Google Fonts CDN) |
-| Installability | PWA (Service Worker + Web App Manifest) |
+| Framework | React 18.2 (UMD via cdnjs, no build step; `React.createElement`, no JSX) |
+| State Management | 43 custom React hooks |
+| Persistence | IndexedDB + localStorage |
+| P2P Networking | BroadcastChannel (+ WebRTC scaffolding) |
+| Audio Processing | Web Audio API (AudioWorklet capture, FFT, cross-correlation) |
+| Visualization | Canvas 2D (charts, heatmaps, radar, mesh) |
+| Compression | lz-string 1.5.0 (cdnjs) |
+| QR | qrcode-generator (MIT, inlined) |
+| Typography | IBM Plex Mono (Google Fonts, non-blocking; monospace fallback) |
+| Installability | PWA — real `sw.js` (network-first page / cache-first assets) + `manifest.webmanifest` + icons |
 
 ### Dependencies (CDN)
 
 ```html
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 ```
 
-No other external dependencies. The entire application is a single `.html` file.
+If the CDN is unreachable the boot screen shows an explicit error (and after the first visit, the service worker serves the cached copies offline).
 
 ---
 
 ## Getting Started
 
-### Running Locally
+### 1. Live (recommended)
+
+Open **https://fenom6.github.io/PHYSICAL-PING/** on your phone, tap **PING**, and allow microphone access. On iOS, also tap **GRANT SENSOR ACCESS** (banner under the header) for motion/orientation.
+
+### 2. Local
 
 ```bash
-# Simply open the HTML file in a browser
-open physical-ping-v3_0.html
+# Simplest: open the file directly (sensors limited on file://)
+open index.html
 
-# Or serve via HTTP for full sensor access (HTTPS required for some APIs)
+# Better: serve over HTTP — localhost is a secure context, so all sensor APIs work
 python3 -m http.server 8080
-# Then navigate to https://localhost:8080/physical-ping-v3_0.html
+# then open http://localhost:8080/index.html
 ```
 
-### Sensor Permissions
+Note: testing from another device via `http://<PC-IP>:8080` is NOT a secure context — the mic API will be unavailable (the app shows an explicit message instead of freezing). Use the GitHub Pages URL for real-phone testing.
 
-On iOS devices, sensor access requires an explicit user gesture. The application displays a permission banner when DeviceOrientation/DeviceMotion APIs need authorization. Tap "GRANT SENSOR ACCESS" to enable EM field and kinetic dimensions.
+### First measurement checklist
 
-### Recommended Environment
-
-- HTTPS context (required for Geolocation, DeviceOrientation, and WebRTC)
-- Physical device preferred over emulator (real sensor data)
-- Multiple devices on the same network for mesh features
-- ESP32 hardware for full fleet integration
+1. Open the page → the demo overlay explains the flow on first visit
+2. Tap **PING** → allow microphone
+3. Run **CALIBRATE** once per device (measures speaker→mic loopback latency)
+4. Optionally grant motion/orientation (iOS banner) and location for more REAL dimensions
 
 ---
 
-## API Reference
+## API Reference (selected hooks)
 
-### Core Hooks
+| Hook | Purpose |
+|------|---------|
+| `useMultiChirp()` | 3-band chirp measurement with SNR gating |
+| `useSP()` | iOS sensor permission flow (DeviceOrientation/Motion) |
+| `usePTCPNetwork()` | BroadcastChannel mesh (SYN/ACK/heartbeat/checksums) |
+| `useMultiPeer()` | Secondary BroadcastChannel mesh |
+| `useMidbrain(...)` | Reflex gate, salience filter, mode FSM, embodiment checks |
+| `useCerebrumAPI()` | Claude API integration + LOCAL fallback |
+| `useESP32Fleet()` | Simulated fleet management |
+| `useSpatialMediationDB(...)` | Spatial query engine (`composite>0.5 space:office tag:x since:1h dim:acoustic/gt/0.5 near:<id>`) |
+| `usePhaseAutoDiscovery(...)` | Statistical Phase-Law discovery |
+| `useCRDTState(nodeId)` | CRDT registers with vector clocks |
+| `useFederation(nodeId, mediationRef, phaseLawsRef)` | v3.1 federation mesh |
 
-| Hook | Purpose | Key State |
-|------|---------|-----------|
-| `usePing()` | Primary measurement engine | result, history, stats |
-| `useMediation()` | 11D fusion + composite μ | composite, dimensions, reality |
-| `usePhaseLaws(mediation)` | Phase-Law evaluation | laws[], violationCount |
-| `useNetwork()` | WebRTC mesh management | peers[], topology |
-| `useMultiPeer()` | BroadcastChannel mesh | connectedCount, messages |
-| `useESP32Fleet()` | ESP32 device management | devices[], fleetStats |
-| `useVehicleFleet()` | Vehicle tracking | vehicles[], fleetStats |
-| `useCityscape()` | Digital twin entities | entities[], syncStatus |
-| `useTestbed()` | Verification suite | scenarios[], suiteResult |
-| `useSensorPermission()` | iOS sensor permissions | needsRequest, requestAll() |
-| `useSDKInfra()` | SDK code generation | generate(), exportLog |
-| `useSpatialMediationDB()` | Spatial query engine | query(), insert(), records |
-| `usePhaseAutoDiscovery()` | Statistical discovery | scan(), discoveredLaws[] |
+Measurement/mediation core is inline App state driven by a fixed 2-second timer (`calcMediation` + `evaluatePhaseLaws`).
 
-### Measurement Cycle
-
-```
-┌─────────┐    ┌──────────┐    ┌────────────┐    ┌──────────┐
-│ Trigger │───▶│ Acoustic │───▶│ 11D Fusion │───▶│ Phase-Law│
-│  Ping   │    │ Ranging  │    │  μ(x,t)    │    │  Eval    │
-└─────────┘    └──────────┘    └────────────┘    └──────────┘
-                                      │                │
-                                      ▼                ▼
-                                ┌────────────┐  ┌──────────┐
-                                │ Spatial DB │  │ Midbrain │
-                                │ Accumulate │  │ L1 Gate  │
-                                └────────────┘  └──────────┘
-```
-
-The continuous measurement loop runs at **2-second intervals** when active, updating all 11 dimensions and re-evaluating all Phase-Laws.
-
----
-
-## Data Export Formats
-
-### Patent Dataset Export
-
-```json
-{
-  "timestamp": "2026-02-23T12:00:00.000Z",
-  "version": "3.0",
-  "sessions": [
-    {
-      "id": "abc123",
-      "started": "2026-02-23T11:00:00.000Z",
-      "stats": {
-        "n": 50,
-        "mean": 0.623,
-        "std": 0.0412,
-        "ci95": 0.0114,
-        "reproducibility": "EXCELLENT"
-      },
-      "measurements": [ ... ]
-    }
-  ]
-}
-```
-
-### Snapshot Export
-
-```json
-{
-  "timestamp": "2026-02-23T12:00:00.000Z",
-  "mediation": 0.623,
-  "phaseLaws": [
-    { "id": "PL-001", "state": "COUPLED", "score": 0.85 }
-  ],
-  "history": [ ... ]
-}
-```
-
-### Spatial DB Export
-
-```json
-{
-  "records": [
-    {
-      "id": "rec-001",
-      "name": "Office A",
-      "fingerprint": {
-        "acoustic": 0.42,
-        "network": 0.78,
-        "spatial": 0.65,
-        ...
-      },
-      "composite": 0.623,
-      "sources": ["REAL","REAL","REAL","SIM",...],
-      "reality": 0.72,
-      "spaceType": "office",
-      "tags": ["meeting", "floor-3"],
-      "timestamp": "2026-02-23T12:00:00.000Z"
-    }
-  ]
-}
-```
+The SDK tab generates JS / Python / Rust client code against a hypothetical REST/WS surface. The generated `@physical-ping/sdk` package name is **not published to npm** — copy the generated code from the SDK tab.
 
 ---
 
@@ -488,65 +259,40 @@ The continuous measurement loop runs at **2-second intervals** when active, upda
 | v1.1 | SPECTRUM | ~1,800 | 7 | RF spectrum, BLE, NFC, EM fingerprinting |
 | v1.2 | VISUAL | ~2,300 | 10 | Heatmap, timeline, dashboard, profiles |
 | v1.3 | PRECISION | ~2,700 | 11 | SNR, cross-validation, quality metrics |
-| v1.4 | NETWORK | ~3,200 | 13 | WebRTC mesh, hybrid topology, memory |
+| v1.4 | NETWORK | ~3,200 | 13 | Mesh, hybrid topology, memory |
 | v1.5 | APPLICATION | ~3,600 | 15 | Midbrain, intelligence, routing, patent |
 | v2.0 | INTELLIGENCE | ~4,200 | 17 | 4-layer brain, safety zones, Claude L3 |
 | v2.1 | HARDWARE | ~4,500 | 18 | ESP32 fleet, OTA, hardware management |
 | v2.2 | INDUSTRY | ~4,900 | 20 | Warehouse, factory, plugin architecture |
 | v2.5 | CITYSCAPE | ~5,750 | 22 | Digital twin, vehicle fleet, testbed, site |
 | v3.0 | PLATFORM | ~6,900 | 25 | SDK infra, spatial DB, auto-discovery |
+| v3.1 | FEDERATION | ~7,900 | 26 | CRDT engine, federation mesh, gossip + anti-entropy, node roles |
 
----
+### 2026-08 practical brush-up (v3.1, same codename)
 
-## Research Applications
-
-Physical Ping is designed to support research in the following domains:
-
-- **Indoor Positioning Systems (IPS)** — Acoustic ranging + EM fingerprinting fusion for sub-meter positioning without dedicated infrastructure.
-- **Environmental Sensing** — Continuous multi-modal environmental characterization using commodity mobile devices.
-- **Network Quality of Experience (QoE)** — Correlating physical-layer conditions with application-layer network performance.
-- **Edge Computing** — Distributed measurement across ESP32 mesh networks with local mediation computation.
-- **Digital Twin Validation** — Real-time physical measurement integrated with digital twin entity models.
-- **Predictive Maintenance** — Factory acoustic FFT analysis for early detection of mechanical degradation.
-- **Occupational Safety** — Zone-based worker tracking with KY (Kiken Yochi / hazard prediction) alerting.
+- **Measurement**: distance now uses direct-path→first-echo Δt/2×c (device latency cancels); loopback calibration accepts up to 250 ms; Kalman seeds from first measurement; BURST no longer overlaps concurrent pings
+- **Core loop**: fixed the mediation/Phase-Law 2-second timer that previously never fired; fixed an infinite re-render loop in the Midbrain embodiment check; sensor events throttled to 150 ms
+- **PWA**: real `sw.js` + `manifest.webmanifest` + icons (installable, offline after first visit); CDN failure now shows an explicit error
+- **Cerebrum**: correct Anthropic headers, user-supplied key UI, HTTP error surfacing, current model, LOCAL fallback without a key
+- **Mobile UX**: 5 primary tabs + MORE expander, iOS permission banner moved above the fold, pinch-zoom re-enabled, first-visit demo, safe-area padding
+- **Honesty**: SIM/EST badges on BLE/lux/thermal/tilt readouts, sim peers excluded from the Reality Index, cross-validator labeled as SIM comparison
 
 ---
 
 ## Reproducibility
 
-### Patent Metrics (v3.0 Targets)
+All measurement sessions report sample count, mean, σ, CI95 (±1.96σ/√n), and a reproducibility grade: EXCELLENT (σ < 0.02), GOOD (σ < 0.05), FAIR (σ < 0.1), POOR (σ ≥ 0.1).
 
-| Metric | Target | Method |
-|--------|--------|--------|
-| Acoustic Precision (< 1m) | ± 3 cm | Cross-correlation peak detection |
-| Reality Index | > 70% | Sensor availability ratio |
-| Concurrent Peers | 5+ devices | WebRTC + BroadcastChannel mesh |
-| ESP32 Fleet | 3+ online | BLE/WiFi fleet management |
-| Vehicle Fleet | 3+ tracked | GPS telemetry integration |
-| Digital Twin | LIVE sync | Entity state synchronization |
-| Testbed Score | 80%+ | Automated verification suite |
-| SDK Endpoints | 20+ | API surface definition |
-| Spatial DB Records | 50+ | Auto-capture accumulation |
-| Auto-Discovered Laws | 3+ | Statistical pattern detection |
-
-### Statistical Reporting
-
-All measurement sessions report:
-- Sample count (n)
-- Mean (μ) and standard deviation (σ)
-- 95% confidence interval (CI95 = ± 1.96 × σ / √n)
-- Reproducibility grade: EXCELLENT (σ < 0.02), GOOD (σ < 0.05), FAIR (σ < 0.1), POOR (σ ≥ 0.1)
+Acoustic accuracy depends on device speaker/mic geometry, room acoustics, and noise floor; treat sub-meter figures as indicative, and always run CALIBRATE per device.
 
 ---
 
 ## License
 
-Proprietary research software. All rights reserved.
-
-For academic collaboration inquiries, please contact the development team.
+Source is publicly viewable at https://github.com/Fenom6/PHYSICAL-PING and deployed at https://fenom6.github.io/PHYSICAL-PING/. No open-source license is granted; all other rights reserved. For collaboration inquiries, open an issue.
 
 ---
 
-*Physical Ping — pTCP/IP v3.0 PLATFORM*
-*L0 Phase-Law v3 · L1 Midbrain · L2 Spatial Intelligence · L3 Cerebrum Claude API · HW ESP32 Fleet · IND Plugin Arch · CITY Digital Twin + Vehicle Fleet · PLAT SDK JS/Py/Rust · Spatial MediationDB · Phase-Law Auto-Discovery*
+*Physical Ping — pTCP/IP v3.1 FEDERATION*
+*L0 Phase-Law v3 · L1 Midbrain · L2 Spatial Intelligence · L3 Cerebrum Claude API · HW ESP32 Fleet (SIM) · IND Plugin Arch · CITY Digital Twin · PLAT SDK JS/Py/Rust + Spatial MediationDB + Auto-Discovery · FED Mesh + CRDT*
 *pTCP Protocol 2026*
